@@ -9,7 +9,7 @@
     
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>
-    [SpringBoot] SpingBoot学习之启动配置原理 |  Hello World !
+    [SpringBoot] SpringBoot学习之启动配置原理 |  Hello World !
   </title>
   <meta name="generator" content="hexo-theme-ayer">
   
@@ -41,7 +41,7 @@
   <div id="app">
     <main class="content on">
       <section class="outer">
-  <article id="post-SpringBoot-SpingBoot学习之启动配置原理" class="article article-type-post" itemscope
+  <article id="post-SpringBoot-SpringBoot学习之启动配置原理" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -49,7 +49,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  [SpringBoot] SpingBoot学习之启动配置原理
+  [SpringBoot] SpringBoot学习之启动配置原理
 </h1>
  
 
@@ -58,7 +58,7 @@
 
     
     <div class="article-meta">
-      <a href="/2020/04/28/SpringBoot-SpingBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/" class="article-date">
+      <a href="/2020/04/28/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/" class="article-date">
   <time datetime="2020-04-28T01:40:44.000Z" itemprop="datePublished">2020-04-28</time>
 </a>
       
@@ -156,7 +156,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Create a new &#123;<span class="doctag">@link</span> SpringApplication&#125; instance. The application context will load</span></span><br><span class="line"><span class="comment"> * beans from the specified sources (see &#123;<span class="doctag">@link</span> SpringApplication class-level&#125;</span></span><br><span class="line"><span class="comment"> * documentation for details. The instance can be customized before calling</span></span><br><span class="line"><span class="comment"> * &#123;<span class="doctag">@link</span> #run(String...)&#125;.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> sources the bean sources</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@see</span> #run(Object, String[])</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@see</span> #SpringApplication(ResourceLoader, Object...)</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">SpringApplication</span><span class="params">(Object... sources)</span> </span>&#123;</span><br><span class="line">	initialize(sources);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initialize</span><span class="params">(Object[] sources)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">if</span> (sources != <span class="keyword">null</span> &amp;&amp; sources.length &gt; <span class="number">0</span>) &#123;</span><br><span class="line">           <span class="comment">// 添加 source</span></span><br><span class="line">		<span class="keyword">this</span>.sources.addAll(Arrays.asList(sources));</span><br><span class="line">	&#125;</span><br><span class="line">       <span class="comment">// 判断web环境</span></span><br><span class="line">	<span class="keyword">this</span>.webEnvironment = deduceWebEnvironment();</span><br><span class="line">       <span class="comment">// 设置Initializers</span></span><br><span class="line">	setInitializers((Collection) getSpringFactoriesInstances(</span><br><span class="line">			ApplicationContextInitializer<span class="class">.<span class="keyword">class</span>))</span>;</span><br><span class="line">       <span class="comment">// 设置Listeners</span></span><br><span class="line">	setListeners(</span><br><span class="line">           (Collection) getSpringFactoriesInstances(ApplicationListener<span class="class">.<span class="keyword">class</span>))</span>;</span><br><span class="line">       <span class="comment">// 判断main方法</span></span><br><span class="line">	<span class="keyword">this</span>.mainApplicationClass = deduceMainApplicationClass();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>由初始化方法分析以下步骤：</p>
-<h4 id="配置资源-：读取主配置类"><a href="#配置资源-：读取主配置类" class="headerlink" title="配置资源 ：读取主配置类"></a>配置资源 ：读取主配置类</h4><p><img src="/2020/04/28/SpringBoot-SpingBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/springboot_start_01.png" alt></p>
+<h4 id="配置资源-：读取主配置类"><a href="#配置资源-：读取主配置类" class="headerlink" title="配置资源 ：读取主配置类"></a>配置资源 ：读取主配置类</h4><p><img src="/2020/04/28/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/springboot_start_01.png" alt></p>
 <h4 id="判断Web环境"><a href="#判断Web环境" class="headerlink" title="判断Web环境"></a>判断Web环境</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String[] WEB_ENVIRONMENT_CLASSES = &#123; <span class="string">"javax.servlet.Servlet"</span>,</span><br><span class="line">		<span class="string">"org.springframework.web.context.ConfigurableWebApplicationContext"</span> &#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">deduceWebEnvironment</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="keyword">for</span> (String className : WEB_ENVIRONMENT_CLASSES) &#123;</span><br><span class="line">		<span class="keyword">if</span> (!ClassUtils.isPresent(className, <span class="keyword">null</span>)) &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p><strong>即通过判断是否存在以下类，来判断是否是web应用：</strong></p>
@@ -177,11 +177,11 @@
 
 
 <p>在源码包中可以找到：<strong>META-INF/spring.factories</strong>：</p>
-<p><img src="/2020/04/28/SpringBoot-SpingBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/springboot_start_02.png" alt></p>
+<p><img src="/2020/04/28/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/springboot_start_02.png" alt></p>
 <h4 id="保存-ApplicationListener"><a href="#保存-ApplicationListener" class="headerlink" title="保存 ApplicationListener"></a>保存 ApplicationListener</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 与上一步类似，也是从 META-INF/spring.factories 中读取类，并实例化，</span></span><br><span class="line"><span class="comment">// 最后放到SpringApplication的 listeners 属性中</span></span><br><span class="line">setListeners((Collection) getSpringFactoriesInstances(ApplicationListener<span class="class">.<span class="keyword">class</span>))</span>;</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2020/04/28/SpringBoot-SpingBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/springboot_start_03.png" alt></p>
-<h4 id="获取main方法"><a href="#获取main方法" class="headerlink" title="获取main方法"></a>获取main方法</h4><p><img src="/2020/04/28/SpringBoot-SpingBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/springboot_start_04.png" alt></p>
+<p><img src="/2020/04/28/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/springboot_start_03.png" alt></p>
+<h4 id="获取main方法"><a href="#获取main方法" class="headerlink" title="获取main方法"></a>获取main方法</h4><p><img src="/2020/04/28/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/springboot_start_04.png" alt></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 判断 main入口 的方法</span></span><br><span class="line"><span class="keyword">private</span> Class&lt;?&gt; deduceMainApplicationClass() &#123;</span><br><span class="line">	<span class="keyword">try</span> &#123;</span><br><span class="line">		StackTraceElement[] stackTrace = <span class="keyword">new</span> RuntimeException().getStackTrace();</span><br><span class="line">		<span class="keyword">for</span> (StackTraceElement stackTraceElement : stackTrace) &#123;</span><br><span class="line">			<span class="keyword">if</span> (<span class="string">"main"</span>.equals(stackTraceElement.getMethodName())) &#123;</span><br><span class="line">				<span class="keyword">return</span> Class.forName(stackTraceElement.getClassName());</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">catch</span> (ClassNotFoundException ex) &#123;</span><br><span class="line">		<span class="comment">// Swallow and continue</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 
@@ -223,7 +223,7 @@
 <h4 id="获取SpringApplicationRunListener，并回调starting-方法"><a href="#获取SpringApplicationRunListener，并回调starting-方法" class="headerlink" title="获取SpringApplicationRunListener，并回调starting()方法"></a>获取SpringApplicationRunListener，并回调starting()方法</h4><p>进入getRunListeners（args）方法内</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> SpringApplicationRunListeners <span class="title">getRunListeners</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    Class&lt;?&gt;[] types = new Class&lt;?&gt;[] &#123; SpringApplication.class, String[].class &#125;;</span><br><span class="line">    <span class="comment">// getSpringFactoriesInstance  与上面一样是从 META-INF/factories 文件中加载</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> SpringApplicationRunListeners(logger, getSpringFactoriesInstances(</span><br><span class="line">        SpringApplicationRunListener<span class="class">.<span class="keyword">class</span>, <span class="title">types</span>, <span class="title">this</span>, <span class="title">args</span>))</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p><img src="/2020/04/28/SpringBoot-SpingBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/springboot_start_05.png" alt></p>
+<p><img src="/2020/04/28/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/springboot_start_05.png" alt></p>
 <p>回调 listener.starting() 方法</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">starting</span><span class="params">()</span> </span>&#123;</span><br><span class="line">       <span class="comment">// 循环回调 starting()方法</span></span><br><span class="line">	<span class="keyword">for</span> (SpringApplicationRunListener listener : <span class="keyword">this</span>.listeners) &#123;</span><br><span class="line">		listener.starting();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -320,10 +320,10 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.springboot.config;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.CommandLineRunner;</span><br><span class="line"><span class="keyword">import</span> org.springframework.stereotype.Component;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Description</span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Author</span>: charleyZZZZ</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Date</span>: 2020/4/28 15:19</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Version</span> 1.0</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloCommandLineRunner</span> <span class="keyword">implements</span> <span class="title">CommandLineRunner</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">(String... args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"HelloCommandLineRunner.run... "</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>将 <strong>ApplicationContextInitializer</strong>、<strong>SpringApplicationRunListener</strong> 的实现类配置在类路径下的<strong>META-INF/spring.factories</strong>里：</p>
-<p><img src="/2020/04/28/SpringBoot-SpingBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/springboot_start_06.png" alt></p>
+<p><img src="/2020/04/28/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/springboot_start_06.png" alt></p>
 <p><strong>HelloApplicationRunner</strong> 和 <strong>HelloCommandLineRunner</strong> 是从上下文中获取，只需要在类上添加<strong>@Component</strong> 注解即可</p>
 <p><strong>启动项目，查看控制台日志</strong></p>
-<img src="/2020/04/28/SpringBoot-SpingBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/springboot_start_07.png" style="zoom: 80%;">
+<img src="/2020/04/28/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/springboot_start_07.png" style="zoom: 80%;">
 
 
 
@@ -384,7 +384,7 @@
     <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://charleyzzzz.github.io/2020/04/28/SpringBoot-SpingBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/" alt="微信分享二维码">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://charleyzzzz.github.io/2020/04/28/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -402,10 +402,19 @@
   
   <nav class="article-nav">
     
+      <a href="/2020/05/07/%E6%B8%B8%E7%8E%A9-%E4%BA%94%E4%B8%80%E5%B4%87%E6%98%8E%E4%B9%8B%E8%A1%8C/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            [游玩] 五一崇明之行
+          
+        </div>
+      </a>
     
-      <a href="/2020/04/27/SpringBoot-SpingBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/" class="article-nav-link">
+    
+      <a href="/2020/04/27/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">[SpringBoot] SpingBoot学习之日志管理</div>
+        <div class="article-nav-title">[SpringBoot] SpringBoot学习之日志管理</div>
       </a>
     
   </nav>
@@ -547,6 +556,10 @@
     
     <li class="nav-item">
       <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E7%94%9F%E6%B4%BB/">生活</a>
     </li>
     
   </ul>
@@ -838,7 +851,7 @@
     
     
     <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="52"
-        src="//music.163.com/outchain/player?type=2&id=864711417&auto=1&height=32"></iframe>
+        src="//music.163.com/outchain/player?type=2&id=462472214&auto=1&height=32"></iframe>
 </div>
 
 <style>
