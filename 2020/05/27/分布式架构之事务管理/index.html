@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+
+
+<html lang="en">
+
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    分布式架构之事务管理 |  Hello World !
+  </title>
+  <meta name="generator" content="hexo-theme-ayer">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/dist/main.css">
+
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css">
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+  
+  
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+
+  
+  
+
+  
+
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content on">
+      <section class="outer">
+  <article id="post-分布式架构之事务管理" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  分布式架构之事务管理
+</h1>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/" class="article-date">
+  <time datetime="2020-05-27T15:06:37.000Z" itemprop="datePublished">2020-05-27</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0/">技术学习</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> Word count:</span>
+            <span class="post-count">6.4k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> Reading time≈</span>
+            <span class="post-count">22 min</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="事务"><a href="#事务" class="headerlink" title="事务"></a>事务</h3><blockquote>
+<p>事务（Transaction），一般是指要做的或所做的事情。在计算机<a href="https://baike.baidu.com/item/术语" target="_blank" rel="noopener">术语</a>中是指访问并可能更新数据库中各种<a href="https://baike.baidu.com/item/数据项/3227309" target="_blank" rel="noopener">数据项</a>的一个程序执行单元(unit)。事务通常由<a href="https://baike.baidu.com/item/高级数据库/1439366" target="_blank" rel="noopener">高级数据库</a>操纵语言或编程语言（如SQL，C++或Java）书写的<a href="https://baike.baidu.com/item/用户程序/7450916" target="_blank" rel="noopener">用户程序</a>的执行所引起，并用形如<strong>begin transaction</strong>和<strong>end transaction</strong>语句（或<a href="https://baike.baidu.com/item/函数调用/4127405" target="_blank" rel="noopener">函数调用</a>）来界定。事务由事务开始(<strong>begin transaction</strong>)和事务结束(<strong>end transaction</strong>)之间执行的全体操作组成。</p>
+<p>— 来自百度百科</p>
+</blockquote>
+<h3 id="数据库事务"><a href="#数据库事务" class="headerlink" title="数据库事务"></a>数据库事务</h3><p>数据库事务的特性包括<strong>原子性</strong>（Atomicity）、<strong>一致性</strong>（Consistency）、<strong>隔离性</strong>（Isolation）和<strong>持久性</strong>（Durabilily），简称 <strong>ACID</strong>。</p>
+<p>在数据库执行中，多个并发执行的事务如果涉及到同一份数据的读写就容易出现数据不一致的情况，不一致的异常现象有以下几种。</p>
+<p><strong>脏读</strong>，是指一个事务中访问到了另外一个事务未提交的数据。</p>
+<p>例如事务 T1 中修改的数据项在尚未提交的情况下被其他事务（T2）读取到，如果 T1 进行回滚操作，则 T2 刚刚读取到的数据实际并不存在。</p>
+<p><strong>不可重复读</strong>，是指一个事务读取同一条记录 2 次，得到的结果不一致。</p>
+<p>例如事务 T1 第一次读取数据，接下来 T2 对其中的数据进行了更新或者删除，并且 Commit 成功。这时候 T1 再次读取这些数据，那么会得到 T2 修改后的数据，发现数据已经变更，这样 T1 在一个事务中的两次读取，返回的结果集会不一致。</p>
+<p><strong>幻读</strong>，是指一个事务读取 2 次，得到的记录条数不一致。</p>
+<p>例如事务 T1 查询获得一个结果集，T2 插入新的数据，T2 Commit 成功后，T1 再次执行同样的查询，此时得到的结果集记录数不同。</p>
+<p>脏读、不可重复读和幻读有以下的包含关系，如果发生了脏读，那么幻读和不可重复读都有可能出现。</p>
+<img src="/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/transaction_01.png" style="zoom:80%;">
+
+<h3 id="不同隔离级别"><a href="#不同隔离级别" class="headerlink" title="不同隔离级别"></a>不同隔离级别</h3><p>SQL 标准根据三种不一致的异常现象，将隔离性定义为<strong>四个隔离级别</strong>（Isolation Level），<strong>隔离级别和数据库的性能呈反比，隔离级别越低，数据库性能越高；而隔离级别越高，数据库性能越差</strong>，具体如下：</p>
+<img src="/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/transaction_02.png" style="zoom: 50%;">
+
+<h4 id="Read-uncommitted-读未提交"><a href="#Read-uncommitted-读未提交" class="headerlink" title="Read uncommitted 读未提交"></a>Read uncommitted 读未提交</h4><p>在该级别下，一个事务对数据修改的过程中，不允许另一个事务对该行数据进行修改，但允许另一个事务对该行数据进行读，不会出现更新丢失，但会出现<strong>脏读、不可重复读</strong>的情况。</p>
+<h4 id="Read-committed-读已提交"><a href="#Read-committed-读已提交" class="headerlink" title="Read committed 读已提交"></a>Read committed 读已提交</h4><p>在该级别下，未提交的写事务不允许其他事务访问该行，不会出现脏读，但是读取数据的事务允许其他事务访问该行数据，因此会出现<strong>不可重复读</strong>的情况。</p>
+<h4 id="Repeatable-read-可重复读"><a href="#Repeatable-read-可重复读" class="headerlink" title="Repeatable read 可重复读"></a>Repeatable read 可重复读</h4><p>在该级别下，在同一个事务内的查询都是和事务开始时刻一致的，保证对同一字段的多次读取结果都相同，除非数据是被本身事务自己所修改，不会出现同一事务读到两次不同数据的情况。因为没有约束其他事务的新增Insert操作，所以 SQL 标准中可重复读级别会出现<strong>幻读</strong>。</p>
+<p>值得一提的是，可重复读是 MySQL InnoDB 引擎的默认隔离级别，但是在 MySQL 额外添加了间隙锁（Gap Lock），可以防止幻读。</p>
+<h4 id="Serializable-序列化"><a href="#Serializable-序列化" class="headerlink" title="Serializable 序列化"></a>Serializable 序列化</h4><p>该级别要求所有事务都必须串行执行，可以避免各种并发引起的问题，效率也最低。</p>
+<p>对不同隔离级别的解释，其实是为了保持数据库事务中的隔离性（Isolation），目标是使并发事务的执行效果与串行一致，隔离级别的提升带来的是并发能力的下降，两者是负相关的关系。</p>
+<h3 id="分布式事务产生的原因"><a href="#分布式事务产生的原因" class="headerlink" title="分布式事务产生的原因"></a>分布式事务产生的原因</h3><p>分布式事务是伴随着系统拆分出现的，分布式系统解决了海量数据服务对扩展性的要求，但是增加了架构上的复杂性，在这一点上，分布式事务就是典型的体现。</p>
+<p>在实际开发中，分布式事务产生的原因主要来源于<strong>存储和服务的拆分</strong>。</p>
+<h4 id="存储层拆分"><a href="#存储层拆分" class="headerlink" title="存储层拆分"></a>存储层拆分</h4><p>存储层拆分，最典型的就是数据库分库分表，一般来说，当单表容量达到千万级，就要考虑数据库拆分，从单一数据库变成多个分库和多个分表。在业务中如果需要进行跨库或者跨表更新，同时要保证数据的一致性，就产生了分布式事务问题。</p>
+<img src="/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/transaction_03.png" style="zoom:67%;">
+
+<h4 id="服务层拆分"><a href="#服务层拆分" class="headerlink" title="服务层拆分"></a>服务层拆分</h4><p>服务层拆分也就是业务的服务化，系统架构的演进是从集中式到分布式，业务功能之间越来越解耦合。</p>
+<p>比如电商网站系统，业务初期可能是一个单体工程支撑整套服务，但随着系统规模进一步变大，参考康威定律，大多数公司都会将核心业务抽取出来，以作为独立的服务。商品、订单、库存、账号信息都提供了各自领域的服务，业务逻辑的执行散落在不同的服务器上。</p>
+<p>用户如果在某网站上进行一个下单操作，那么会同时依赖订单服务、库存服务、支付扣款服务，这几个操作如果有一个失败，那下单操作也就完不成，这就需要分布式事务来保证了。</p>
+<img src="/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/transaction_04.png" style="zoom: 67%;">
+
+<h3 id="分布式事务解决方案"><a href="#分布式事务解决方案" class="headerlink" title="分布式事务解决方案"></a>分布式事务解决方案</h3><p>分布式事务的解决方案，典型的有<strong>两阶段和三阶段提交协议</strong>、 <strong>TCC 分段提交</strong>，和<strong>基于消息队列的最终一致性</strong>设计。</p>
+<h4 id="2PC-两阶段提交"><a href="#2PC-两阶段提交" class="headerlink" title="2PC 两阶段提交"></a>2PC 两阶段提交</h4><p>两阶段提交（2PC，Two-phase Commit Protocol）是非常经典的<strong>强一致性</strong>、<strong>中心化的原子提交协议</strong>，在各种事务和一致性的解决方案中，都能看到两阶段提交的应用。</p>
+<p>二阶段提交算法的成立是基于以下假设的：</p>
+<ul>
+<li>在该分布式系统中，存在一个节点作为<strong>协调者</strong>（Coordinator），其他节点作为<strong>参与者</strong>（Participants），且节点之间可以进行网络通信；</li>
+<li>所有节点都采用<strong>预写式</strong>日志，日志被写入后被保存在可靠的存储设备上，即使节点损坏也不会导致日志数据的丢失；</li>
+<li>所有节点不会永久性损坏，即使损坏后仍然可以恢复。</li>
+</ul>
+<p>两阶段提交中的两个阶段，指的是 <strong>Commit-request</strong> 阶段和 <strong>Commit</strong> 阶段，两阶段提交的流程如下：</p>
+<p><img src="/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/transaction_07.png" alt></p>
+<h5 id="提交请求阶段"><a href="#提交请求阶段" class="headerlink" title="提交请求阶段"></a>提交请求阶段</h5><p>在提交请求阶段，协调者将通知事务参与者准备提交事务，然后进入表决过程。在表决过程中，参与者将告知协调者自己的决策：同意（事务参与者本地事务执行成功）或取消（本地事务执行故障），在第一阶段，参与节点并没有进行Commit操作。</p>
+<h5 id="提交阶段"><a href="#提交阶段" class="headerlink" title="提交阶段"></a>提交阶段</h5><p>在提交阶段，协调者将基于第一个阶段的投票结果进行决策：提交或取消这个事务。这个结果的处理和前面基于半数以上投票的一致性算法不同，必须<strong>当且仅当所有的参与者同意提交</strong>，协调者才会通知各个参与者提交事务，否则协调者将通知各个参与者取消事务。</p>
+<p>参与者在接收到协调者发来的消息后将执行对应的操作，也就是本地 Commit 或者 Rollback。</p>
+<h5 id="存在的问题"><a href="#存在的问题" class="headerlink" title="存在的问题"></a>存在的问题</h5><p><img src="/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/transaction_08.png" alt></p>
+<p>两阶段提交协议有几个明显的问题：</p>
+<ul>
+<li>资源被同步阻塞<br>在执行过程中，所有参与节点都是事务独占状态，当参与者占有公共资源时，那么第三方节点访问公共资源会被阻塞。</li>
+<li>协调者可能出现单点故障<br>一旦协调者发生故障，参与者会一直阻塞下去。</li>
+<li>在 Commit 阶段出现数据不一致<br>在第二阶段中，假设协调者发出了事务 Commit 的通知，但是由于网络问题该通知仅被一部分参与者所收到并执行 Commit，其余的参与者没有收到通知，一直处于阻塞状态，那么，这段时间就产生了数据的不一致性。</li>
+</ul>
+<h4 id="3PC-三阶段提交"><a href="#3PC-三阶段提交" class="headerlink" title="3PC 三阶段提交"></a>3PC 三阶段提交</h4><p>三阶段提交协议（3PC，Three-phase_commit_protocol）是在 2PC 之上扩展的提交协议，主要是为了解决两阶段提交协议的阻塞问题，从原来的两个阶段扩展为三个阶段，增加了超时机制。<strong>并且把两阶段提交协议的第一个阶段拆分成了两步：询问，然后再锁资源，最后真正提交。</strong></p>
+<p>三阶段中的 Three Phase 分别为 <strong>CanCommit</strong>、<strong>PreCommit</strong>、<strong>DoCommit</strong> 阶段。</p>
+<p><img src="/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/transaction_09.png" alt></p>
+<h5 id="CanCommit-阶段"><a href="#CanCommit-阶段" class="headerlink" title="CanCommit 阶段"></a>CanCommit 阶段</h5><p>3PC 的 CanCommit 阶段其实和 2PC 的准备阶段很像。协调者向参与者发送 Commit 请求，参与者如果可以提交就返回 Yes 响应，否则返回 No 响应。</p>
+<h5 id="PreCommit-阶段"><a href="#PreCommit-阶段" class="headerlink" title="PreCommit 阶段"></a>PreCommit 阶段</h5><p>协调者根据参与者的反应情况来决定是否可以继续事务的 PreCommit 操作。根据响应情况，有以下两种可能。</p>
+<ul>
+<li><p>A. 假如协调者从所有的参与者获得的反馈都是 Yes 响应，那么就会进行事务的预执行：</p>
+<p>发送预提交请求，协调者向参与者发送 PreCommit 请求，并进入 Prepared 阶段；<br>事务预提交，参与者接收到 PreCommit 请求后，会执行事务操作；<br>响应反馈，如果参与者成功执行了事务操作，则返回 ACK 响应，同时开始等待最终指令。</p>
+</li>
+<li><p>B. 假如有任何一个参与者向协调者发送了 No 响应，或者等待超时之后，协调者都没有接到参与者的响应，那么就中断事务：</p>
+<p>发送中断请求，协调者向所有参与者发送 abort 请求；<br>中断事务，参与者收到来自协调者的 abort 请求之后，执行事务的中断。</p>
+</li>
+</ul>
+<h5 id="DoCommit-阶段"><a href="#DoCommit-阶段" class="headerlink" title="DoCommit 阶段"></a>DoCommit 阶段</h5><p>该阶段进行真正的事务提交，也可以分为以下两种情况。</p>
+<ul>
+<li><p>A. 执行提交</p>
+<p>发送提交请求。协调者接收到参与者发送的 ACK 响应后，那么它将从预提交状态进入到提交状态，并向所有参与者发送 doCommit 请求。<br>事务提交。参与者接收到 doCommit 请求之后，执行正式的事务提交，并在完成事务提交之后释放所有事务资源。<br>响应反馈。事务提交完之后，向协调者发送 ACK 响应。<br>完成事务。协调者接收到所有参与者的 ACK 响应之后，完成事务。</p>
+</li>
+<li><p>B. 中断事务<br>协调者没有接收到参与者发送的 ACK 响应，可能是因为接受者发送的不是 ACK 响应，也有可能响应超时了，那么就会执行中断事务。</p>
+</li>
+<li><p>C.超时提交<br>参与者如果没有收到协调者的通知，超时之后会执行 Commit 操作。</p>
+</li>
+</ul>
+<h5 id="三阶段提交做的改进"><a href="#三阶段提交做的改进" class="headerlink" title="三阶段提交做的改进"></a>三阶段提交做的改进</h5><p><strong>引入超时机制</strong><br>在 2PC 中，只有协调者拥有超时机制，如果在一定时间内没有收到参与者的消息则默认失败，3PC 同时在协调者和参与者中都引入超时机制。</p>
+<p><strong>添加预提交阶段</strong><br>在 2PC 的准备阶段和提交阶段之间，插入一个准备阶段，使 3PC 拥有 CanCommit、PreCommit、DoCommit 三个阶段，PreCommit 是一个缓冲，保证了在最后提交阶段之前各参与节点的状态是一致的</p>
+<h5 id="存在问题"><a href="#存在问题" class="headerlink" title="存在问题"></a>存在问题</h5><p>三阶段提交协议同样存在问题，具体表现为，在阶段三中，如果参与者接收到了 PreCommit 消息后，出现了不能与协调者正常通信的问题，在这种情况下，参与者依然会进行事务的提交，这就出现了数据的不一致性。</p>
+<h5 id="二阶段和三阶段提交的应用"><a href="#二阶段和三阶段提交的应用" class="headerlink" title="二阶段和三阶段提交的应用"></a>二阶段和三阶段提交的应用</h5><p>两阶段提交是一种比较精简的一致性算法/协议，很多关系型数据库都是采用两阶段提交协议来完成分布式事务处理的，典型的比如 MySQL 的 XA 规范。</p>
+<p>在事务处理、数据库和计算机网络中，两阶段提交协议提供了分布式设计中的数据一致性的保障，整个事务的参与者要么一致性全部提交成功，要么全部回滚。MySQL Cluster 内部数据的同步就是用的 2PC 协议。</p>
+<p><strong>MySQL 的主从复制</strong><br>    在 MySQL 中，二进制日志是 server 层，主要用来做主从复制和即时点恢复时使用的；而事务日志（Redo Log）是 InnoDB 存储引擎层，用来保证事务安全的。</p>
+<p>​    在数据库运行中，需要保证 Binlog 和 Redo Log 的一致性，如果顺序不一致， 则意味着 Master-Slave 可能不一致。</p>
+<p>​    在开启 Binlog 后，如何保证 Binlog 和 InnoDB redo 日志的一致性呢？MySQL 使用的就是二阶段提交，内部会自动将普通事务当做一个 XA 事务（内部分布式事务）来处理：</p>
+<ul>
+<li>Commit 会被自动的分成 Prepare 和 Commit 两个阶段；</li>
+<li>Binlog 会被当做事务协调者（Transaction Coordinator），Binlog Event 会被当做协调者日志。</li>
+</ul>
+<h4 id="TCC-分段提交"><a href="#TCC-分段提交" class="headerlink" title="TCC 分段提交"></a>TCC 分段提交</h4><p>TCC 是一个分布式事务的处理模型，将事务过程拆分为 Try、Confirm、Cancel 三个步骤，在保证强一致性的同时，最大限度提高系统的可伸缩性与可用性。</p>
+<p>TCC 提出了一种新的事务模型，基于<strong>业务层面的事务定义</strong>，锁粒度完全由业务自己控制，目的是解决复杂业务中，跨表跨库等大颗粒度资源锁定的问题。TCC 把事务运行过程分成 Try、Confirm / Cancel 两个阶段，每个阶段的逻辑由业务代码控制，避免了长事务，可以获取更高的性能。</p>
+<h5 id="TCC-的各个阶段"><a href="#TCC-的各个阶段" class="headerlink" title="TCC 的各个阶段"></a>TCC 的各个阶段</h5><p>TCC 的具体流程如下图所示：</p>
+<p><img src="/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/transaction_10.png" alt></p>
+<p><strong>Try 阶段</strong>：调用 Try 接口，尝试执行业务，完成所有业务检查，预留业务资源。</p>
+<p><strong>Confirm 或 Cancel 阶段</strong>：两者是互斥的，只能进入其中一个，并且都满足幂等性，允许失败重试。</p>
+<ul>
+<li>Confirm 操作：对业务系统做确认提交，确认执行业务操作，不做其他业务检查，只使用 Try 阶段预留的业务资源。</li>
+<li>Cancel 操作：在业务执行错误，需要回滚的状态下执行业务取消，释放预留资源。<br>Try 阶段失败可以 Cancel，如果 Confirm 和 Cancel 阶段失败了怎么办？</li>
+</ul>
+<p>TCC 中会添加事务日志，如果 Confirm 或者 Cancel 阶段出错，则会进行重试，所以这两个阶段需要支持幂等；如果重试失败，则需要人工介入进行恢复和处理等。</p>
+<h5 id="应用-TCC-的优缺点"><a href="#应用-TCC-的优缺点" class="headerlink" title="应用 TCC 的优缺点"></a>应用 TCC 的优缺点</h5><p>实际开发中，TCC 的本质是把数据库的二阶段提交上升到微服务来实现，从而避免数据库二阶段中长事务引起的低性能风险。</p>
+<p>所以说，TCC 解决了跨服务的业务操作原子性问题，比如下订单减库存，多渠道组合支付等场景，通过 TCC 对业务进行拆解，可以让应用自己定义数据库操作的粒度，可以降低锁冲突，提高系统的业务吞吐量。</p>
+<p>TCC 的不足主要体现在对微服务的<strong>侵入性强</strong>，TCC 需要对业务系统进行改造，业务逻辑的每个分支都需要实现 try、Confirm、Cancel 三个操作，并且 Confirm、Cancel 必须保证幂等。</p>
+<p>另外 TCC 的事务管理器要记录事务日志，也会损耗一定的性能。</p>
+<h5 id="从真实业务场景分析-TCC"><a href="#从真实业务场景分析-TCC" class="headerlink" title="从真实业务场景分析 TCC"></a>从真实业务场景分析 TCC</h5><p>下面以一个电商中的支付业务来演示，用户在支付以后，需要进行更新订单状态、扣减账户余额、增加账户积分和扣减商品操作。</p>
+<p>在实际业务中为了防止超卖，有下单减库存和付款减库存的区别，支付除了账户余额，还有各种第三方支付等，这里我们为了描述方便，统一使用扣款减库存，扣款来源是用户账户余额。</p>
+<p><img src="/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/transaction_11.png" alt></p>
+<p><strong>业务逻辑拆解</strong></p>
+<p>我们把订单业务拆解为以下几个步骤：</p>
+<ul>
+<li>订单更新为支付完成状态</li>
+<li>扣减用户账户余额</li>
+<li>增加用户账户积分</li>
+<li>扣减当前商品的库存</li>
+</ul>
+<p>​    如果不使用事务，上面的几个步骤都可能出现失败，最终会造成大量的数据不一致，比如订单状态更新失败，扣款却成功了；或者扣款失败，库存却扣减了等情况，这个在业务上是不能接受的，会出现大量的客诉。</p>
+<p>如果直接应用事务，不使用分布式事务，比如在代码中添加 Spring 的声明式事务 @Transactional 注解，这样做实际上是在事务中嵌套了远程服务调用，一旦服务调用出现超时，事务无法提交，就会导致数据库连接被占用，出现大量的阻塞和失败，会导致服务宕机。另一方面，如果没有定义额外的回滚操作，比如遇到异常，非 DB 的服务调用失败时，则无法正确执行回滚。</p>
+<p><strong>业务系统改造</strong></p>
+<p>下面应用 TCC 事务，需要对业务代码改造，抽象 Try、Confirm 和 Cancel 阶段。</p>
+<p><strong>Try 操作</strong><br>    Try 操作一般都是锁定某个资源，设置一个预备的状态，冻结部分数据。比如，订单服务添加一个预备状态，修改为 UPDATING，也就是更新中的意思，冻结当前订单的操作，而不是直接修改为支付成功。</p>
+<p>​    库存服务设置冻结库存，可以扩展字段，也可以额外添加新的库存冻结表。积分服务和库存一样，添加一个预增加积分，比如本次订单积分是 100，添加一个额外的存储表示等待增加的积分，账户余额服务等也是一样的操作。</p>
+<p><strong>Confirm 操作</strong><br>    Confirm 操作就是把前边的 Try 操作锁定的资源提交，类比数据库事务中的 Commit 操作。在支付的场景中，包括订单状态从准备中更新为支付成功；库存数据扣减冻结库存，积分数据增加预增加积分。</p>
+<p><strong>Cancel 操作</strong><br>    Cancel 操作执行的是业务上的回滚处理，类比数据库事务中的 Rollback 操作。首先订单服务，撤销预备状态，还原为待支付状态或者已取消状态，库存服务删除冻结库存，添加到可销售库存中，积分服务也是一样，将预增加积分扣减掉。</p>
+<p><strong>执行业务操作</strong></p>
+<p>​    下面来分析业务的实际执行操作，首先业务请求过来，开始执行 Try 操作，如果 TCC 分布式事务框架感知到各个服务的 Try 阶段都成功了以后，就会执行各个服务的 Confirm 逻辑。</p>
+<p>如果 Try 阶段有操作不能正确执行，比如订单失效、库存不足等，就会执行 Cancel 的逻辑，取消事务提交。</p>
+<h5 id="TCC-对比-2PC-两阶段提交"><a href="#TCC-对比-2PC-两阶段提交" class="headerlink" title="TCC 对比 2PC 两阶段提交"></a>TCC 对比 2PC 两阶段提交</h5><p>TCC 事务模型的思想类似 2PC 提交，对比 TCC 和基于 2PC 事务 XA 规范：</p>
+<p><strong>对比 2PC 提交</strong></p>
+<p><img src="/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/transaction_12.png" alt></p>
+<p><strong>第一阶段</strong><br>    在 XA 事务中，各个 RM 准备提交各自的事务分支，事实上就是准备提交资源的更新操作（insert、delete、update 等）；而在 TCC 中，是主业务操作请求各个子业务服务预留资源。</p>
+<p><strong>第二阶段</strong><br>    XA 事务根据第一阶段每个 RM 是否都 prepare 成功，判断是要提交还是回滚。如果都 prepare 成功，那么就 commit 每个事务分支，反之则 rollback 每个事务分支。</p>
+<p>​    在 TCC 中，如果在第一阶段所有业务资源都预留成功，那么进入 Confirm 步骤，提交各个子业务服务，完成实际的业务处理，否则进入 Cancel 步骤，取消资源预留请求。</p>
+<p><strong>与 2PC/XA 两阶段提交的区别</strong></p>
+<p>​    2PC/XA 是数据库或者存储资源层面的事务，实现的是强一致性，在两阶段提交的整个过程中，一直会持有数据库的锁。<br>​    TCC 关注业务层的正确提交和回滚，在 Try 阶段不涉及加锁，是业务层的分布式事务，关注最终一致性，不会一直持有各个业务资源的锁。<br>​    TCC 的核心思想是针对每个业务操作，都要添加一个与其对应的确认和补偿操作，同时把相关的处理，从数据库转移到业务中，以此实现跨数据库的事务。</p>
+<h5 id="TCC-分布式服务组件"><a href="#TCC-分布式服务组件" class="headerlink" title="TCC 分布式服务组件"></a>TCC 分布式服务组件</h5><p>在业务中引入 TCC 一般是依赖单独的 TCC 事务框架，可以选择自研或者应用开源组件。TCC 框架扮演了资源管理器的角色，常用的 TCC 开源组件有 Tcc-transaction、ByteTCC、Spring-cloud-rest-tcc 等。</p>
+<p>前面介绍过的 Seata，可以选择 <strong>TCC 事务模式</strong>，也支持了 <strong>AT 模式</strong>及 <strong>Saga 模式</strong>。（这俩种模式及框架解决方案可自行查阅）</p>
+<h4 id="基于消息补偿的最终一致性"><a href="#基于消息补偿的最终一致性" class="headerlink" title="基于消息补偿的最终一致性"></a>基于消息补偿的最终一致性</h4><p>异步化在分布式系统设计中随处可见，基于消息队列的最终一致性就是一种异步事务机制，在业务中广泛应用。</p>
+<p>在具体实现上，基于消息补偿的一致性主要有<strong>本地消息表</strong>和<strong>第三方可靠消息队列</strong>等。</p>
+<h5 id="本地消息表"><a href="#本地消息表" class="headerlink" title="本地消息表"></a>本地消息表</h5><p>本地消息表的方案最初是由 ebay 的工程师提出，核心思想是将分布式事务拆分成本地事务进行处理，通过消息日志的方式来异步执行。</p>
+<p>本地消息表是一种业务耦合的设计，消息生产方需要额外建一个事务消息表，并记录消息发送状态，消息消费方需要处理这个消息，并完成自己的业务逻辑，另外会有一个异步机制来定期扫描未完成的消息，确保最终一致性。</p>
+<p>下面我们用下单减库存业务来简单模拟本地消息表的实现过程：</p>
+<p><img src="/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/transaction_05.png" alt></p>
+<p>（1）系统收到下单请求，将订单业务数据存入到订单库中，并且同时存储该订单对应的消息数据，比如购买商品的 ID 和数量，消息数据与订单库为同一库，更新订单和存储消息为一个本地事务，要么都成功，要么都失败。</p>
+<p>（2）库存服务通过消息中间件收到库存更新消息，调用库存服务进行业务操作，同时返回业务处理结果。</p>
+<p>（3）消息生产方，也就是订单服务收到处理结果后，将本地消息表的数据删除或者设置为已完成。</p>
+<p>（4）设置异步任务，定时去扫描本地消息表，发现有未完成的任务则重试，保证最终一致性。</p>
+<p>以上就是基于本地消息表一致性的主流程，在具体实践中，还有许多分支情况，比如消息发送失败、下游业务方处理失败等。</p>
+<h5 id="不要求最终一致性的柔性事务"><a href="#不要求最终一致性的柔性事务" class="headerlink" title="不要求最终一致性的柔性事务"></a>不要求最终一致性的柔性事务</h5><p>除了上述几种，还有一种不保证最终一致性的柔性事务，也称为尽最大努力通知，这种方式适合可以接受部分不一致的业务场景。</p>
+<h3 id="分布式事务有哪些开源组件"><a href="#分布式事务有哪些开源组件" class="headerlink" title="分布式事务有哪些开源组件"></a>分布式事务有哪些开源组件</h3><p>分布式事务开源组件应用比较广泛的是蚂蚁金服开源的 <strong>Seata</strong>，也就是 <strong>Fescar</strong>，前身是阿里中间件团队发布的 TXC（Taobao Transaction Constructor）和升级后的 GTS（Global Transaction Service）。</p>
+<p><img src="/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/transaction_06.png" alt></p>
+<p>Seata 的设计思想是把一个分布式事务拆分成一个包含了若干分支事务（Branch Transaction）的全局事务（Global Transaction）。分支事务本身就是一个满足 ACID 的 本地事务，全局事务的职责是协调其下管辖的分支事务达成一致，要么一起成功提交，要么一起失败回滚。 </p>
+<p>在 Seata 中，全局事务对分支事务的协调基于两阶段提交协议，类似数据库中的 XA 规范，XA 规范定义了三个组件来协调分布式事务，分别是 AP 应用程序、TM 事务管理器、RM 资源管理器、CRM 通信资源管理器。关于 XA 规范的详细内容，将会在后面的课时中介绍。</p>
+<p><strong>以上学习内容均来自邴越老师《分布式技术原理与实战》课程，用于学习记录，希望大家共同进步，欧耶。</strong></p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://charleyzzzz.github.io/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BA%8B%E5%8A%A1/" rel="tag">事务</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag">分布式</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+    
+      <a href="/2020/05/14/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E5%9F%BA%E7%A1%80%E7%90%86%E8%AE%BA%E5%AD%A6%E4%B9%A0/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">分布式架构之基础理论学习</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: 'fV6hp5I755QPrJ9W3gpD596M-gzGzoHsz',
+        app_key: '2BLVrJEhiPxBOjTvEyjpXD2c',
+        path: window.location.pathname,
+        notify: 'false',
+        verify: 'false',
+        avatar: 'monsterid',
+        placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2020
+        <i class="ri-heart-fill heart_icon"></i> CharleyZZZZ
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>Visitors:<span id="busuanzi_value_site_uv"></span></s>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>Views:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="float_btns">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+      </div>
+    </main>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/timg.jpg" alt="Hello World !"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E7%94%9F%E6%B4%BB/">生活</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <script>
+      if (window.matchMedia("(max-width: 768px)").matches) {
+        document.querySelector('.content').classList.remove('on');
+        document.querySelector('.sidebar').classList.remove('on');
+      }
+    </script>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/wechat.jpg">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Subtitle -->
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+    console.log(err)
+  }
+</script>
+
+<!-- Tocbot -->
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto'
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+<!-- ClickLove -->
+
+
+<script src="/js/clickLove.js"></script>
+
+
+<!-- CodeCopy -->
+
+
+<link rel="stylesheet" href="/css/clipboard.css">
+
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="52"
+        src="//music.163.com/outchain/player?type=2&id=462472214&auto=1&height=32"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+  </div>
+</body>
+
+</html>
