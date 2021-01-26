@@ -1551,8 +1551,7 @@
 <li>注解机制：jdk内置注解，元注解，自定义注解</li>
 <li>Jdk 版本差异与新特性：7、8、9、11</li>
 </ol>
-<p><a href="http://blogsea.cn/2021/01/26/Java%E8%AF%AD%E8%A8%80%E7%89%B9%E6%80%A7%E4%B8%8E%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%EF%BC%88%E4%BA%8C%EF%BC%89/" target="_blank" rel="noopener">设计模式</a></p>
-<p>设计模式分为 3 大类型共 23 种：</p>
+<h5 id="设计模式"><a href="#设计模式" class="headerlink" title="设计模式"></a><a href="http://blogsea.cn/2021/01/26/Java%E8%AF%AD%E8%A8%80%E7%89%B9%E6%80%A7%E4%B8%8E%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%EF%BC%88%E4%BA%8C%EF%BC%89/" target="_blank" rel="noopener">设计模式</a></h5><p>设计模式分为 3 大类型共 23 种：</p>
 <ul>
 <li><strong>创建型</strong>：<strong>对象实例化的模式，创建型模式用于解耦对象的实例化过程。</strong>有工厂方法模式、抽象工厂模式、单例模式、建造者模式、原型模式。</li>
 <li><strong>结构型</strong>：<strong>把类或对象结合在一起形成一个更大的结构。</strong>有适配器模式、装饰器模式、代理模式、外观模式、桥接模式、组合模式、享元模式。</li>
