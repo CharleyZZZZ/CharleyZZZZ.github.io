@@ -73,7 +73,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">11.2k</span>
+            <span class="post-count">11.8k</span>
         </span>
     </span>
 
@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">39 min</span>
+            <span class="post-count">41 min</span>
         </span>
     </span>
 </div>
@@ -320,6 +320,7 @@
 </ol>
 <h4 id="多核处理"><a href="#多核处理" class="headerlink" title="多核处理"></a>多核处理</h4><p>进程（线程）可以<strong>并行</strong>执行。通常情况下，CPU 有几个核，就可以并行执行几个进程（线程）。</p>
 <h4 id="锁、信号量和分布式锁"><a href="#锁、信号量和分布式锁" class="headerlink" title="锁、信号量和分布式锁"></a>锁、信号量和分布式锁</h4><h5 id="原子操作"><a href="#原子操作" class="headerlink" title="原子操作"></a>原子操作</h5><p>原子操作就是<strong>操作不可分</strong></p>
+<h5 id="临界区"><a href="#临界区" class="headerlink" title="临界区"></a>临界区</h5><p><strong>临界区</strong>指的是一个访问共用资源（例如：共用设备或是共用存储器）的程序片段，而这些共用资源又无法同时被多个<a href="https://baike.baidu.com/item/线程/103101" target="_blank" rel="noopener">线程</a>访问的特性。当有线程进入临界区段时，其他线程或是<a href="https://baike.baidu.com/item/进程/382503" target="_blank" rel="noopener">进程</a>必须等待有一些同步的机制必须在临界区段的进入点与离开点实现，以确保这些共用资源是被互斥获得使用。</p>
 <h5 id="竞争条件"><a href="#竞争条件" class="headerlink" title="竞争条件"></a>竞争条件</h5><p>竞争条件就是说多个线程对一个资源（内存地址）的读写存在竞争，在这种条件下，最后这个资源的值不可预测，而是取决于竞争时具体的执行顺序。</p>
 <h5 id="解决竞争条件"><a href="#解决竞争条件" class="headerlink" title="解决竞争条件"></a>解决竞争条件</h5><p>解决竞争条件有很多方案，一种方案就是不要让程序同时进入临界区，这个方案叫作<strong>互斥</strong>。还有一些方案旨在避免竞争条件，比如 <strong>ThreadLocal</strong>、 <strong>cas 指令</strong>以及 <strong>乐观锁</strong>。</p>
 <ul>
@@ -355,6 +356,23 @@
 </li>
 </ul>
 <h5 id="死锁、悲观锁-乐观锁"><a href="#死锁、悲观锁-乐观锁" class="headerlink" title="死锁、悲观锁/乐观锁"></a>死锁、悲观锁/乐观锁</h5><p>两个线程互相等待对方获得的锁，就会发生<strong>死锁</strong>。你可以把死锁理解成一个环状的依赖关系。</p>
+<p><strong>产生死锁有四个必要条件：</strong></p>
+<ul>
+<li><p><strong>互斥条件</strong>。一个资源只能被一个进程占用</p>
+</li>
+<li><p><strong>不可剥夺条件</strong>。某个进程占用了资源，就只能他自己去释放。</p>
+</li>
+<li><p><strong>请求和保持条件</strong>。进程每次申请它所需要的一部分资源，在申请新的资源的同时，继续占用已分配到的资源。除非我自己不想用了，释放掉。</p>
+</li>
+<li><p><strong>循环等待条件</strong>。在发生死锁时必然存在一个进程等待队列{P1,P2,…,Pn},其中P1等待P2占有的资源，P2等待P3占有的资源，…，Pn等待P1占有的资源，形成一个进程等待环路。</p>
+</li>
+</ul>
+<p>如何<strong>预防死锁</strong>：可以通过<strong>破坏死锁产生的4个必要条件来 预防死锁</strong>，由于资源互斥是资源使用的固有特性是无法改变的，所以通过破坏其他三个条件 预防死锁：</p>
+<ul>
+<li><strong>破坏 “不可剥夺条件” ：</strong>一个进程不能获得所需要的全部资源时便处于等待状态，等待期间他占有的资源将被隐式的释放重新加入到 系统的资源列表中，可以被其他的进程使用，而等待的进程只有重新获得自己原有的资源以及新申请的资源才可以重新启动，执行。</li>
+<li><strong>破坏 “请求和保持条件”：</strong>第一种方法静态分配即每个进程在开始执行时就申请他所需要的全部资源。第二种是动态分配即每个进程在申请所需要的资源时他本身不占用系统资源。</li>
+<li><strong>破坏“循环等待条件“：</strong>采用资源有序分配其基本思想是将系统中的所有资源顺序编号，将紧缺的，稀少的采用较大的编号，在申请资源时必须按照编号的顺序进行，一个进程只有获得较小编号的进程才能申请较大编号的进程。</li>
+</ul>
 <p>临界区互斥的方法（对临界区上锁），具有强烈的排他性，对修改持保守态度，我们称为<strong>悲观锁</strong>（Pressimistic Lock）。通常意义上，我们说上锁，就是悲观锁，比如说 MySQL 的表锁、行锁、Java 的锁，本质是互斥（mutex）。</p>
 <p>和悲观锁（PressimisticLock）持相反意见的，是<strong>乐观锁</strong>（Optimistic Lock）。即一开始认为没有冲突，在真正操作提交时判断版本是否一致，如果一致直接提交，不一致则打回。</p>
 <h5 id="分布式锁"><a href="#分布式锁" class="headerlink" title="分布式锁"></a>分布式锁</h5><p><a href="http://blogsea.cn/2020/06/10/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" target="_blank" rel="noopener">详见：分布式架构之分布式锁</a></p>

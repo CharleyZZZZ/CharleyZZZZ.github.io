@@ -80,6 +80,917 @@
     
     
     
+    <article id="post-分布式架构之基础理论学习" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/05/14/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E5%9F%BA%E7%A1%80%E7%90%86%E8%AE%BA%E5%AD%A6%E4%B9%A0/"
+    >分布式架构之基础理论学习</a> 
+</h2>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/05/14/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E5%9F%BA%E7%A1%80%E7%90%86%E8%AE%BA%E5%AD%A6%E4%B9%A0/" class="article-date">
+  <time datetime="2020-05-14T08:53:33.000Z" itemprop="datePublished">2020-05-14</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0/">技术学习</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="分布式系统特点"><a href="#分布式系统特点" class="headerlink" title="分布式系统特点"></a>分布式系统特点</h3><p>​        随着移动互联网的快速发展，互联网的用户数量越来越多，产生的数据规模也越来越大，对应用系统提出了更高的要求，我们的系统必须支持高并发访问和海量数据处理。</p>
+<p>分布式系统技术就是用来解决集中式架构的性能瓶颈问题，来适应快速发展的业务规模，一般来说，分布式系统是建立在网络之上的硬件或者软件系统，<strong>彼此之间通过消息等方式进行通信和协调</strong>。</p>
+<p>分布式系统的核心是<strong>可扩展性</strong>，通过对服务、存储的扩展，来提高系统的处理能力，通过对多台服务器协同工作，来完成单台服务器无法处理的任务，尤其是高并发或者大数据量的任务。</p>
+<p>除了对可扩展性的需求，分布式系统还有<strong>不出现单点故障、服务或者存储无状态</strong>等特点。</p>
+<ul>
+<li><p><strong>单点故障</strong>（Single Point Failure）是指在系统中某个组件一旦失效，这会让整个系统无法工作，而不出现单点故障，单点不影响整体，就是分布式系统的设计目标之一；</p>
+</li>
+<li><p><strong>无状态</strong>，是因为无状态的服务才能满足部分机器宕机不影响全部，可以随时进行扩展的需求。</p>
+</li>
+</ul>
+<h3 id="CAP-理论"><a href="#CAP-理论" class="headerlink" title="CAP 理论"></a>CAP 理论</h3><p>由于分布式系统的特点，在分布式环境中更容易出现问题，比如<strong>节点之间通信失败、网络分区故障、多个副本的数据不一致</strong>等，为了更好的在分布式系统下进行开发，出现了一系列的理论，其中具有代表性的就是 <strong>CAP 理论</strong>。</p>
+<p><strong>CAP 理论</strong>可以表述为，一个分布式系统最多只能同时满足<strong>一致性</strong>（Consistency）、<strong>可用性</strong>（Availability）和<strong>分区容忍性</strong>（Partition Tolerance）这三项中的两项。</p>
+<p><img src="/2020/05/14/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E5%9F%BA%E7%A1%80%E7%90%86%E8%AE%BA%E5%AD%A6%E4%B9%A0/CAP.png" alt></p>
+<ul>
+<li><p><strong>一致性</strong>是指“所有节点同时看到相同的数据”，即更新操作成功并返回客户端完成后，所有节点在同一时间的数据完全一致，等同于所有节点拥有数据的最新版本。</p>
+</li>
+<li><p><strong>可用性</strong>是指“任何时候，读写都是成功的”，即服务一直可用，而且是正常响应时间。我们平时会看到一些 IT 公司的对外宣传，比如系统稳定性已经做到 3 个 9、4 个 9，即 99.9%、99.99%，这里的 N 个 9 就是对可用性的一个描述，叫做 SLA，即服务水平协议。比如我们说月度 99.95% 的 SLA，则意味着每个月服务出现故障的时间只能占总时间的 0.05%，如果这个月是 30 天，那么就是 21.6 分钟。</p>
+</li>
+<li><p><strong>分区容忍性</strong>具体是指“当部分节点出现消息丢失或者分区故障的时候，分布式系统仍然能够继续运行”，即系统容忍网络出现分区，并且在遇到某节点或网络分区之间网络不可达的情况下，仍然能够对外提供满足一致性和可用性的服务。</p>
+</li>
+</ul>
+<p>在分布式系统中，由于系统的各层拆分，<strong>P</strong> 是确定的，CAP 的应用模型就是 <strong>CP 架构</strong>和 <strong>AP 架构</strong>。</p>
+<h3 id="CP-和-AP-架构的取舍"><a href="#CP-和-AP-架构的取舍" class="headerlink" title="CP 和 AP 架构的取舍"></a>CP 和 AP 架构的取舍</h3><p>在通常的分布式系统中，为了保证数据的高可用，通常会将数据保留多个副本（Replica），<strong>网络分区</strong>是既成的现实，于是只能在<strong>可用性</strong>和<strong>一致性</strong>两者间做出选择。CAP 理论关注的是在绝对情况下，在工程上，<strong>可用性和一致性并不是完全对立的，我们关注的往往是如何在保持相对一致性的前提下，提高系统的可用性。</strong></p>
+<p>业务上对一致性的要求会直接反映在系统设计中，典型的就是 <strong>CP</strong> 和 <strong>AP</strong> 架构。</p>
+<p><strong>CP 架构：</strong>放弃可用性，追求一致性和分区容错性。</p>
+<p>​    我们熟悉的 <strong>ZooKeeper</strong>，就是采用了 <strong>CP</strong> 一致性，ZooKeeper 是一个分布式的服务框架，主要用来解决分布式集群中应用系统的协调和一致性问题。Zookeeper 采用 数据一致性算法 <strong>ZAB</strong> （基于Paxos）保证数据一致性。在 Zookeeper中，当<strong>master</strong> 节点因为网络故障与其他节点失去联系时，其余节点会重新进行<strong>leader</strong> 选举，一般选举时间为 <strong>30~120 s</strong>，且选举期间整个zk集群都是<strong>不可用的</strong>，这会导致在选举期间注册服务瘫痪。失去可用性。</p>
+<p><strong>AP 架构：</strong>放弃强一致性，追求分区容错性和可用性，这是很多分布式系统设计时的选择，后面的 Base 也是根据 AP 来扩展的。</p>
+<p>​    和 ZooKeeper 相对的是 Eureka，Eureka 是 Spring Cloud 微服务技术栈中的服务发现组件，Eureka 的各个节点都是平等的，几个节点挂掉不影响正常节点的工作，剩余的节点依然可以提供注册和查询服务，只要有一台 Eureka 还在，就能保证注册服务可用，只不过查到的信息可能不是最新的版本，不保证一致性。</p>
+<h3 id="Base-理论"><a href="#Base-理论" class="headerlink" title="Base 理论"></a>Base 理论</h3><p>对于 CAP 来说，放弃<strong>强一致性</strong>（这里说的一致性是强一致性），追求分区容错性和可用性，这是很多分布式系统设计时的选择。在工程实践中，基于 CAP 定理逐步演化，就提出了 Base 理论。</p>
+<p>Base 是三个短语的简写，即<strong>基本可用</strong>（Basically Available）、<strong>软状态</strong>（Soft State）和<strong>最终一致性</strong>（Eventually Consistent）。</p>
+<img src="/2020/05/14/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E5%9F%BA%E7%A1%80%E7%90%86%E8%AE%BA%E5%AD%A6%E4%B9%A0/Base.png" style="zoom:70%;">
+
+<p><strong>Base 理论</strong>的核心思想是<strong>最终一致性</strong>，即使无法做到强一致性（Strong Consistency），但每个应用都可以根据自身的业务特点，采用适当的方式来使系统达到<strong>最终一致性</strong>（Eventual Consistency）。</p>
+<ul>
+<li><strong>基本可用：</strong> 就是不追求 CAP 中的「任何时候，读写都是成功的」，而是系统能够基本运行，一直提供服务。基本可用强调了分布式系统在出现不可预知故障的时候，允许损失部分可用性，相比正常的系统，可能是响应时间延长，或者是服务被降级。</li>
+<li><strong>软状态：</strong>软状态可以对应 ACID 事务中的原子性（在 ACID 的事务中，实现的是强制一致性，要么全做要么不做，所有用户看到的数据一致。其中的原子性（Atomicity）要求多个节点的数据副本都是一致的，强调数据的一致性，可以理解为一种“硬状态”），软状态则是允许系统中的数据存在中间状态，并认为该状态不影响系统的整体可用性，即允许系统在多个不同节点的数据副本存在数据延时。</li>
+<li><strong>最终一致性：</strong>数据不可能一直是软状态，必须在一个时间期限之后达到各个节点的一致性，在期限过后，应当保证所有副本保持数据一致性，也就是达到数据的最终一致性。在系统设计中，最终一致性实现的时间取决于网络延时、系统负载、不同的存储选型、不同数据复制方案设计等因素。</li>
+</ul>
+<p><strong>不同数据一致性模型</strong></p>
+<p>一般来说，数据一致性模型可以分为<strong>强一致性</strong>和<strong>弱一致性</strong>，强一致性也叫做线性一致性，除此以外，所有其他的一致性都是弱一致性的特殊情况。弱一致性根据不同的业务场景，又可以分解为更细分的模型，不同一致性模型又有不同的应用场景。</p>
+<p>在互联网领域的绝大多数场景中，都需要牺牲强一致性来换取系统的高可用性，系统往往只需要保证“最终一致性”，只要这个最终时间是在用户可以接受的范围内即可。</p>
+<img src="/2020/05/14/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E5%9F%BA%E7%A1%80%E7%90%86%E8%AE%BA%E5%AD%A6%E4%B9%A0/Consistency.png" style="zoom: 67%;">
+
+<p>对于一致性，可以分为从服务端和客户端两个不同的视角，结合全局时钟概念，这里关注的主要是外部一致性。</p>
+<p><strong>强一致性</strong></p>
+<p>当更新操作完成之后，任何多个后续进程的访问都会返回最新的更新过的值，这种是对用户最友好的，就是用户上一次写什么，下一次就保证能读到什么。根据 CAP 理论，这种实现需要牺牲可用性。</p>
+<p><strong>弱一致性</strong></p>
+<p>系统在数据写入成功之后，不承诺立即可以读到最新写入的值，也不会具体的承诺多久之后可以读到。用户读到某一操作对系统数据的更新需要一段时间，我们称这段时间为“不一致性窗口”。</p>
+<p><strong>最终一致性</strong></p>
+<p>最终一致性是弱一致性的特例，强调的是所有的数据副本，在经过一段时间的同步之后，最终都能够达到一个一致的状态。因此，最终一致性的本质是需要系统保证最终数据能够达到一致，而不需要实时保证系统数据的强一致性。</p>
+<p>到达最终一致性的时间 ，就是不一致窗口时间，在没有故障发生的前提下，不一致窗口的时间主要受通信延迟，系统负载和复制副本的个数影响。</p>
+<p>最终一致性模型根据其提供的不同保证可以划分为更多的模型，包括因果一致性和会话一致性等。</p>
+<ul>
+<li><p><strong>因果一致性</strong> ： 因果一致性要求有因果关系的操作顺序得到保证，非因果关系的操作顺序则无所谓。例如：进程 A 在更新完某个数据项后通知了进程 B，那么进程 B 之后对该数据项的访问都应该能够获取到进程 A 更新后的最新值，并且如果进程 B 要对该数据项进行更新操作的话，务必基于进程 A 更新后的最新值。</p>
+</li>
+<li><p><strong>会话一致性</strong>：会话一致性将对系统数据的访问过程框定在了一个会话当中，约定了系统能保证在同一个有效的会话中实现“读己之所写”的一致性，就是在你的一次访问中，执行更新操作之后，客户端能够在同一个会话中始终读取到该数据项的最新值。实际开发中有分布式的 Session 一致性问题，可以认为是会话一致性的一个应用。</p>
+</li>
+</ul>
+<p><strong>CAP  和 Base  的关系</strong></p>
+<p>Base 理论是在 CAP 上发展的，CAP 理论描述了分布式系统中数据一致性、可用性、分区容错性之间的制约关系，当你选择了其中的两个时，就不得不对剩下的一个做一定程度的牺牲。</p>
+<p>Base 理论则是对 CAP 理论的实际应用，也就是在分区和副本存在的前提下，通过一定的系统设计方案，放弃强一致性，实现基本可用，这是大部分分布式系统的选择，比如 NoSQL 系统、微服务架构。在这个前提下，如何把基本可用做到最好，就是分布式工程师们追求的。</p>
+<p>除了 CAP 和 Base，还有 ACID 原理，ACID 是一种强一致性模型，强调原子性、一致性、隔离性和持久性，主要用于在<strong>数据库</strong>实现中。Base 理论面向的是高可用、可扩展的分布式系统，ACID 适合传统金融等业务，在实际场景中，不同业务对数据的一致性要求不一样，ACID 和 Base 理论往往会结合使用。</p>
+<h3 id="全局时钟和逻辑时钟"><a href="#全局时钟和逻辑时钟" class="headerlink" title="全局时钟和逻辑时钟"></a>全局时钟和逻辑时钟</h3><p>​    分布式系统解决了<strong>传统单体架构的单点问题和性能容量问题</strong>，另一方面也带来了很多新的问题，其中一个问题就是<strong>多节点的时间同步问题</strong>：不同机器上的物理时钟难以同步，导致无法区分在分布式系统中多个节点的事件时序。</p>
+<p>没有全局时钟，绝对的<strong>内部一致性</strong>是没有意义的，一般来说，我们讨论的一致性都是外部一致性，而外部一致性主要指的是多并发访问时更新过的数据如何获取的问题。</p>
+<p>和全局时钟相对的，是<strong>逻辑时钟</strong>，逻辑时钟描绘了分布式系统中事件发生的时序，是为了区分现实中的物理时钟提出来的概念。</p>
+<p>一般情况下我们提到的时间都是指物理时间，但实际上很多应用中，只要所有机器有相同的时间就够了，这个时间不一定要跟实际时间相同。更进一步解释：如果两个节点之间不进行交互，那么它们的时间甚至都不需要同步。 因此问题的关键点在于节点间的交互要在事件的发生顺序上达成一致，而不是对于时间达成一致。</p>
+<p>逻辑时钟的概念也被用来解决分布式一致性问题。</p>
+<p><strong>以上学习内容均来自邴越老师《分布式技术原理与实战》课程，用于学习记录，希望大家共同进步，欧耶。</strong></p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag">分布式</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%90%86%E8%AE%BA/" rel="tag">理论</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+  
+  
+
+</article>
+    
+    <article id="post-Spring-Spring-常用注解-一" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/05/13/Spring-Spring-%E5%B8%B8%E7%94%A8%E6%B3%A8%E8%A7%A3-%E4%B8%80/"
+    >[Spring] Spring 常用注解(一)</a> 
+</h2>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/05/13/Spring-Spring-%E5%B8%B8%E7%94%A8%E6%B3%A8%E8%A7%A3-%E4%B8%80/" class="article-date">
+  <time datetime="2020-05-13T09:44:15.000Z" itemprop="datePublished">2020-05-13</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0/">技术学习</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="1-Bean相关"><a href="#1-Bean相关" class="headerlink" title="1. Bean相关"></a>1. Bean相关</h3><h4 id="1-1-Autowired"><a href="#1-1-Autowired" class="headerlink" title="1.1 @Autowired"></a>1.1 @Autowired</h4><p>依赖注入，自动导入对象到类中，该类同样要求被 <strong>Spring</strong> 容器管理，例如 <strong>Controller</strong> 中注入 <strong>Service</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@RequestMapping</span>(<span class="string">"/hello"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloController</span> </span>&#123;</span><br><span class="line">   <span class="meta">@Autowired</span></span><br><span class="line">   <span class="keyword">private</span> UserService userService;</span><br><span class="line">   ......</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserService</span> </span>&#123;</span><br><span class="line">  ......</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="1-2-Bean-注册"><a href="#1-2-Bean-注册" class="headerlink" title="1.2 Bean 注册"></a>1.2 Bean 注册</h4><ul>
+<li><p>*<em>@Component *</em> 注解表明一个类会作为组件类，并告知Spring要为这个类创建bean</p>
+</li>
+<li><p><strong>@Repository</strong>  对应持久层即 Dao 层，主要用于数据库相关操作</p>
+</li>
+<li><p><strong>@Service</strong>  对应服务层，主要涉及一些复杂的逻辑，需要用到 Dao 层。</p>
+</li>
+<li><p><strong>@Controller</strong>  对应 Spring MVC 控制层，主要用户接受用户请求并调用 Service 层返回数据给前端页面。</p>
+</li>
+<li><p>*<em>@Bean *</em> 注解告诉Spring这个方法将会返回一个对象，这个对象要注册为Spring应用上下文中的bean。通常方法体中包含了最终产生bean实例的逻辑；</p>
+</li>
+<li><p><strong>@Configuration</strong>  与 <strong>@Component</strong> 功能类似，语义上是声明配置类，也可用 <strong>@Component</strong> 替代</p>
+</li>
+</ul>
+<h4 id="1-3-Scope-Bean做用域"><a href="#1-3-Scope-Bean做用域" class="headerlink" title="1.3 @Scope Bean做用域"></a>1.3 <strong>@Scope</strong> Bean做用域</h4><p>声明 Spring Bean 的作用域，使用方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Scope</span>(<span class="string">"singleton"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> Person <span class="title">personSingleton</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Person();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>四种常见的 Spring Bean 的作用域：</strong></p>
+<ul>
+<li><strong>singleton</strong> : 唯一 bean 实例，Spring 中的 bean 默认都是单例的。</li>
+<li><strong>prototype</strong> : 每次请求都会创建一个新的 bean 实例。</li>
+<li><strong>request</strong> : 每一次 HTTP 请求都会产生一个新的 bean，该 bean 仅在当前 HTTP request 内有效。</li>
+<li><strong>session</strong> : 每一次 HTTP 请求都会产生一个新的 bean，该 bean 仅在当前 HTTP session 内有效。</li>
+</ul>
+<h3 id="2-Controller层常用"><a href="#2-Controller层常用" class="headerlink" title="2. Controller层常用"></a>2. Controller层常用</h3><h4 id="2-1-基本注解"><a href="#2-1-基本注解" class="headerlink" title="2.1 基本注解"></a>2.1 基本注解</h4><ul>
+<li><p>@<strong>RequestMapping(“url”)</strong>  这里的 url写的是请求路径的一部分，一般作用在 Controller的方法上，作为请求的映射地址。</p>
+</li>
+<li><p>@<strong>RestController</strong>  该注解是  @<strong>ResponseBody</strong>  和 @<strong>Controller</strong> 注解的集合，</p>
+</li>
+<li><p>@<strong>RequestBody</strong>  作用在形参列表上，用于将前台发送过来固定格式的数据【xml 格式或者 json等】封装为对应的 <strong>JavaBean</strong> 对象，封装时使用到的一个对象是系统默认配置的 HttpMessageConverter进行解析，然后封装到形参上。</p>
+</li>
+<li><p>@<strong>ResponseBody</strong>  作用在方法上，将方法的返回结果直接写入 <strong>HTTP response body</strong> 中，用<strong>json</strong>的格式 返回</p>
+</li>
+</ul>
+<h4 id="2-2-Http请求相关注解"><a href="#2-2-Http请求相关注解" class="headerlink" title="2.2 Http请求相关注解"></a>2.2 Http请求相关注解</h4><p><strong>五种常见的请求类型:</strong></p>
+<ul>
+<li><p><strong>GET</strong> ：请求从服务器获取特定资源。举个例子：GET /users（获取所有学生）</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 等价于@RequestMapping(value="/users",method=RequestMethod.GET)</span></span><br><span class="line"><span class="meta">@GetMapping</span>(<span class="string">"users"</span>)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>POST</strong> ：在服务器</p>
+</li>
+<li><p>创建一个新的资源。举个例子：POST /users（创建学生）</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 等价于@RequestMapping(value="/users",method=RequestMethod.POST)</span></span><br><span class="line"><span class="meta">@PostMapping</span>(<span class="string">"users"</span>)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>PUT</strong> ：更新服务器上的资源（客户端提供更新后的整个资源）。举个例子：PUT /users/12（更新编号为 12 的学生）</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 等价于@RequestMapping(value="/users/&#123;userId&#125;",method=RequestMethod.PUT)</span></span><br><span class="line"><span class="meta">@PutMapping</span>(<span class="string">"/users/&#123;userId&#125;"</span>)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>DELETE</strong> ：从服务器删除特定的资源。举个例子：DELETE /users/12（删除编号为 12 的学生）</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 等价于@RequestMapping(value="/users/&#123;userId&#125;",method=RequestMethod.DELETE)</span></span><br><span class="line"><span class="meta">@DeleteMapping</span>(<span class="string">"/users/&#123;userId&#125;"</span>)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>PATCH</strong> ：更新服务器上的资源（客户端提供更改的属性，可以看做作是部分更新），使用的比较少，这里就不举例子了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//一般实际项目中，我们都是 PUT 不够用了之后才用 PATCH 请求去更新数据。</span></span><br><span class="line"><span class="meta">@PatchMapping</span>(<span class="string">"/profile"</span>)</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ul>
+<h4 id="2-3-前后端传值相关"><a href="#2-3-前后端传值相关" class="headerlink" title="2.3 前后端传值相关"></a>2.3 前后端传值相关</h4><ol>
+<li><p><strong>@PathVariable</strong> <strong>和</strong> <strong>@RequestParam</strong></p>
+<p>@<strong>PathVariable</strong>用于获取路径参数，@<strong>RequestParam</strong>用于获取查询参数。</p>
+<p>具体见示例如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@GetMapping</span>(<span class="string">"/user/&#123;userId&#125;/name"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">getUserName</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">         @PathVariable(<span class="string">"userId"</span>)</span> Long userId,</span></span><br><span class="line"><span class="function">         @<span class="title">RequestParam</span><span class="params">(value = <span class="string">"employeeId"</span>, required = <span class="keyword">false</span>)</span> Long employeeId ) </span>&#123;</span><br><span class="line">...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ol>
+<ol start="2">
+<li><p><strong>@RequestBody</strong></p>
+<p>作用在形参列表上，读取 Request 请求（可能是 POST,PUT,DELETE,GET 请求）的 body 部分并且<strong>Content-Type 为 application/json</strong> 格式的数据，接收到数据之后会自动将数据绑定到 Java 对象上去。系统会使用<strong>HttpMessageConverter</strong>或者自定义的<strong>HttpMessageConverter</strong>将请求的 body 中的 json 字符串转换为 java 对象。</p>
+<p>简单来说就是 将 前台的 传来的 <strong>json</strong> 字符串 自动转成 对象。</p>
+<p>可与 @<strong>ResponseBody</strong> 同时记忆</p>
+</li>
+</ol>
+<h5 id="知识点：ajax-中-DataType-和-ContentType-的区别"><a href="#知识点：ajax-中-DataType-和-ContentType-的区别" class="headerlink" title="知识点：ajax 中 DataType 和 ContentType 的区别"></a>知识点：ajax 中 DataType 和 ContentType 的区别</h5><ul>
+<li><strong>contentType</strong>   告诉服务器，我要发什么类型的数据，对于后台接口来说就是请求参数</li>
+<li><strong>dataType</strong>  告诉服务器，我要想什么类型的数据，对于后台接口来说就是请求返回值</li>
+</ul>
+<h4 id="2-4-参数校验相关注解"><a href="#2-4-参数校验相关注解" class="headerlink" title="2.4 参数校验相关注解"></a>2.4 参数校验相关注解</h4><p><strong>JSR(Java Specification Requests）</strong> 是一套 JavaBean 参数校验的标准，它定义了很多常用的校验注解，我们可以直接将这些注解加在我们 JavaBean 的属性上面，这样就可以在需要校验的时候进行校验了，校验的时候我们实际用的是 <strong>Hibernate Validator</strong> 框架。</p>
+<table>
+<thead>
+<tr>
+<th><strong>Hibernate Validator</strong></th>
+<th>JSR标准</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Hibernate Validator 4.x</td>
+<td>Bean Validation 1.0（JSR 303）</td>
+</tr>
+<tr>
+<td>Hibernate Validator 5.x</td>
+<td>Bean Validation 1.1（JSR 349）</td>
+</tr>
+<tr>
+<td>Hibernate Validator 6.x</td>
+<td>Bean Validation 2.0（JSR 380）</td>
+</tr>
+</tbody></table>
+<p>而SpringBoot 项目的 spring-boot-starter-web 依赖中已经有 hibernate-validator 包，不需要引用相关依赖。</p>
+<p><strong>所有的注解，推荐使用 JSR 注解，即</strong> <strong>javax.validation.constraints</strong>，而不是<strong>org.hibernate.validator.constraints</strong></p>
+<table>
+<thead>
+<tr>
+<th>注解</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>@AssertTrue</td>
+<td>用于boolean字段，该字段只能为true</td>
+</tr>
+<tr>
+<td>@AssertFalse</td>
+<td>该字段的值只能为false</td>
+</tr>
+<tr>
+<td>@CreditCardNumber</td>
+<td>对信用卡号进行一个大致的验证</td>
+</tr>
+<tr>
+<td>@DecimalMax</td>
+<td>只能小于或等于该值</td>
+</tr>
+<tr>
+<td>@DecimalMin</td>
+<td>只能大于或等于该值</td>
+</tr>
+<tr>
+<td>@Digits(integer=,fraction=)</td>
+<td>检查是否是一种数字的整数、分数,小数位数的数字</td>
+</tr>
+<tr>
+<td>@Email</td>
+<td>检查是否是一个有效的email地址</td>
+</tr>
+<tr>
+<td>@Future</td>
+<td>检查该字段的日期是否是属于将来的日期</td>
+</tr>
+<tr>
+<td>@Length(min=,max=)</td>
+<td>检查所属的字段的长度是否在min和max之间,只能用于字符串</td>
+</tr>
+<tr>
+<td>@Max</td>
+<td>该字段的值只能小于或等于该值</td>
+</tr>
+<tr>
+<td>@Min</td>
+<td>该字段的值只能大于或等于该值</td>
+</tr>
+<tr>
+<td>@NotNull</td>
+<td>不能为null</td>
+</tr>
+<tr>
+<td>@NotBlank</td>
+<td>不能为空，检查时会将空格忽略</td>
+</tr>
+<tr>
+<td>@NotEmpty</td>
+<td>不能为空，这里的空是指空字符串</td>
+</tr>
+<tr>
+<td>@Null</td>
+<td>检查该字段为空</td>
+</tr>
+<tr>
+<td>@Past</td>
+<td>检查该字段的日期是在过去</td>
+</tr>
+<tr>
+<td>@Pattern(regex=,flag=)</td>
+<td>被注释的元素必须符合指定的正则表达式</td>
+</tr>
+<tr>
+<td>@Range(min=,max=,message=)</td>
+<td>被注释的元素必须在合适的范围内</td>
+</tr>
+<tr>
+<td>@Size(min=, max=)</td>
+<td>检查该字段的size是否在min和max之间，可以是字符串、数组、集合、Map等</td>
+</tr>
+<tr>
+<td>@URL(protocol=,host,port)</td>
+<td>检查是否是一个有效的URL，如果提供了protocol，host等，则该URL还需满足提供的条件</td>
+</tr>
+<tr>
+<td>@Valid</td>
+<td>该注解主要用于字段为一个包含其他对象的集合或map或数组的字段，或该字段直接为一个其他对象的引用，这样在检查当前对象的同时也会检查该字段所引用的对象</td>
+</tr>
+</tbody></table>
+<p>示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.springboot.dto;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.hibernate.validator.constraints.NotEmpty;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> javax.validation.constraints.NotNull;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Description</span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Author</span>: charleyZZZZ</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Date</span>: 2020/5/9 17:15</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Version</span> 1.0</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Person</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@NotEmpty</span>(message = <span class="string">"姓名不能为空！"</span>)</span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@NotNull</span>(message = <span class="string">"年龄不能为空！"</span>)</span><br><span class="line">    <span class="keyword">private</span> String age;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"Person&#123;"</span> +</span><br><span class="line">                <span class="string">"name='"</span> + name + <span class="string">'\''</span> +</span><br><span class="line">                <span class="string">", age='"</span> + age + <span class="string">'\''</span> +</span><br><span class="line">                <span class="string">'&#125;'</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getAge</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> age;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setAge</span><span class="params">(String age)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.age = age;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>Controller</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@PostMapping</span>(<span class="string">"/person"</span>)</span><br><span class="line">   <span class="meta">@ResponseBody</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> ResponseEntity&lt;Person&gt; <span class="title">getPerson</span><span class="params">(@RequestBody @Valid Person person)</span> </span>&#123;</span><br><span class="line">       <span class="keyword">return</span> ResponseEntity.ok().body(person);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>在需要验证的参数上加上了@Valid注解，如果验证失败，它将抛出MethodArgumentNotValidException，同时配合ExceptionHandler,捕捉异常，封装统一出错返回信息给前端。</strong></p>
+<p>对于请求参数不是对象类型的，可直接在 请求参数上添加校验注解，</p>
+<p><strong>但是在类上一定要加上</strong> <strong>Validated</strong> <strong>注解了，这个参数可以告诉 Spring 去校验方法参数</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.springboot;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Description</span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Author</span>: charleyZZZZ</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Date</span>: 2020/4/27 17:13</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Version</span> 1.0</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@RequestMapping</span>(<span class="string">"test"</span>)</span><br><span class="line"><span class="meta">@Controller</span></span><br><span class="line"><span class="meta">@Validated</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MockController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping</span>(<span class="string">"/person/&#123;id&#125;"</span>)</span><br><span class="line">    <span class="meta">@ResponseBody</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> ResponseEntity&lt;Integer&gt; <span class="title">getPersonByID</span><span class="params">(@Valid @PathVariable(<span class="string">"id"</span>)</span> @<span class="title">Max</span><span class="params">(value = <span class="number">5</span>,message = <span class="string">"超过 id 的范围了"</span>)</span> Integer id) </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> ResponseEntity.ok().body(id);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="2-5-全局Controller异常相关注解"><a href="#2-5-全局Controller异常相关注解" class="headerlink" title="2.5 全局Controller异常相关注解"></a>2.5 全局Controller异常相关注解</h4><h5 id="ExceptionHandler"><a href="#ExceptionHandler" class="headerlink" title="@ExceptionHandler"></a><strong>@ExceptionHandler</strong></h5><p>单独使用<strong>@ExceptionHandler</strong>时一般写在控制器的内部，在控制器的某个方法上加上<strong>@ExceptionHandler</strong>注解。</p>
+<p>在<strong>ExceptionController</strong>内部如果抛出了指定<strong>XXXXException</strong>异常，就会被这个控制器内部的<strong>handleError</strong>捕捉到。然后进行处理。</p>
+<p>但是这样就很麻烦，需要在每个控制器上添加这样一个方法。</p>
+<p>通常的做法是 项目添加<strong>BaseController</strong>，在其他控制器继承<strong>BaseController</strong>，此外 <strong>BaseController</strong> 还可以封装控制器通用方法，常量等</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BaseController</span> <span class="keyword">implements</span> <span class="title">IBaseConstants</span> </span>&#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger LOGGER = LoggerFactory.getLogger(BaseController<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 分页常量</span></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">static</span> <span class="keyword">final</span> String DEFAULT_PAGE = <span class="string">"1"</span>;</span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">static</span> <span class="keyword">final</span> String DEFAULT_PAGE_SIZE = <span class="string">"10"</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String JSP_500 = <span class="string">"500"</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String ERROR_MESSAGE = <span class="string">"errorMsg"</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@ExceptionHandler</span>(Exception<span class="class">.<span class="keyword">class</span>)</span></span><br><span class="line"><span class="class">    <span class="title">public</span> <span class="title">Object</span> <span class="title">exceptionHandler</span>(<span class="title">Exception</span> <span class="title">exception</span>, <span class="title">HttpServletRequest</span> <span class="title">request</span>) </span>&#123;</span><br><span class="line">        LOGGER.error(exception.getMessage(), exception);</span><br><span class="line">        Throwable rootCause = <span class="keyword">this</span>.getRootCause(exception);</span><br><span class="line">        IBaseException baseException;</span><br><span class="line">        <span class="comment">// 这里判断是否是 ajax 请求，来判断是返回json ，还是 modelAndView视图</span></span><br><span class="line">        <span class="keyword">if</span> (!<span class="keyword">this</span>.isAjaxRequest(request) &amp;&amp; !<span class="keyword">this</span>.isApiRequest(request) &amp;&amp; !ServletFileUpload.isMultipartContent(request)) &#123;</span><br><span class="line">            ModelAndView modelAndView = <span class="keyword">new</span> ModelAndView(JSP_500);</span><br><span class="line">            <span class="keyword">if</span> (rootCause <span class="keyword">instanceof</span> IBaseException) &#123;</span><br><span class="line">                modelAndView.addObject(ERROR_MESSAGE, exception.getMessage());</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> modelAndView;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            BaseResponseDTO baseResponseDTO = <span class="keyword">new</span> BaseResponseDTO(<span class="keyword">false</span>);</span><br><span class="line">            baseResponseDTO.setMessage(exception.getMessage());</span><br><span class="line">            <span class="keyword">if</span> (rootCause <span class="keyword">instanceof</span> IBaseException) &#123;</span><br><span class="line">                baseException = (IBaseException) rootCause;</span><br><span class="line">                baseResponseDTO.setCode(baseException.getCode());</span><br><span class="line">                baseResponseDTO.setSuccess(<span class="keyword">false</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> baseResponseDTO;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h5 id="ControllerAdvice"><a href="#ControllerAdvice" class="headerlink" title="@ControllerAdvice"></a>@ControllerAdvice</h5><p>@ExceptionHandler + @ControllerAdvice</p>
+<p>Spring 3.2版本中添加了 新的注解 <strong>@ControllerAdvice</strong> 支持全局的异常处理，这样就可以单独用一个类处理异常了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@ControllerAdvice</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ExceptionController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@ExceptionHandler</span>(&#123;ExceptionException<span class="class">.<span class="keyword">class</span>&#125;)</span></span><br><span class="line"><span class="class">    <span class="title">public</span> <span class="title">String</span> <span class="title">handleError</span>(<span class="title">Exception</span> <span class="title">e</span>)</span>&#123;</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">        <span class="comment">// 处理异常</span></span><br><span class="line">        <span class="keyword">return</span> e.getMessage();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@ExceptionHandler</span>(Exception<span class="class">.<span class="keyword">class</span>)</span></span><br><span class="line"><span class="class">    <span class="title">public</span> <span class="title">ResponseEntity</span>&lt;<span class="title">Object</span>&gt; <span class="title">handleAllException</span>(<span class="title">Exception</span> <span class="title">e</span>)</span>&#123;</span><br><span class="line">        <span class="comment">// 处理异常</span></span><br><span class="line">        <span class="comment">// do something</span></span><br><span class="line">        <span class="keyword">return</span> ResponseEntity.ok(...); </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>补充：</strong></p>
+<p>​    全局异常捕捉还有一种方式，即实现 <strong>HandlerExceptionResolver</strong> 接口，要求实现其 <strong>resolveException</strong></p>
+<p>方法，返回<strong>ModelAndView</strong>对象，要想返回 <strong>Json</strong> 对象，需要定制化，例如 直接在response 中回写，或者 用<strong>MappingJackson2JsonView</strong> 对象，但是 不推荐这样使用。</p>
+<h3 id="3-配置文件相关"><a href="#3-配置文件相关" class="headerlink" title="3. 配置文件相关"></a>3. 配置文件相关</h3><h5 id="Value"><a href="#Value" class="headerlink" title="@Value"></a><strong>@Value</strong></h5><p>读取简单配置</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Value</span>(<span class="string">"$&#123;server.port&#125;"</span>)</span><br><span class="line">String serverPort;</span><br></pre></td></tr></table></figure>
+
+
+
+<h5 id="ConfigurationProperties"><a href="#ConfigurationProperties" class="headerlink" title="@ConfigurationProperties"></a><strong>@ConfigurationProperties</strong></h5><p>读取配置信息，并且配合 <strong>@Configuration</strong> 或者 <strong>@Component</strong> 注解注册到上下文</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@ConfigurationProperties</span>(prefix = <span class="string">"spring.demo"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyConfigurationProperties</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> age;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getAge</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> age;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setAge</span><span class="params">(<span class="keyword">int</span> age)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.age = age;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h5 id="EnableConfigurationProperties"><a href="#EnableConfigurationProperties" class="headerlink" title="@EnableConfigurationProperties"></a>@EnableConfigurationProperties</h5><p>如果未添加 <strong>@Configuration</strong> 或者 <strong>@Component</strong> 注解 ，可以 在使用的地方 添加<strong>@EnableConfigurationProperties</strong> 注解指定配置类将其注入到 上下文中</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="meta">@EnabledDemoAutoConfiguration</span></span><br><span class="line"><span class="meta">@EnableConfigurationProperties</span>(MyConfigurationProperties<span class="class">.<span class="keyword">class</span>)</span></span><br><span class="line"><span class="class"><span class="title">public</span> <span class="title">class</span> <span class="title">SpringBootLogging02Application</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">private</span> MyConfigurationProperties configurationProperties;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">SpringBootLogging02Application</span><span class="params">(MyConfigurationProperties configurationProperties)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">this</span>.configurationProperties = configurationProperties;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">		SpringApplication.run(SpringBootLogging02Application<span class="class">.<span class="keyword">class</span>, <span class="title">args</span>)</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h5 id="PropertySource"><a href="#PropertySource" class="headerlink" title="@PropertySource"></a><strong>@PropertySource</strong></h5><p><strong>读取指定 properties 文件</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@PropertySource</span>(<span class="string">"classpath:myself.properties"</span>)</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">myselfConfig</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Value</span>(<span class="string">"$&#123;server.port&#125;"</span>)</span><br><span class="line">    <span class="keyword">private</span> String port;</span><br><span class="line"></span><br><span class="line">    </span><br><span class="line">  ......</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="4-JPA相关"><a href="#4-JPA相关" class="headerlink" title="4. JPA相关"></a>4. JPA相关</h3><table>
+<thead>
+<tr>
+<th><strong>注解</strong></th>
+<th><strong>含义</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>@<strong>Entity</strong></td>
+<td>声明一个类对应一个数据库实体。</td>
+</tr>
+<tr>
+<td>@<strong>Table</strong></td>
+<td>设置表名</td>
+</tr>
+<tr>
+<td>@<strong>Id</strong></td>
+<td>声明主键</td>
+</tr>
+<tr>
+<td>@<strong>GeneratedValue</strong></td>
+<td><strong>JPA</strong> 使用枚举定义了 4 中常见的主键生成策略：<strong>TABLE</strong>（特定表格存储），<strong>SEQUENCE</strong>（序列），<strong>IDENTITY</strong>（自增长），<strong>AUTO</strong>（交给持久化引擎决定，他会在以上三种选一个，默认使用这个）</td>
+</tr>
+<tr>
+<td>@<strong>GenericGenerator</strong></td>
+<td>声明一个主键策略，然后@<strong>GeneratedValue</strong>使用这个策略</td>
+</tr>
+<tr>
+<td>@<strong>Column</strong></td>
+<td>声明字段</td>
+</tr>
+<tr>
+<td>@<strong>Transient</strong></td>
+<td>声明指定不持久化字段</td>
+</tr>
+<tr>
+<td>@<strong>Lob</strong></td>
+<td>声明某个字段为大字段</td>
+</tr>
+<tr>
+<td>@<strong>Basic</strong>(fetch = FetchType.EAGER)</td>
+<td>指定 <strong>Lob</strong> 类型数据的获取策略， <strong>FetchType.EAGER</strong> 表示非延迟 加载，而 <strong>FetchType. LAZY</strong> 表示延迟加载</td>
+</tr>
+<tr>
+<td>@<strong>Enumerated</strong></td>
+<td>声明使用枚举类型的字段</td>
+</tr>
+<tr>
+<td>@<strong>CreatedBy</strong></td>
+<td>声明审计字段  创建者</td>
+</tr>
+<tr>
+<td>@<strong>LastModifiedBy</strong></td>
+<td>声明审计字段  上次修改者</td>
+</tr>
+<tr>
+<td>@<strong>CreatedDate</strong></td>
+<td>声明审计字段  上次修改时间</td>
+</tr>
+<tr>
+<td>@<strong>LastModifiedDate</strong></td>
+<td>声明审计字段  最后修改时间</td>
+</tr>
+<tr>
+<td>@<strong>EnableJpaAuditing</strong></td>
+<td>开启JPA审计功能，一般放启动类上</td>
+</tr>
+<tr>
+<td>@<strong>EntityListeners</strong>(AuditingEntityListener.class)</td>
+<td>设置实体类监听器，指定审计相关监听器</td>
+</tr>
+<tr>
+<td>@<strong>OneToOne</strong></td>
+<td>声明关联关系：一对一</td>
+</tr>
+<tr>
+<td>@<strong>OneToMany</strong></td>
+<td>声明关联关系：一对多</td>
+</tr>
+<tr>
+<td>@<strong>ManyToOne</strong></td>
+<td>声明关联关系：多对一</td>
+</tr>
+<tr>
+<td>@<strong>ManyToMany</strong></td>
+<td>声明关联关系：多对多</td>
+</tr>
+</tbody></table>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Entity</span></span><br><span class="line"><span class="meta">@Table</span>(name = <span class="string">"sys_user"</span>)</span><br><span class="line"><span class="meta">@ApiModel</span>(<span class="string">"用户表"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SysUser</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Id</span></span><br><span class="line">    <span class="meta">@GeneratedValue</span>(strategy = GenerationType.IDENTITY)</span><br><span class="line">    <span class="keyword">private</span> Long id;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Column</span></span><br><span class="line">    <span class="keyword">private</span> String username;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Column</span></span><br><span class="line">    <span class="keyword">private</span> String password;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Column</span></span><br><span class="line">    <span class="meta">@Enumerated</span>(EnumType.STRING)</span><br><span class="line">    <span class="keyword">private</span> String gender;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@CreatedDate</span></span><br><span class="line">    <span class="meta">@Column</span>(updatable = <span class="keyword">false</span>)</span><br><span class="line">    <span class="keyword">private</span> Instant createdAt;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@LastModifiedDate</span></span><br><span class="line">    <span class="keyword">private</span> Instant updatedAt;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@CreatedBy</span></span><br><span class="line">    <span class="meta">@Column</span>(updatable = <span class="keyword">false</span>)</span><br><span class="line">    <span class="keyword">private</span> String createdBy;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@LastModifiedBy</span></span><br><span class="line">    <span class="keyword">private</span> String updatedBy;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 暂存字段，不持久化</span></span><br><span class="line">    <span class="meta">@Transient</span></span><br><span class="line">    <span class="keyword">private</span> String depatmentName;</span><br><span class="line">   </span><br><span class="line">    .......</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="5-JSON处理相关"><a href="#5-JSON处理相关" class="headerlink" title="5. JSON处理相关"></a>5. JSON处理相关</h3><h4 id="5-1-Json过滤"><a href="#5-1-Json过滤" class="headerlink" title="5.1 Json过滤"></a>5.1 Json过滤</h4><h5 id="JsonIgnoreProperties"><a href="#JsonIgnoreProperties" class="headerlink" title="@JsonIgnoreProperties"></a><strong>@JsonIgnoreProperties</strong></h5><p>作用在类上用于过滤掉特定字段不返回或者不解析。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@JsonIgnoreProperties</span>(&#123;<span class="string">"userRoles"</span>&#125;)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SysUser</span> <span class="keyword">extends</span> <span class="title">BaseDTO</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 用户名</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@NotNull</span></span><br><span class="line">    <span class="keyword">private</span> String username;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 密码</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@NotNull</span></span><br><span class="line">    <span class="keyword">private</span> String password;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 用户角色关系</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> List&lt;UserRole&gt; userRoles;</span><br><span class="line">    </span><br><span class="line">    ......</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h5 id="JsonIgnore"><a href="#JsonIgnore" class="headerlink" title="@JsonIgnore"></a><strong>@JsonIgnore</strong></h5><p>用于类的<strong>属性</strong>上，作用和上面的*<em>@JsonIgnoreProperties *</em>一样</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@JsonIgnoreProperties</span>(&#123;<span class="string">"userRoles"</span>&#125;)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SysUser</span> <span class="keyword">extends</span> <span class="title">BaseDTO</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@NotNull</span></span><br><span class="line">    <span class="keyword">private</span> String username;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@NotNull</span></span><br><span class="line">    <span class="keyword">private</span> String password;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@JsonIgnore</span></span><br><span class="line">    <span class="keyword">private</span> List&lt;UserRole&gt; userRoles;</span><br><span class="line">    </span><br><span class="line">    ......</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="5-2-格式化Json数据"><a href="#5-2-格式化Json数据" class="headerlink" title="5.2 格式化Json数据"></a>5.2 格式化Json数据</h4><h5 id="JsonFormat"><a href="#JsonFormat" class="headerlink" title="@JsonFormat"></a><strong>@JsonFormat</strong></h5><p>一般用来格式化 json 数据</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@JsonFormat</span>(pattern=<span class="string">"yyyy-MM-dd HH:mm:ss"</span>,timezone=<span class="string">"GMT+8"</span>)</span><br><span class="line"><span class="keyword">private</span> Date endTime;</span><br></pre></td></tr></table></figure>
+
+
+
+<h5 id="JsonUnwrapped"><a href="#JsonUnwrapped" class="headerlink" title="@JsonUnwrapped"></a>@<strong>JsonUnwrapped</strong></h5><p>Json数据扁平化处理</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Country</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Country</span><span class="params">(String name, Province province)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">        <span class="keyword">this</span>.province = province;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 国家名称</span></span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 省会</span></span><br><span class="line">    <span class="meta">@JsonUnwrapped</span></span><br><span class="line">    <span class="keyword">private</span> Province province;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Province <span class="title">getProvince</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> province;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setProvince</span><span class="params">(Province province)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.province = province;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Province</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Province</span><span class="params">(String capital)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.capital = capital;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 省会</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> String capital;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getCapital</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> capital;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setCapital</span><span class="params">(String capital)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.capital = capital;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="JsonInclude"><a href="#JsonInclude" class="headerlink" title="@JsonInclude"></a>@JsonInclude</h5><p>指定字段的序列化条件</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@JsonInclude</span>(JsonInclude.Include.NON_NULL)</span><br><span class="line"><span class="keyword">private</span> String code;</span><br><span class="line"><span class="meta">@JsonInclude</span>(JsonInclude.Include.NON_NULL)</span><br><span class="line"><span class="keyword">private</span> String message;</span><br></pre></td></tr></table></figure>
+
+<p><strong>JsonJsonInclude.Include.ALWAYS</strong> 默认策略，任何情况下都序列化该字段，和不写这个注解是一样的效果。<br><strong>JsonJsonInclude.Include.NON_NULL</strong> 最常用，即如果加该注解的字段为null,那么就不序列化这个字段了。<br><strong>JsonJsonInclude.Include.NON_ABSENT</strong> 包含NON_NULL，即为null的时候不序列化</p>
+<p><strong>JsonJsonInclude.Include.NON_EMPTY</strong>  属性包含NON_NULL，NON_ABSENT之后还包含如果字段为空也不序列化。这个也比较常用<br><strong>JsonJsonInclude.Include.NON_DEFAULT</strong>如果字段是默认值的话就不序列化。</p>
+<h5 id="JsonProperty"><a href="#JsonProperty" class="headerlink" title="@JsonProperty"></a><strong>@JsonProperty</strong></h5><p>此注解用于属性上，作用是把该属性的名称序列化为另外一个名称，</p>
+<p>例如如把positionCode属性序列化为postCode</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@JsonProperty</span>(value=<span class="string">"postCode"</span>)</span><br><span class="line"><span class="keyword">private</span> String positionCode;</span><br><span class="line"></span><br><span class="line"><span class="meta">@JsonProperty</span>(value=<span class="string">"postName"</span>)</span><br><span class="line"><span class="keyword">private</span> String positionName;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h3 id="6-SpringBoot常用注解"><a href="#6-SpringBoot常用注解" class="headerlink" title="6. SpringBoot常用注解"></a>6. SpringBoot常用注解</h3><h4 id="SpringBootApplication"><a href="#SpringBootApplication" class="headerlink" title="@SpringBootApplication"></a>@SpringBootApplication</h4><p>该注解是在创建SpringBoot项目后自动添加在主类上的，在项目启动时生效</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Target</span>(ElementType.TYPE)</span><br><span class="line"><span class="meta">@Retention</span>(RetentionPolicy.RUNTIME)</span><br><span class="line"><span class="meta">@Documented</span></span><br><span class="line"><span class="meta">@Inherited</span></span><br><span class="line"><span class="meta">@SpringBootConfiguration</span></span><br><span class="line"><span class="meta">@EnableAutoConfiguration</span></span><br><span class="line"><span class="meta">@ComponentScan</span>(excludeFilters = &#123;</span><br><span class="line">		<span class="meta">@Filter</span>(type = FilterType.CUSTOM, classes = TypeExcludeFilter<span class="class">.<span class="keyword">class</span>),</span></span><br><span class="line"><span class="class">		@<span class="title">Filter</span>(<span class="title">type</span> </span>= FilterType.CUSTOM, classes = AutoConfigurationExcludeFilter<span class="class">.<span class="keyword">class</span>) &#125;)</span></span><br><span class="line"><span class="class"><span class="title">public</span> @<span class="title">interface</span> <span class="title">SpringBootApplication</span> </span>&#123;</span><br><span class="line">    ....</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@Target</span>(ElementType.TYPE)</span><br><span class="line"><span class="meta">@Retention</span>(RetentionPolicy.RUNTIME)</span><br><span class="line"><span class="meta">@Documented</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> SpringBootConfiguration &#123;</span><br><span class="line">	</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>由代码可知，该注解其实是由 <strong>@Configuration</strong>  、 <strong>@EnableAutoConfiguration</strong> 和 <strong>@ComponentScan</strong> 三个注解组成，这三个注解的含义是：</p>
+<ul>
+<li>@<strong>EnableAutoConfiguration</strong>：启用 <strong>SpringBoot</strong> 的自动配置机制</li>
+<li>@<strong>ComponentScan</strong>： 扫描被 <strong>@Component (@Service,@Controller,@Repository)</strong> 注解的 <strong>bean</strong>，注解默认会扫描该类所在的包下所有的类。</li>
+<li>@<strong>Configuration</strong>：允许在 <strong>Spring</strong> 上下文中注册额外的 <strong>bean</strong> 或导入其他配置类</li>
+</ul>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spring/" rel="tag">Spring</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%B3%A8%E8%A7%A3/" rel="tag">注解</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+  
+  
+
+</article>
+    
+    <article id="post-SpringBoot-SpringBoot学习之日志管理" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/"
+    >[SpringBoot] SpringBoot学习之日志管理</a> 
+</h2>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/" class="article-date">
+  <time datetime="2020-05-08T01:34:40.000Z" itemprop="datePublished">2020-05-08</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0/">技术学习</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="场景说明"><a href="#场景说明" class="headerlink" title="场景说明"></a>场景说明</h2><p>对于一个应用程序来说日志记录是必不可少的一部分，线上问题追踪，基于日志的业务逻辑统计分析等都离不开日志。</p>
+<p>java中常见的的日志框架有：Log4j、Log4j2、Logback、JCL(Jakarta Commons Logging)、Slf4j(Simple Logging Façade for Java)、JUL(java.util.logging)、Jboss-logging ,这些框架有些是日志的抽象层，例如 JCL、SLF4J、Jboss-logging,而另一部分则是日志的实现 :Log4j、Log4j2、JUL、Logback</p>
+<p><strong>在srpingBoot中使用的是 SLF4j + Logback 组合</strong></p>
+<p><strong>准备：</strong></p>
+<p>知识储备：</p>
+<ul>
+<li>熟练掌握SPRING，SPRINGMVC</li>
+<li>了解springBoot的基本开发</li>
+<li>了解至少一种日志框架的简单使用、应用场景以及基本配置</li>
+</ul>
+<p>环境条件：</p>
+<ul>
+<li>jdk1.8</li>
+<li>maven4.0.0</li>
+<li>IntelliJ IDEA 2017</li>
+<li>Spring Boot 1.5.9.RELEASE</li>
+</ul>
+<p>学习计划：</p>
+<ul>
+<li>了解当前主流日志框架，优缺点对比，选型方案</li>
+<li>学习springBoot日志框架原理</li>
+<li>学习对springBoot日志管理的使用、基本配置以及高级特性</li>
+<li>特定需求下，如何统一、更换项目日志框架。</li>
+</ul>
+<h2 id="日志框架简介"><a href="#日志框架简介" class="headerlink" title="日志框架简介"></a>日志框架简介</h2><h3 id="1-Java日志框架的发展与选择"><a href="#1-Java日志框架的发展与选择" class="headerlink" title="1. Java日志框架的发展与选择"></a>1. Java日志框架的发展与选择</h3><h4 id="日志框架的发展"><a href="#日志框架的发展" class="headerlink" title="日志框架的发展"></a>日志框架的发展</h4><blockquote>
+<p>1996年早期，欧洲安全电子市场项目组决定编写它自己的程序跟踪API(Tracing API)。经过不断的完善，这个API终于成为一个十分受欢迎的Java日志软件包，即Log4j。后来Log4j成为Apache基金会项目中的一员。</p>
+<p>期间Log4j近乎成了Java社区的日志标准。据说Apache基金会还曾经建议sun引入Log4j到java的标准库中，但Sun拒绝了。</p>
+<p>2002年Java1.4发布，Sun推出了自己的日志库JUL(Java Util Logging),其实现基本模仿了Log4j的实现。在JUL出来以前，log4j就已经成为一项成熟的技术，使得log4j在选择上占据了一定的优势。</p>
+<p>接着，Apache推出了Jakarta Commons Logging，JCL只是定义了一套日志接口(其内部也提供一个Simple Log的简单实现)，支持运行时动态加载日志组件的实现，也就是说，在你应用代码里，只需调用Commons Logging的接口，底层实现可以是log4j，也可以是Java Util Logging。</p>
+<p>后来(2006年)，Ceki Gülcü不适应Apache的工作方式，离开了Apache。然后先后创建了slf4j(日志门面接口，类似于Commons Logging)和Logback(Slf4j的实现)两个项目，并回瑞典创建了QOS公司，QOS官网上是这样描述Logback的：The Generic，Reliable Fast&amp;Flexible Logging Framework(一个通用，可靠，快速且灵活的日志框架)。</p>
+<p>现今，Java日志领域被划分为两大阵营：Commons Logging阵营和SLF4J阵营。</p>
+<p>Commons Logging在Apache大树的笼罩下，有很大的用户基数。但有证据表明，形式正在发生变化。2013年底有人分析了GitHub上30000个项目，统计出了最流行的100个Libraries，可以看出slf4j的发展趋势更好：</p>
+<p>Apache眼看有被Logback反超的势头，于2012-07重写了log4j 1.x，成立了新的项目Log4j 2。Log4j 2具有logback的所有特性。</p>
+<p>​                                                                                                                                                       —– 引用自Internet</p>
+</blockquote>
+<p><strong>总结：</strong></p>
+<table>
+<thead>
+<tr>
+<th>日志门面（日志抽象层）</th>
+<th align="left">日志实现</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>JCL(Jakarta Commons Logging)          SLF4j(Simple Logging Facade for Java)       jboss-logging</td>
+<td align="left">Log4j     JUL(java.util.logging)  Log4j2      Logback</td>
+</tr>
+</tbody></table>
+<ul>
+<li><p>当前Java日志领域分为俩大阵营，SLF4J 和 Commons-Logging阵营。这俩种都是日志门面，SLF4J本身并无日志的实现，JCL定义了一套日志接口，其内部提供了Simple Log的实现。</p>
+</li>
+<li><p>log4j和Logback则是具体的日志实现方案。可以简单的理解为接口与接口的实现，调用这只需要关注接口而无需关注具体的实现，做到解耦。</p>
+</li>
+<li><p>比较常用的组合是 Slf4j 与Logback 组合，Commons-logging 与Log4j的组合。</p>
+</li>
+<li><p>Log4j2与Log4j发生了很大的变化，log4j2不兼容log4j。</p>
+</li>
+<li><p>Logback必须配合Slf4j，因为他们是同一作者兼容性好。</p>
+</li>
+</ul>
+<h4 id="日志框架的选择"><a href="#日志框架的选择" class="headerlink" title="日志框架的选择"></a>日志框架的选择</h4><p><strong>目前在新的项目中建议使用   Slf4j + Logback   的组合做为日志管理。</strong></p>
+<ul>
+<li><p>从日志门面上比较。<strong>Slf4j</strong> 的实现机制决定其限制较少，适用范围更广，通用性高。同时，相比于Commons-logging，<strong>Slf4j</strong>对于内存和CPU等资源的开销更小。</p>
+</li>
+<li><p>在日志的实现上比较，<strong>Logback</strong> 相比于其他日志实现框架拥有更好的性能，其次<strong>Logback</strong>的文档免费，对于开发者而言，相对有利。</p>
+</li>
+</ul>
+<h3 id="2-SLF4j-框架的使用"><a href="#2-SLF4j-框架的使用" class="headerlink" title="2. SLF4j 框架的使用"></a>2. SLF4j 框架的使用</h3><p><strong>SLF4j 官网</strong>：<strong><em><a href="https://www.slf4j.org" target="_blank" rel="noopener">https://www.slf4j.org</a></em></strong></p>
+<p>开发中，日志记录方法的调用，不应该直接调用日志的实现类，而是调用日志抽象层里的方法。</p>
+<h4 id="SLF4j-框架的简单使用"><a href="#SLF4j-框架的简单使用" class="headerlink" title="SLF4j 框架的简单使用"></a>SLF4j 框架的简单使用</h4><p>导入SLF4j和 Logback 的jar 包。</p>
+<p>SLF4j本身并无实现，所以得导入实现类jar 包，这里使用Logback，参照<code>spring-boot-starter-logging</code>：</p>
+<p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_01.png" alt="spring-boot-starter-logging"></p>
+<p>代码中使用</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.slf4j.Logger;</span><br><span class="line"><span class="keyword">import</span> org.slf4j.LoggerFactory;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloWorld</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    Logger logger = LoggerFactory.getLogger(HelloWorld<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">    logger.info(<span class="string">"Hello World"</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="SLF4j-与其他日志组件的桥接"><a href="#SLF4j-与其他日志组件的桥接" class="headerlink" title="SLF4j 与其他日志组件的桥接"></a>SLF4j 与其他日志组件的桥接</h4><p>SLF4j不仅可以与Logback组合，还可以与其他日志的实现框架组合，实现方法，可以参照官方文档：</p>
+<p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_02.png" alt></p>
+<ul>
+<li><p>只导入slf4j 的jar包，没有实现类，指向<strong>/dev/null</strong></p>
+</li>
+<li><p>导入slf4j 的 jar包，也导入和其实现类的jar包，例如<strong>logback</strong>、<strong>slf4j-simple</strong>等，可以正常使用，</p>
+</li>
+<li><p>如果要使用<strong>log4j</strong>、<strong>JUL</strong>等非<strong>sfl4j</strong>阵营的实现类，只需要多导入一个适配层 的jar包即可，例如：slf4j-log412.jar 、slf4j-jdk14.jar等</p>
+</li>
+<li><p>每个日志的实现框架都有自己的配置文件。选用什么实现框架，就配置相关的配置文件，与<strong>SLF4j</strong>无关。</p>
+</li>
+</ul>
+<h4 id="SLF4j-统一项目日志框架"><a href="#SLF4j-统一项目日志框架" class="headerlink" title="SLF4j 统一项目日志框架"></a>SLF4j 统一项目日志框架</h4><p><strong>问题记录：</strong>项目使用（SLF4j+Logback）作为日志框架，而项目中依赖的其他框架，例如Spring、Hibernate、Mybits等，他们的底层都使用了日志框架，而且各不相同：</p>
+<table>
+<thead>
+<tr>
+<th>其他框架</th>
+<th>日志选型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Spring</td>
+<td>Commons-logging</td>
+</tr>
+<tr>
+<td>Hibernate</td>
+<td>Jboss-logging</td>
+</tr>
+<tr>
+<td>Mybatis</td>
+<td>Log4j</td>
+</tr>
+<tr>
+<td>….</td>
+<td>….</td>
+</tr>
+</tbody></table>
+<p><strong>如何统一日志框架，SLF4j官方文档也给出了解决办法：</strong></p>
+<img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_03.png" style="zoom:120%;">
+
+
+
+<p><strong>以 Spring为例：</strong></p>
+<p><strong>项目：SLF4J + Logback</strong> </p>
+<p><strong>Spring：Commons-logging API</strong></p>
+<p>那么如果我们想在项目中统一使用Logback去统一日志管理</p>
+<p>只需要用jcl-over-slf4j.jar  包去替换 commons-logging.jar包即可。</p>
+<p>步骤：</p>
+<ul>
+<li><p>将系统中其他日志框架先排除出去</p>
+</li>
+<li><p>用中间包来替换原有的日志框架</p>
+</li>
+<li><p>导入slf4j 其他的实现包</p>
+</li>
+</ul>
+<p><strong>同样的，如果 项目中使用的是 Slf4j + 其他日志框架 的也可以使用这种方式统一日志框架。</strong></p>
+<ul>
+<li><p>首先将系统中其他日志框架先排除出去</p>
+</li>
+<li><p>用中间包来替换原有的日志框架</p>
+</li>
+<li><p>导入slf4j 其他的实现包</p>
+</li>
+</ul>
+<img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_04.png">
+
+
+
+<h4 id="问题：为什么导入替换这些包就可以统一日志框架？"><a href="#问题：为什么导入替换这些包就可以统一日志框架？" class="headerlink" title="问题：为什么导入替换这些包就可以统一日志框架？"></a>问题：为什么导入替换这些包就可以统一日志框架？</h4><p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_05.png" alt></p>
+<p>查看 <code>jcl-over-slf4j.jar</code> 包可以看到，虽然 jar 包名称叫 <code>jcl-over-slf4j.jar</code> ，但是内部的包名确是<code>org.apache.commons.logging</code> ,项目中排除了jcl的依赖，当Spring框架去寻找日志部分的代码时会走到这里，而这里的<code>LogFactory</code> 实例化时创建的也是<code>SLF4JlogFactory</code>。作者就是通过这种方式实现了偷梁换柱，以此做到日志框架的统一的目的。</p>
+<h2 id="SpringBoot中的日志框架"><a href="#SpringBoot中的日志框架" class="headerlink" title="SpringBoot中的日志框架"></a>SpringBoot中的日志框架</h2><p><strong>Spring-boot-starter-logging</strong> 使用 <strong>SLF4j + Logback</strong>。当然SpringBoot也能自动适配<strong>（jul、log4j、logback）</strong>并简化配置。</p>
+<p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_06.png" alt></p>
+<h3 id="1-新建SpringBoot项目"><a href="#1-新建SpringBoot项目" class="headerlink" title="1. 新建SpringBoot项目"></a>1. 新建SpringBoot项目</h3><p>选择 Spring Initializer 快速创建。</p>
+<p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_07.png" alt></p>
+<p>选择web 模块，方便测试，SpringBoot 版本选择 1.5.9，也可以再pom.xml中更改。</p>
+<p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_08.png" alt></p>
+<p>点击Next ，再 点击Finish。</p>
+<p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_09.png" alt></p>
+<h3 id="2-SpringBoot默认日志级别以及配置方法"><a href="#2-SpringBoot默认日志级别以及配置方法" class="headerlink" title="2. SpringBoot默认日志级别以及配置方法"></a>2. SpringBoot默认日志级别以及配置方法</h3><p>在自带的Test 方法中 <code>LoggerFactory.getLogger(getClass());</code> 创建创建日志对象。分别输出 trace、debug、info、warn、error级别的日志，右键运行Test ：</p>
+<p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_10.png" alt></p>
+<p>SpringBoot 默认输出日志级别是info 及以后的级别：</p>
+<p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_11.png" alt></p>
+<p><strong>想要更改默认输出级别，可以在application.properties文件中配置。</strong></p>
+<h4 id="1）logging-level-root-debug-更改更改springBoot-默认级别"><a href="#1）logging-level-root-debug-更改更改springBoot-默认级别" class="headerlink" title="1）logging.level.root=debug 更改更改springBoot 默认级别"></a>1）logging.level.root=debug 更改更改springBoot 默认级别</h4><p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_12.png" alt></p>
+<h4 id="2）-还可以设置指定的包文件下的日志级别："><a href="#2）-还可以设置指定的包文件下的日志级别：" class="headerlink" title="2） 还可以设置指定的包文件下的日志级别："></a>2） 还可以设置指定的包文件下的日志级别：</h4><p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_13.png" alt></p>
+<h3 id="3-配置日志导出到文件"><a href="#3-配置日志导出到文件" class="headerlink" title="3. 配置日志导出到文件"></a>3. 配置日志导出到文件</h3><h4 id="1）只指定文件名"><a href="#1）只指定文件名" class="headerlink" title="1）只指定文件名"></a>1）只指定文件名</h4><p>使用 <code>logging-file</code> 指定文件名：</p>
+<p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_14.png" alt></p>
+<h4 id="2）指定文件名-路径"><a href="#2）指定文件名-路径" class="headerlink" title="2）指定文件名  + 路径"></a>2）指定文件名  + 路径</h4><p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_15.png" alt></p>
+<h4 id="3）指定文件路径"><a href="#3）指定文件路径" class="headerlink" title="3）指定文件路径"></a>3）指定文件路径</h4><p>使用 <code>logging.path</code> 指定日志文件生成路径，默认文件名：<code>spring.log</code></p>
+<p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_16.png" alt></p>
+<h3 id="4-配置日志格式"><a href="#4-配置日志格式" class="headerlink" title="4. 配置日志格式"></a>4. 配置日志格式</h3><h4 id="1）控制台日志格式"><a href="#1）控制台日志格式" class="headerlink" title="1）控制台日志格式"></a>1）控制台日志格式</h4><figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">logging.pattern.console</span>=<span class="string"></span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_17.png" alt></p>
+<p>我们也可以自定义格式，例如：</p>
+<p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_18.png" alt></p>
+<p><strong>格式设置说明：</strong></p>
+<p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_19.png" alt></p>
+<h4 id="2）更改输出文件日志格式"><a href="#2）更改输出文件日志格式" class="headerlink" title="2）更改输出文件日志格式"></a>2）更改输出文件日志格式</h4><figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">logging.pattern.file</span>=<span class="string"></span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_20.png" alt></p>
+<h2 id="SpringBoot日志默认配置原理及高级特性"><a href="#SpringBoot日志默认配置原理及高级特性" class="headerlink" title="SpringBoot日志默认配置原理及高级特性"></a>SpringBoot日志默认配置原理及高级特性</h2><h3 id="1-Spring-Boot-日志默认配置及原理"><a href="#1-Spring-Boot-日志默认配置及原理" class="headerlink" title="1. Spring Boot 日志默认配置及原理"></a>1. Spring Boot 日志默认配置及原理</h3><p>为什么Spring Boot 默认配置了日志级别、日志默认文件名、日志格式等属性，查看SpringBoot源码可解：</p>
+<img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_21.png" style="zoom: 50%;">
+
+<p>以<strong>Logback</strong>为例，在<code>org.springframework.boot</code> 包里，已经配置好了相关日志框架的基本配置。</p>
+<p><strong>base.xml:</strong></p>
+<p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_22.png" alt></p>
+<p><strong>defaut.xml:</strong></p>
+<p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_23.png" alt></p>
+<p><strong>此外，在<code>LoggingSystemProperties</code>中也设置了相关属性的默认值。</strong></p>
+<p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_24.png" alt></p>
+<h3 id="3-添加指定配置"><a href="#3-添加指定配置" class="headerlink" title="3. 添加指定配置"></a>3. 添加指定配置</h3><h4 id="问题：SpringBoot中只记录了日志实现框架的基本功能，如果我们要使用日志框架的高级功能该怎么做？"><a href="#问题：SpringBoot中只记录了日志实现框架的基本功能，如果我们要使用日志框架的高级功能该怎么做？" class="headerlink" title="问题：SpringBoot中只记录了日志实现框架的基本功能，如果我们要使用日志框架的高级功能该怎么做？"></a>问题：SpringBoot中只记录了日志实现框架的基本功能，如果我们要使用日志框架的高级功能该怎么做？</h4><p><strong>参考官方文档：</strong></p>
+<table>
+<thead>
+<tr>
+<th>Logging System</th>
+<th>Customization</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Logback</td>
+<td><code>logback-spring.xml</code>, <code>logback-spring.groovy</code> ,<code>logback.xml</code>  or <code>logback.groovy</code></td>
+</tr>
+<tr>
+<td>Log4j2</td>
+<td><code>log4j2-spring.xml</code>  or  <code>log4j2.xml</code></td>
+</tr>
+<tr>
+<td>JUL(Java Util Logging)</td>
+<td><code>logging.properties</code></td>
+</tr>
+</tbody></table>
+<p>我们只需要在资源文件夹下添加相关框架的配置文件即可：</p>
+<p>以Logback 为例：添加logback-spring.xml, logback-spring.groovy, logback.xml 或者logback.groovy 文件，然后在里面编写相关配置即可。</p>
+<p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_25.png" alt></p>
+<p>运行项目看是否已更改</p>
+<p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_26.png" alt></p>
+<h3 id="4-Spring-Boot-日志管理高级特性"><a href="#4-Spring-Boot-日志管理高级特性" class="headerlink" title="4. Spring Boot 日志管理高级特性"></a>4. Spring Boot 日志管理高级特性</h3><p>​      上面提到添加指定配置可以引入<code>logback.xml</code> 也可以是 <code>logback-spring.xml</code> (以Logback为例)，那么俩者的区别是什么？</p>
+<p>​      区别在于 <code>logback.xml</code> 其实是直接被底层框架<strong>Logback</strong>识别，而 <code>logback-spring.xml</code> 是被<strong>SpringBoot</strong>识别加载，这样的好处是<strong>SpringBoot</strong>可以添加一些日志实现框架以外的高级功能。</p>
+<p>例如：</p>
+<p><strong>SpringBoot</strong>支持添加 <springProfile> 标签设置不同环境的日志配置。</springProfile></p>
+<p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_27.png" alt></p>
+<p>默认不是dev环境：</p>
+<p>设置：<strong><code>spring.profile.active=dev</code></strong>  激活dev环境后</p>
+<p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_28.png" alt></p>
+<h2 id="切换SpringBoot日志实现框架"><a href="#切换SpringBoot日志实现框架" class="headerlink" title="切换SpringBoot日志实现框架"></a>切换SpringBoot日志实现框架</h2><p><strong>SpringBoot</strong> 默认使用的是 <strong>SLF4J + Logback *<em>的方式实现日志管理，如果我们想用 *</em>SLF4j + Log4j</strong> 的方式该如何实现。</p>
+<p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_02.png" alt></p>
+<p>依据官方文档：</p>
+<h4 id="1-排除-Logback-相关-jar-包"><a href="#1-排除-Logback-相关-jar-包" class="headerlink" title="1.  排除 Logback 相关 jar 包"></a>1.  排除 Logback 相关 jar 包</h4><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-web<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">exclusions</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!--排除Logback相关jar包--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>ch.qos.logback<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>logback-core<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>ch.qos.logback<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>logback-classic<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!--排除log4j转换包--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.slf4j<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>log4j-over-slf4j<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">exclusions</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="2-导入-Log4j-相关-jar-包"><a href="#2-导入-Log4j-相关-jar-包" class="headerlink" title="2. 导入 Log4j 相关 jar 包"></a>2. 导入 Log4j 相关 jar 包</h4><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!--导入log4j --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.slf4j<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>slf4j-log4j12<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="3-查看依赖树"><a href="#3-查看依赖树" class="headerlink" title="3. 查看依赖树"></a>3. 查看依赖树</h4><p>右键 -&gt; Diagrams -&gt; Show Dependencies</p>
+<p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_29.png" alt></p>
+<p>运行项目Test，查看日志输出格式，已更改为log4j默认输出格式：</p>
+<p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_30.png" alt></p>
+<h4 id="4-统一日志框架"><a href="#4-统一日志框架" class="headerlink" title="4. 统一日志框架"></a>4. 统一日志框架</h4><p>方式如1.2 SLF4j统一日志记录  方式相同。</p>
+<p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_04.png" alt></p>
+<h4 id="5-另一种切换方式"><a href="#5-另一种切换方式" class="headerlink" title="5. 另一种切换方式"></a>5. 另一种切换方式</h4><p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_31.png" alt></p>
+<p><strong>SpringBoot</strong> 默认使用<code>spring-boot-starter-logging</code> ，其底层使用的是 <strong>Slf4j + logback</strong></p>
+<p>而官方提供另外的 starter：<code>spring-boot-starter-log4j2</code>，其使用的则是 <strong>log4j2</strong> 作为日志的实现。所以我们只需排除掉 <code>spring-boot-starter-logging</code>，然后再引入<code>spring-boot-starter-log4j2</code>，就可以做到由 <strong>Logback</strong> 到 <strong>log4j2</strong> 的切换。</p>
+<p>排除 spring-boot-starter-logging：</p>
+<p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_32.png" alt></p>
+<p><strong>pom.xml</strong></p>
+<p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_33.png" alt></p>
+<p>再看下 依赖树：</p>
+<p><img src="/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/springboot_log_34.png" alt></p>
+<p>以上就是关于 Spring Boot 日志框架学习的全部内容，从相识到相知，希望你看过这篇文章后对springBoot日志部分有个更深入了解，谢谢！</p>
+<p><strong>如果你觉得写的还不错，请给我个 star 吧：<a href="https://github.com/CharleyZZZZ/CharleyZZZZ.github.io" target="_blank" rel="noopener">https://github.com/CharleyZZZZ/CharleyZZZZ.github.io</a></strong></p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/" rel="tag">日志管理</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+  
+  
+
+</article>
+    
     <article id="post-游玩-五一崇明之行" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 

@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+
+
+<html lang="en">
+
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    深入浅出JVM |  Hello World !
+  </title>
+  <meta name="generator" content="hexo-theme-ayer">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/dist/main.css">
+
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css">
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+  
+  
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+
+  
+  
+
+  
+
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content on">
+      <section class="outer">
+  <article id="post-深入浅出JVM" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  深入浅出JVM
+</h1>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/02/08/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAJVM/" class="article-date">
+  <time datetime="2021-02-08T06:07:17.000Z" itemprop="datePublished">2021-02-08</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0/">技术学习</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> Word count:</span>
+            <span class="post-count">5.2k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> Reading time≈</span>
+            <span class="post-count">18 min</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="深入浅出JVM"><a href="#深入浅出JVM" class="headerlink" title="深入浅出JVM"></a>深入浅出JVM</h1><ul>
+<li><p>内存模型：程序计数器、方法区、堆、栈、本地方法栈</p>
+</li>
+<li><p>类加载：类加载过程、Bootstrap类加载器、Extension类加载器、System类加载器、自定义类加载器、双亲委派机制；</p>
+</li>
+<li><p>GC：分代回收、回收器</p>
+</li>
+<li><p>编译器优化：指令重排</p>
+</li>
+<li><p>性能调优：JVM参数、性能分析工具：jstat、jstack、JMC、MAT</p>
+</li>
+<li><p>其他</p>
+</li>
+</ul>
+<h3 id="内存模型"><a href="#内存模型" class="headerlink" title="内存模型"></a>内存模型</h3><p>相比于 C++的手动内存管理、复杂难以理解的指针等，Java 引以为豪的就是它的<strong>自动内存管理机制</strong>。</p>
+<blockquote>
+<p>“Java 虚拟机具有一个<strong>堆</strong>，堆是运行时数据区域，所有类实例和数组的内存均从此处分配。堆是在 Java 虚拟机启动时创建的。”在JVM中堆之外的内存称为<strong>非堆内存</strong>(Non-heap memory)”。可以看出<strong>JVM主要管理两种类型的内存：堆和非堆</strong>。简单来说堆就是Java代码可及的内存，是留给开发人员使用的；非堆就是JVM留给 自己用的，所以方法区、JVM内部处理或优化所需的内存(如JIT编译后的代码缓存)、每个类结构(如运行时常数池、字段和方法数据)以及方法和构造方法 的代码都在非堆内存中。 </p>
+</blockquote>
+<p><img src="/2021/02/08/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAJVM/memory_model_01.png" alt="内存模型"></p>
+<h4 id="JVM虚拟机栈"><a href="#JVM虚拟机栈" class="headerlink" title="JVM虚拟机栈"></a>JVM虚拟机栈</h4><p>JVM虚拟机描述的是java 方法执行的内存模型：每个方法被执行的时候 都会创建一个“<strong>栈帧</strong>”。每个方法被调用到执行完的过程，就<strong>对应着一个栈帧在虚拟机栈中从入栈到出栈的过程</strong>。声明周期与线程相同，是线程私有的。</p>
+<p>每个栈帧，都包含四个区域：</p>
+<ul>
+<li><strong>局部变量表</strong>：局部标量表 是一组变量值的存储空间，用于存放 方法参数 和 局部变量。局部变量表存放了编译器可知的各种基本数据类型(<code>boolean</code>、<code>byte</code>、<code>char</code>、<code>short</code>、<code>int</code>、<code>float</code>、<code>long</code>、<code>double</code>)、对象引用(引用指针，并非对象本身)，局部变量表所需的内存空间在编译期间完成分配，当进入一个方法时，这个方法需要在栈帧中分配多大的局部变量是完全确定的，在运行期间栈帧不会改变局部变量表的大小空间。局部变量表最基本的存储单位是 <strong>变量槽</strong>（slot），<strong>32位以内的类型只占用一个slot（包括returnAddress类型），64位的类型（long和double）占用两个slot。</strong>如果当前帧是由构造方法或者实例方法创建的（意思是当前帧所对应的方法是构造器方法或者是普通的实例方法），那么<strong>该对象引用this将会存放在index为0的slot处</strong>,其余的参数按照参数表顺序排列。</li>
+<li><strong>操作数栈</strong>：又称为 表达式栈。<strong>主要用于保存计算过程的中间结果，同时作为计算过程中变量临时的存储空间。</strong></li>
+<li><strong>动态链接</strong>：在Java源文件被编译成字节码文件中时，所有的变量和方法引用都作为符号引用（symbolic Refenrence）保存在class字节码文件（javap反编译查看）的常量池里。那么<strong>动态链接的作用就是为了将这些符号引用（#）最终转换为调用方法的直接引用。</strong></li>
+<li><strong>返回地址</strong>：方法退出后都返回到该方法被调用的位置。方法正常退出时，<strong>调用者（方法的调用者可能也是一个方法）的pc计数器的值作为返回地址，即调用该方法的指令的下一条指令的地址。</strong></li>
+</ul>
+<p><img src="/2021/02/08/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAJVM/memory_model_02.png" alt="栈帧模型"></p>
+<h4 id="本地方法栈"><a href="#本地方法栈" class="headerlink" title="本地方法栈"></a>本地方法栈</h4><p>与虚拟机栈基本类似，区别在于虚拟机栈为虚拟机执行的java方法服务，而本地方法栈则是为Native方法服务。</p>
+<h4 id="程序计数器"><a href="#程序计数器" class="headerlink" title="程序计数器"></a>程序计数器</h4><p>程序计数器是一块较小的内存空间，它的作用可以看作是当前线程所执行的字节码的行号指示器。这里面存的，就是当前线程执行的进度。</p>
+<p>多线程环境下，线程在CPU上的运行是交替获取时间片的方式工作的，线程获取时间片上是不可预知的，那么 <strong>程序计数器就是对线程正在运行的点位进行缓冲记录，以便在获取CPU时间片时能够快速恢复。</strong></p>
+<p>程序计数器是因为线程而产生的，与虚拟机栈配合完成计算操作。程序计数器还存储了当前正在运行的流程，包括正在执行的指令、跳转、分支、循环、异常处理等。</p>
+<h4 id="方法区（永久代到元空间）"><a href="#方法区（永久代到元空间）" class="headerlink" title="方法区（永久代到元空间）"></a>方法区（永久代到元空间）</h4><p>方法区是JVM规范的抽象定义；而非具体实现技术。这个区域存储的内容，包括：类的信息、常量池、方法数据、方法代码。</p>
+<p>Java8 以前 方法区 是 <strong>堆（Heap）内存</strong>，这些类信息是放在一个叫做 永久代 (Perm区) 的内存里面，这个区里面有大小限制 容易造成堆内存 溢出。</p>
+<p>Java8 以后，JVM使用 <strong>元空间</strong> 替代永久代。元空间使用 本地内存实现，即非堆内存。所以可以理论上物理机器还有多内存就可以分配，而不用再受限于JVM本身分配的内存了，也不用修改堆内存。</p>
+<p><img src="/2021/02/08/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAJVM/memory_model_03.png" alt="方法区"></p>
+<h4 id="堆（Heap）"><a href="#堆（Heap）" class="headerlink" title="堆（Heap）"></a>堆（Heap）</h4><p>堆是 JVM 上最大的内存区域，我们申请的几乎所有的对象，都是在这里存储的。我们常说的垃圾回收，操作的对象就是堆。 堆空间一般是程序启动时，就申请了，但是并不一定会全部使用。</p>
+<p>随着对象的频繁创建，堆空间占用的越来越多，就需要不定期的对不再使用的<strong>对象进行回收</strong>。这个在 Java 中，就叫作 <strong>GC</strong>（Garbage Collection）。 </p>
+<p>由于对象的大小不一，在长时间运行后，堆空间会被许多细小的碎片占满，造成空间浪费。所以，仅仅销毁对象是不够的，还需要<strong>堆空间整理</strong>。</p>
+<p>Java 的对象可以分为<strong>基本数据类型</strong>和<strong>普通对象</strong>。</p>
+<ul>
+<li>对于普通对象来说，JVM 会首先在堆上创建对象，然后在其他地方使用的其实是它的<strong>引用</strong>。</li>
+<li>对于基本数据类型来说，当你在方法体内声明了基本数据类型的对象，它就会在栈上直接分配。其他情况，都是在堆上分配。</li>
+</ul>
+<p>而堆是所有线程共享的，如果是多个线程访问，会涉及数据<strong>同步问题</strong>。</p>
+<h3 id="JMM内存可见性"><a href="#JMM内存可见性" class="headerlink" title="JMM内存可见性"></a>JMM内存可见性</h3><p><strong>JMM 是 Java 内存模型</strong>，与 JVM 内存模型是两回事，JMM 的主要目标是定义程序中变量的访问规则，如图所示，<strong>所有的共享变量都存储在主内存中共享。每个线程有自己的工作内存，工作内存中保存的是主内存中变量的副本，线程对变量的读写等操作必须在自己的工作内存中进行，而不能直接读写主内存中的变量</strong>。</p>
+<img src="/2021/02/08/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAJVM/jvm_01.png" alt="JMM内存模型" style="zoom:40%;">
+
+<p>在多线程进行数据交互时，例如线程 A 给一个共享变量赋值后，由线程 B 来读取这个值，A 修改完变量是修改在自己的工作区内存中，B 是不可见的，只有从 A 的工作区写回主内存，B 再从主内存读取自己的工作区才能进行进一步的操作。</p>
+<p>由于<strong>指令重排序</strong>的存在，这个写—读的顺序有可能被打乱。因此 JMM 需要提供原子性、可见性、有序性的保证。</p>
+<img src="/2021/02/08/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAJVM/jvm_02.png" alt="保证可见性" style="zoom:40%;">
+
+<p><strong>原子性</strong></p>
+<p>JMM 保证对除 long 和 double 外的基础数据类型的读写操作是原子性的。另外关键字 synchronized 也可以提供原子性保证。synchronized 的原子性是通过 Java 的两个高级的字节码指令 monitorenter 和 monitorexit 来保证的。</p>
+<p><strong>可见性</strong></p>
+<p>JMM 可见性的保证，一个是通过 synchronized，另外一个就是 volatile。volatile 强制变量的赋值会同步刷新回主内存，强制变量的读取会从主内存重新加载，保证不同的线程总是能够看到该变量的最新值。</p>
+<p><strong>有序性</strong></p>
+<p>对有序性的保证，主要通过 volatile 和一系列 happens-before 原则。volatile 的另一个作用就是阻止指令重排序，这样就可以保证变量读写的有序性。</p>
+<h3 id="类加载"><a href="#类加载" class="headerlink" title="类加载"></a>类加载</h3><h4 id="类加载过程"><a href="#类加载过程" class="headerlink" title="类加载过程"></a>类加载过程</h4><p>JVM类的加载主要有这几个过程：<strong>加载、验证、准备、解析、初始化、使用 和 卸载。</strong></p>
+<img src="/2021/02/08/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAJVM/memory_model_04.png" alt="类加载过程" style="zoom:67%;">
+
+<ul>
+<li><p><strong>加载 Loading</strong></p>
+<p>加载的主要作用是将外部的 .class 文件，加载到 Java 的方法区。加载阶段主要是找到并加载类的二进制数据，将class字节码文件加载到内存中，并将这些数据转换成方法区中的运行时数据（静态变量、静态代码块、常量池等），在堆中生成一个Class类对象代表这个类（反射原理），作为方法区类数据的访问入口。</p>
+</li>
+<li><p><strong>验证 Verifying</strong></p>
+<p>确保加载的类信息符合JVM规范，没有安全方面的问题。不符合规范的将抛出 java.lang.VerifyError 错误。像一些低版本的 JVM，是无法加载一些高版本的类库的，就是在这个阶段完成的。</p>
+</li>
+<li><p><strong>准备 Preparing</strong></p>
+<p>从这部分开始，将为一些 <strong>类变量</strong> 分配内存，并将其初始化为默认值。此时，实例对象还没有分配内存，所以这些动作是在<strong>方法区</strong>上进行的。注意此时的设置初始值为默认值，具体赋值在初始化阶段完成。（即 <strong>static</strong> 变量有俩次赋值，这里赋默认值，初始化阶段赋予程序定义的值，因此，即使程序员没有为类变量赋值也没有关系，它仍然有一个默认的初始值。但局部变量就不一样了，如果没有给它赋初始值，是不能使用的。）</p>
+</li>
+<li><p><strong>解析 Resolving</strong></p>
+<p>虚拟机常量池内的 <strong>符号引用替换为直接引用</strong>（地址引用）的过程。</p>
+</li>
+<li><p><strong>初始化 Initiallsing</strong></p>
+<p>初始化阶段是执行类构造器<clinit>()方法的过程。类构造器<clinit>()方法是由编译器自动收集类中的所有类变量的<strong>赋值</strong>动作和<strong>静态语句块(static块)</strong>中的语句合并产生的。</clinit></clinit></p>
+<ul>
+<li>当初始化一个类的时候，如果发现其父类还没有进行过初始化、则需要先初始化其父类。</li>
+<li>类构造器<clinit>()方法：静态类变量赋值代码和静态代码块<strong>从上到下顺序执行</strong>。</clinit></li>
+<li>虚拟机会保证一个类的<clinit>()方法在多线程环境中被正确加锁和同步。</clinit></li>
+</ul>
+<p>与 <strong>类构造器<clinit>()方法</clinit></strong> 相对立的则是<strong>实例初始化 <init>()方法，</init></strong>其中的区别是 类初始化只有一次，而实例初始化 将在每次创建对象时调用。</p>
+</li>
+</ul>
+<h4 id="类加载器"><a href="#类加载器" class="headerlink" title="类加载器"></a>类加载器</h4><p>如果你在项目代码里，写一个 java.lang 的包，然后改写 String 类的一些行为，编译后，发现并不能生效。JRE 的类当然不能轻易被覆盖，否则就太危险了。</p>
+<p>那类加载器是如何保证这个过程的安全性呢？其实，它是有着严格的等级制度的。</p>
+<p>首先，我们了解下几个不同等级的类加载器。</p>
+<ul>
+<li><h5 id="根类加载器（Bootstrap-ClassLoader）"><a href="#根类加载器（Bootstrap-ClassLoader）" class="headerlink" title="根类加载器（Bootstrap ClassLoader）"></a>根类加载器（Bootstrap ClassLoader）</h5><p><strong>根类加载器</strong>（或者叫引导类加载器） 是加载器中等级最大的，任何类的加载行为都要经它过问。它的作用是 <strong>加载 核心类库</strong>，例如 <strong>rt.jar  \ resources.jar \ charsets.jar</strong> 等。</p>
+<p>这个加载器 是 <strong>C++</strong> 编写的，随着JVM 启动。</p>
+<p>下面这段代码可以获取 根类加载器加载的核心类库：    </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestAMain</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        URL[] urLs = Launcher.getBootstrapClassPath().getURLs();</span><br><span class="line">        <span class="keyword">for</span> (URL urL : urLs) &#123;</span><br><span class="line">            System.out.println(urL.toExternalForm());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 结果</span></span><br><span class="line"><span class="comment">// file:/D:/Java/jdk1.8.0_65/jre/lib/resources.jar</span></span><br><span class="line"><span class="comment">// file:/D:/Java/jdk1.8.0_65/jre/lib/rt.jar</span></span><br><span class="line"><span class="comment">// file:/D:/Java/jdk1.8.0_65/jre/lib/sunrsasign.jar</span></span><br><span class="line"><span class="comment">// file:/D:/Java/jdk1.8.0_65/jre/lib/jsse.jar</span></span><br><span class="line"><span class="comment">// file:/D:/Java/jdk1.8.0_65/jre/lib/jce.jar</span></span><br><span class="line"><span class="comment">// file:/D:/Java/jdk1.8.0_65/jre/lib/charsets.jar</span></span><br><span class="line"><span class="comment">// file:/D:/Java/jdk1.8.0_65/jre/lib/jfr.jar</span></span><br><span class="line"><span class="comment">// file:/D:/Java/jdk1.8.0_65/jre/classes</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><h5 id="扩展类加载器（Extensions-ClassLoader）"><a href="#扩展类加载器（Extensions-ClassLoader）" class="headerlink" title="扩展类加载器（Extensions ClassLoader）"></a>扩展类加载器（Extensions ClassLoader）</h5><p>它用来加载 <strong>Java</strong> 的扩展库 <strong>(jre/ext/*.jar)</strong>。<strong>Java</strong> 虚拟机的实现会提供一个扩展库目录。该类加载器在此目录里面查找并加载 <strong>Java</strong> 类。 </p>
+<p>这个加载器是个 <strong>Java</strong> 类，继承自 <strong>URLClassLoader</strong>。</p>
+</li>
+<li><h5 id="系统类加载器（System-ClassLoader）"><a href="#系统类加载器（System-ClassLoader）" class="headerlink" title="系统类加载器（System ClassLoader）"></a>系统类加载器（System ClassLoader）</h5><p>它根据 <strong>Java</strong> 应用的类路径（<strong>CLASSPATH</strong>）来加载 <strong>Java</strong> 类。一般用来加载 <strong>classpath</strong> 下的其他所有 <strong>jar 包</strong>和 <strong>.class</strong> 文件，我们写的代码，会首先尝试使用这个类加载器进行加载。可以通过 <strong>ClassLoader.getSystemClassLoader()</strong>来获取它。</p>
+</li>
+<li><h5 id="自定义加载器（Custom-ClassLoader）"><a href="#自定义加载器（Custom-ClassLoader）" class="headerlink" title="自定义加载器（Custom ClassLoader）"></a>自定义加载器（Custom ClassLoader）</h5><p>自定义加载器，支持一些个性化的扩展功能。</p>
+</li>
+</ul>
+<h4 id="双亲委派机制"><a href="#双亲委派机制" class="headerlink" title="双亲委派机制"></a>双亲委派机制</h4><p>某个特定的类加载器在接到加载类的请求时，<strong>首先将加载任务委托交给父类加载器，父类加载器又将加载任务向上委托，直到最父类加载器，如果最父类加载器可以完成类加载任务，就成功返回，如果不行就向下传递委托任务，由其子类加载器进行加载。</strong></p>
+<img src="/2021/02/08/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAJVM/memory_model_05.png" alt="双亲委派机制" style="zoom:80%;">
+
+<p><strong>双亲委派机制的好处：</strong></p>
+<p>保证<strong>java</strong>核心库的安全性（例如：如果用户自己写了一个java.lang.String类就会因为双亲委派机制不能被加载，不会破坏原生的String类的加载）</p>
+<h4 id="打破双亲委派机制的案例"><a href="#打破双亲委派机制的案例" class="headerlink" title="打破双亲委派机制的案例"></a>打破双亲委派机制的案例</h4><h5 id="Tomcat类加载机制"><a href="#Tomcat类加载机制" class="headerlink" title="Tomcat类加载机制"></a>Tomcat类加载机制</h5><p><strong>思考：</strong>Tomcat 作为 web 容器，需要解决什么问题？</p>
+<ul>
+<li>一个容器可能需要部署多个应用程序，不同的应用程序可能会依赖同一个第三方类库的不同版本，不能要求同一个类库在同一个服务器只有一份，因此要保证每个应用程序的类库都是独立的，保证相互隔离。 </li>
+<li>部署在同一个web容器中相同的类库相同的版本可以共享。</li>
+<li>web容器也有自己依赖的类库，不能于应用程序的类库混淆。基于安全考虑，应该让容器的类库和程序的类库隔离开来。</li>
+<li>web容器要支持jsp的修改而不重启。我们知道，jsp 文件最终也是要编译成class文件才能在虚拟机中运行，但是程序对于Jsp 的修改较为频繁，我们要求web容器需要 jsp 修改后不用重启。</li>
+</ul>
+<p><strong>那么Tomcat 是如何解决这些问题的呢？</strong></p>
+<img src="/2021/02/08/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAJVM/memory_model_06.png" alt="Tomcat类加载机制" style="zoom:80%;">
+
+<p>如图：<strong>CommonClassLoader</strong>、<strong>CatalinaClassLoader</strong>、<strong>SharedClassLoader</strong> 和 <strong>WebappClassLoader</strong>则是Tomcat自己定义的类加载器，它们分别加载<code>/common/*</code>、<code>/server/*</code>、<code>/shared/*</code>（在tomcat 6之后已经合并到根目录下的lib目录下）和<code>/WebApp/WEB-INF/*</code>中的Java类库。</p>
+<p>其中WebApp类加载器和Jsp类加载器通常会存在<strong>多个实例</strong>，每一个Web应用程序对应一个WebApp类加载器，每一个JSP文件对应一个Jsp类加载器（修改Jsp则卸载该类加载器，重新创建类加载器，由此支持热部署）。</p>
+<ul>
+<li><strong>CommonClassLoader</strong>：Tomcat最基本的类加载器，加载路径中的class可以被Tomcat容器本身以及各个Webapp访问；</li>
+<li><strong>CatalinaClassLoader</strong>：Tomcat容器私有的类加载器，加载路径中的class对于Webapp不可见；</li>
+<li><strong>SharedClassLoader</strong>：各个Webapp共享的类加载器，加载路径中的class对于所有Webapp可见，但是对于Tomcat容器不可见；</li>
+<li><strong>WebappClassLoader</strong>：各个Webapp私有的类加载器，加载路径中的class只对当前Webapp可见；</li>
+<li><strong>JaserperLoader</strong>：每一个JSP文件对应一个Jsp类加载器。</li>
+</ul>
+<p><strong>Common ClassLoader</strong>能加载的类都可以被<strong>Catalina ClassLoader</strong>和<strong>Shared ClassLoader</strong>使用，从而实现了公有类库的共用，而<strong>CatalinaClassLoader</strong>和<strong>Shared ClassLoader</strong>自己能加载的类则与对方相互隔离。</p>
+<p><strong>WebAppClassLoader</strong>可以使用<strong>SharedClassLoader</strong>加载到的类，但各个<strong>WebAppClassLoader</strong>实例之间相互隔离。</p>
+<p>而<strong>JasperLoader</strong>的加载范围仅仅是这个JSP文件所编译出来的那一个<strong>.Class</strong>文件，它出现的目的就是为了被丢弃：当Web容器检测到JSP文件被修改时，会替换掉目前的<strong>JasperLoader</strong>的实例，并通过再建立一个新的Jsp类加载器来实现JSP文件的HotSwap功能。</p>
+<p><strong>问题1：tomcat是否违反了双亲委派原则？</strong></p>
+<p>答：显然是的，双亲委派模型要求除了顶层的根类加载器以外，其余的类加载器都应当由自己的父类加载器加载。</p>
+<p><strong>问题2：那么如果我自己定义一个恶意的核心API类（例如HashMap），会不会有风险呢？</strong></p>
+<p>答：不会，tomcat不遵循双亲委派机制，只是自定义的classLoader顺序不同，但顶层还是相同的。</p>
+<h5 id="线程上下文类加载器"><a href="#线程上下文类加载器" class="headerlink" title="线程上下文类加载器"></a>线程上下文类加载器</h5><p>这个类加载器可以通过 <strong>java.lang.Thread</strong> 类的 <strong>setContextClassLoader</strong> 方法进行设置。如果创建线程时还未设置，它将会从父线程中继承一个，如果在应用程序的全局范围内都没有设置过多的话，那这个类加载器默认即使应用程序类加载器（系统类加载器）。</p>
+<p><strong>该设计意在解决这样的问题：</strong>基础类总是由最顶层的类加载器加载，它们总是作为被用户代码调用的API，但没有绝对，如果<strong>基础类需要调用用户的代码</strong>呢？</p>
+<p>一个典型的例子就是 JNDI服务，JNDI现在已经是Java的标准服务，它的代码由启动类加载器去加载（在JDK1.3时就放进去的rt.jar）,但<strong>它需要调用由独立厂商实现并部署在应用程序的ClassPath下的JNDI接口提供者（SPI， Service Provider Interface）的代码</strong>，这些类不在rt.jar中，但是启动类加载器又需要加载。</p>
+<p>有了线程上下文加载器，JNDI服务使用这个线程上下文加载器去加载所需要的<strong>SPI</strong>代码，也就是父类加载器请求子类加载器去完成类加载的动作，这种行为实际上就是打通了双亲委派模型的层次结构来逆向使用类加载器，实际上已经违背了双亲委派模型的一般性原则。但这无可奈何，Java中所有涉及SPI的加载动作基本胜都采用这种方式。例如JNDI，JDBC，JCE，JAXB，JBI等。</p>
+<h5 id="知识拓展：SPI"><a href="#知识拓展：SPI" class="headerlink" title="知识拓展：SPI"></a>知识拓展：SPI</h5><p><strong>SPI</strong>的英文名称是<strong>Service Provider Interface</strong>，是Java 内置的<strong>服务发现机制</strong>。</p>
+<p><strong>Java SPI</strong> 实际上是 <strong>“ 基于接口的编程＋策略模式＋配置文件 ”</strong> 组合实现的<strong>动态加载机制</strong>。</p>
+<p>系统设计的各个抽象，往往有很多不同的实现方案，在面向的对象的设计里，一般推荐模块之间<strong>基于接口编程</strong>，模块之间不对<strong>实现类</strong>进行硬编码。一旦代码里涉及具体的实现类，就违反了<strong>可拔插</strong>的原则，如果需要替换一种实现，就需要修改代码。为了实现在模块装配的时候能不在程序里动态指明，这就需要一种服务发现机制。</p>
+<p>要使用Java SPI，需要遵循如下约定：</p>
+<ol>
+<li><p>当服务提供者提供了接口的一种具体实现后，在jar包的META-INF/services目录下创建一个以 “<strong>接口全限定名</strong>” 为命名的文件，内容为<strong>实现类的全限定名</strong>；例如：文件名为：<code>com.example.service.TestService</code>,内容则为 <code>com.example.service.TestServiceImpl</code></p>
+</li>
+<li><p>接口实现类所在的jar包放在主程序的classpath中；</p>
+</li>
+<li><p>主程序通过<strong>java.util.ServiceLoder</strong>动态装载实现模块，它通过扫描META-INF/services目录下的配置文件找到实现类的全限定名，把类加载到JVM；</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ServiceLoader&lt;TestService&gt; services = ServiceLoader.load(TestService<span class="class">.<span class="keyword">class</span>)</span>;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>SPI的实现类必须携带一个不带参数的构造方法；</p>
+</li>
+</ol>
+<p><strong>常见案例：</strong></p>
+<p>JDBC加载不同类型数据库的驱动</p>
+<p>SLF4J加载不同提供商的日志实现类</p>
+<p>Dubbo中也大量使用SPI的方式实现框架的扩展</p>
+<p>此外，spring-boot 自动配置原理似乎也是借鉴SPI机制，详见 <a href="http://blogsea.cn/2020/05/07/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/" target="_blank" rel="noopener">SpringBoot学习之自动配置原理</a></p>
+<h3 id="GC垃圾回收器"><a href="#GC垃圾回收器" class="headerlink" title="GC垃圾回收器"></a>GC垃圾回收器</h3><h3 id="编译器优化"><a href="#编译器优化" class="headerlink" title="编译器优化"></a>编译器优化</h3><h3 id="性能调优"><a href="#性能调优" class="headerlink" title="性能调优"></a>性能调优</h3><blockquote>
+<p>笔记来源 ： 网络 和 李国老师的《深入浅出 JVM虚拟机》课程</p>
+</blockquote>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://charleyzzzz.github.io/2021/02/08/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAJVM/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JVM/" rel="tag">JVM</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%9D%A2%E8%AF%95%E5%A4%8D%E4%B9%A0/" rel="tag">面试复习</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2021/02/08/%E5%B9%B6%E5%8F%91%E4%B8%8E%E5%A4%9A%E7%BA%BF%E7%A8%8B%EF%BC%88%E4%B8%80%EF%BC%89/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            并发与多线程（一）
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2021/01/26/Java%E8%AF%AD%E8%A8%80%E7%89%B9%E6%80%A7%E4%B8%8E%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%EF%BC%88%E4%BA%8C%EF%BC%89/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Java语言特性与设计模式（二）</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: 'fV6hp5I755QPrJ9W3gpD596M-gzGzoHsz',
+        app_key: '2BLVrJEhiPxBOjTvEyjpXD2c',
+        path: window.location.pathname,
+        notify: 'false',
+        verify: 'false',
+        avatar: 'monsterid',
+        placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2020-2021
+        <i class="ri-heart-fill heart_icon"></i> CharleyZZZZ
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>Visitors:<span id="busuanzi_value_site_uv"></span></s>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>Views:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="float_btns">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+      </div>
+    </main>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/timg.jpg" alt="Hello World !"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E7%94%9F%E6%B4%BB/">生活</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <script>
+      if (window.matchMedia("(max-width: 768px)").matches) {
+        document.querySelector('.content').classList.remove('on');
+        document.querySelector('.sidebar').classList.remove('on');
+      }
+    </script>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/wechat.jpg">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Subtitle -->
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+    console.log(err)
+  }
+</script>
+
+<!-- Tocbot -->
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto'
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+<!-- ClickLove -->
+
+
+<script src="/js/clickLove.js"></script>
+
+
+<!-- CodeCopy -->
+
+
+<link rel="stylesheet" href="/css/clipboard.css">
+
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="52"
+        src="//music.163.com/outchain/player?type=2&id=462472214&auto=1&height=32"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+  </div>
+</body>
+
+</html>
