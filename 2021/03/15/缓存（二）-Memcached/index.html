@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+
+
+<html lang="en">
+
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    缓存（二）- Memcached |  Hello World !
+  </title>
+  <meta name="generator" content="hexo-theme-ayer">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/dist/main.css">
+
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css">
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+  
+  
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+
+  
+  
+
+  
+
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content on">
+      <section class="outer">
+  <article id="post-缓存（二）-Memcached" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  缓存（二）- Memcached
+</h1>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%BA%8C%EF%BC%89-Memcached/" class="article-date">
+  <time datetime="2021-03-15T07:42:58.000Z" itemprop="datePublished">2021-03-15</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0/">技术学习</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> Word count:</span>
+            <span class="post-count">6.9k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> Reading time≈</span>
+            <span class="post-count">25 min</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="缓存（二）-Memcached"><a href="#缓存（二）-Memcached" class="headerlink" title="缓存（二）- Memcached"></a>缓存（二）- Memcached</h1><ul>
+<li>特点：高性能、多线程、异步IO、KV存储、没有持久化</li>
+<li>系统架构：多线程网络模型、哈希表、LRU、slab内存管理</li>
+<li>基于libevent的多线程网络模型：主线程与工作线程分工</li>
+<li>哈希表：原理，哈希扩容、哈希冲突</li>
+<li>LRU淘汰策略：失效、删除</li>
+<li>Slab内存管理机制：结构、内存分配流程</li>
+<li>Mc协议指令：常见指令</li>
+<li>Mc 常见问题及解决方案：Mc常用架构</li>
+</ul>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><blockquote>
+<p>Memcached 是一个高性能、分布式内存对象缓存系统，本质上是通用的，但目的是为了通过减轻数据库负载来加快动态网络应用的速度。</p>
+<p>Memcached 是一个内存键值存储，用于存储来自数据库调用、API调用或页面渲染结果的小块任意数据（字符串、对象）。</p>
+<p>Memcached 简单而强大。它简单的设计促进了快速部署，易于开发，并解决了大型数据缓存所面临的许多问题。其API可用于大多数流行的语言。</p>
+<p>– 引自网络</p>
+</blockquote>
+<p><strong>Memcached</strong> 简称 <strong>Mc</strong>，特性有：</p>
+<ul>
+<li>是一个典型的<strong>内存型缓存组件</strong>，这就意味着：<ul>
+<li>Mc 一旦重启就会丢失所有的数据。</li>
+<li><strong>高性能</strong>，单节点压测性能能达到<strong>百万级的 QPS</strong>。</li>
+</ul>
+</li>
+<li>Mc 采用<strong>多线程处理请求，由一个主线程和任意多个工作线程协作，从而充分利用多核，提升 IO 效率</strong>。</li>
+<li>Mc 的<strong>访问协议很简单</strong>，只 有 get/set/cas/touch/gat/stats 等有限的几个命令。这跟它的存储结构也有关系。</li>
+<li>Mc 的<strong>存储结构也很简单</strong>，只存储简单的 key/value 键值对，而且对 value 直接以<strong>二进制方式存储</strong>，不识别内部存储结构。</li>
+<li>Mc的<strong>服务节点运行简单</strong>，不同 Mc 节点之间互不通信，由 client 自行负责管理数据分布（由 client 对 key 进行 Hash 后分布和协同）。</li>
+</ul>
+<h2 id="系统架构"><a href="#系统架构" class="headerlink" title="系统架构"></a>系统架构</h2><img src="/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%BA%8C%EF%BC%89-Memcached/cache_05.png" alt="Memcached系统架构" style="zoom:80%;">
+
+<p>Mc 的系统架构主要包括：</p>
+<ul>
+<li><strong>网络处理模块</strong>；</li>
+<li><strong>多线程处理模块</strong>；</li>
+<li><strong>哈希表</strong>；</li>
+<li><strong>淘汰策略：LRU</strong>；</li>
+<li><strong>slab 内存分配模块</strong> 。</li>
+</ul>
+<p>接下来我们分别了解各个模块。</p>
+<h3 id="基于libevent的多线程网络IO模型"><a href="#基于libevent的多线程网络IO模型" class="headerlink" title="基于libevent的多线程网络IO模型"></a>基于libevent的多线程网络IO模型</h3><p>Mc 基于 <strong>Libevent</strong> 实现<strong>多线程网络 IO 模型</strong>。Mc 的 <strong>IO 处理线程分主线程和工作线程</strong>，每个线程各有一个 event_base，来监听网络事件。</p>
+<ul>
+<li><strong>主线程</strong>：负责监听及建立连接。</li>
+<li><strong>工作线程</strong>：负责对建立的连接进行网络 IO 读取、命令解析、处理及响应。</li>
+</ul>
+<p><strong>作业流程：</strong></p>
+<p>Mc 主线程在监听端口时，当有连接到来，<strong>主线程 accept 该连接</strong>，并将连接调度给工作线程。调度处理逻辑：主线程先<strong>将 fd 封装成一个 CQ_ITEM 结构，并存入新连接队列中，然后轮询一个工作线程，并通过管道向该工作线程发送通知。</strong>主线程的这个处理逻辑主要在<strong>状态机</strong>中执行，对应的连接状态为 <strong>conn_listening</strong>。</p>
+<p>工作线程监听到主线程的管道通知后，会从连接队列弹出一个新连接，然后就会创建一个 <strong>conn</strong> 结构体，注册该 <strong>conn</strong> 读事件，然后继续监听该连接上的 IO 事件。后续这个连接有命令进来时，工作线程会读取 <strong>client</strong> 发来的命令，进行解析并处理，最后返回响应。工作线程的主要处理逻辑也是在<strong>状态机</strong>中。</p>
+<img src="/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%BA%8C%EF%BC%89-Memcached/cache_06.png" alt="IO工作流程" style="zoom:67%;">
+
+<p><strong>状态机</strong></p>
+<p>上面说到的<strong>状态机</strong>是由<strong>主线程和工作线程共享</strong>，实际是采用 <strong>switch-case</strong> 来实现的。switch 连接的 state，然后<strong>根据连接的不同状态，执行不同的逻辑操作</strong>，并进行状态转换。</p>
+<p><img src="/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%BA%8C%EF%BC%89-Memcached/cache_07.png" alt="状态机"></p>
+<p><strong>主线程在状态机中只处理 conn_listening 状态，负责 accept 新连接和调度新连接给工作线程。状态机中其他状态处理基本都在工作线程中进行。</strong></p>
+<p><strong>工作线程的状态机处理逻辑</strong>，包括刚建立 conn 连接结构体时进行的一些<strong>重置操作</strong>，然后<strong>注册读事件</strong>，在有数据进来时，<strong>读取网络数据</strong>，并进行<strong>解析并处理</strong>。如果是读取指令或统计指令，至此就基本处理完毕，接下来将响应写入连接缓冲。如果是更新指令，在进行初步处理后，还会继续<strong>读取 value 部分</strong>，再进行<strong>存储或变更</strong>，待变更完毕后<strong>将响应写入连接缓冲</strong>。最后<strong>再将响应写给 client</strong>。响应 client 后，连接会再次<strong>重置连接状态</strong>，等待<strong>进入下一次的命令处理循环</strong>中。</p>
+<p><strong>工作线程状态事件及处理逻辑详解</strong>：</p>
+<ul>
+<li><p><strong>conn_new_cmd</strong>：主线程通过调用 <strong>dispatch_conn_new</strong>，把新连接调度给工作线程后，<strong>worker</strong> 线程创建 <strong>conn</strong> 对象，这个连接初始状态就是 <strong>conn_new_cmd</strong>。除了通过新建连接进入 <strong>conn_new_cmd</strong> 状态之外，如果连接命令处理完毕，准备接受新指令时，也会将连接的状态设置为 <strong>conn_new_cmd</strong> 状态。 </p>
+</li>
+<li><p><strong>conn_parse_cmd</strong>：工作线程处理完 <strong>conn_new_cmd</strong> 状态的主要逻辑后，如果读缓冲区有数据可以读取，则进入 <strong>conn_parse_cmd</strong> 状态，否则就会进入到 <strong>conn_waiting</strong> 状态，等待网络数据进来。</p>
+</li>
+<li><p><strong>conn_waiting</strong>：连接进入 conn_waiting 状态后，处理逻辑很简单，直接通过 update_event 函数注册读事件即可，之后会将连接状态更新为 conn_read。</p>
+</li>
+<li><p><strong>conn_read</strong>：当工作线程监听到网络数据进来，连接就进入 conn_read 状态。对 conn_read 的处理，是通过 try_read_network 从 socket 中读取网络数据。如果读取失败，则进入 conn_closing 状态，关闭连接。如果没有读取到任何数据，则会返回 conn_waiting，继续等待 client 端的数据到来。如果读取数据成功，则会将读取的数据存入 conn 的 rbuf 缓冲，并进入 conn_parse_cmd 状态，准备解析 cmd。</p>
+</li>
+<li><p><strong>conn_parse_cmd</strong>：conn_parse_cmd 状态的处理逻辑就是解析命令。工作线程首先通过 try_read_command 读取连接的读缓冲，并通过 \n 来分隔数据报文的命令。如果命令首行长度大于 1024，关闭连接，这就意味着 key 长度加上其他各项命令字段的总长度要小于 1024字节。当然对于 key，Mc 有个默认的最大长度，key_max_length，默认设置为 250字节。校验完毕首行报文的长度，接下来会在 process_command 函数中对首行指令进行处理。 process_command 用来处理 Mc 的所有协议指令，所以这个函数非常重要。process_command 会首先按照空格分拆报文，确定命令协议类型，分派给 process_XX_command 函数处理。 Mc 的命令协议从直观逻辑上可以分为获取类型、变更类型、其他类型。但从实际处理层面区分，则可以细分为 get 类型、update 类型、delete 类型、算术类型、touch 类型、stats 类型，以及其他类型。</p>
+<img src="/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%BA%8C%EF%BC%89-Memcached/cache_08.png" alt="命令协议" style="zoom:50%;">
+
+<p>注意 conn_parse_cmd 的状态处理，只有读取到 \n，有了完整的命令首行协议，才会进入 process_command，否则会跳转到 conn_waiting，继续等待客户端的命令数据报文。在 process_command 处理中，如果是获取类命令，在获取到 key 对应的 value 后，则跳转到 conn_mwrite，准备写响应给连接缓冲。而对于 update 变更类型的指令，则需要继续读取 value 数据，此时连接会跳转到 conn_nread 状态。在 conn_parse_cmd 处理过程中，如果遇到任何失败，都会跳转到 conn_closing 关闭连接。</p>
+</li>
+<li><p><strong>complete_nread</strong>：对于 update 类型的协议指令，从 conn 继续读取 value 数据。读取到 value 数据后，会调用 complete_nread，进行数据存储处理；数据处理完毕后，向 conn 的 wbuf 写响应结果。然后 update 类型处理的连接进入到 conn_write 状态。</p>
+</li>
+<li><p><strong>conn_write</strong>：连接 conn_write 状态处理逻辑很简单，直接进入 conn_mwrite 状态。或者当 conn 的 iovused 为 0 或对于 udp 协议，将响应写入 conn 消息缓冲后，再进入 conn_mwrite 状态。</p>
+</li>
+<li><p><strong>conn_mwrite</strong>：进入 conn_mwrite 状态后，工作线程将通过 transmit 来向客户端写数据。如果写数据失败，跳转到 conn_closing，关闭连接退出状态机。如果写数据成功，则跳转到 conn_new_cmd，准备下一次新指令的获取。</p>
+</li>
+<li><p><strong>conn_closing</strong>：最后一个 conn_closing 状态，前面提到过很多次，在任何状态的处理过程中，如果出现异常，就会进入到这个状态，关闭连接，这个连接也就 Game Over了。</p>
+</li>
+</ul>
+<p>总结Mc 对<strong>命令的处理全过程</strong>：</p>
+<img src="/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%BA%8C%EF%BC%89-Memcached/cache_09.png" alt="Mc命令处理全流程" style="zoom:67%;">
+
+<h3 id="哈希表"><a href="#哈希表" class="headerlink" title="哈希表"></a>哈希表</h3><p><strong>背景</strong></p>
+<p>Mc 将数据存储在 Item 中，然后这些 Item 会被 slabclass 的 4 个 LRU 管理。<strong>这些 LRU 都是通过双向链表实现数据记录的。双向链表在进行增加、删除、修改位置时都非常高效，但其获取定位 key 的性能非常低下，只能通过链表遍历来实现。</strong></p>
+<p>因此，<strong>Mc 还通过 Hashtable，也就是哈希表，来记录管理这些 Item</strong>，通过对 key 进行哈希计算，从而快速定位和读取这些 key/value 所在的 Item。</p>
+<img src="/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%BA%8C%EF%BC%89-Memcached/cache_10.png" alt="HashTable作用" style="zoom:67%;">
+
+<p>哈希表也称散列表，可以通过把 key 映射到哈希表中的一个位置来快速访问记录，定位 key 的时间复杂度只有 O(1)。Mc 的哈希表实际是一个一维指针数组，数组的每个位置称作一个 bucket，即一个桶。性能考虑的需要，Mc 的哈希表的长度设置为 2 的 N 次方。Mc 启动时，默认会构建一个拥有 6.4万 个桶的哈希表，随着新 key 的不断插入，哈希表中的元素超过阀值后，会对哈希表进行扩容，最大可以构建 2 的 32 次方个桶的哈希表。</p>
+<p>用 哈希表就存在<strong>哈希冲突</strong>的问题，这里Mc 是通过<strong>单向链表</strong>解决hash冲突的。</p>
+<p><strong>哈希表扩容</strong></p>
+<p>当 Mc 的哈希表中，Item 数量大于 1.5 倍的哈希桶数量后，Mc 就对哈希表进行扩容处理。</p>
+<p>Mc 的哈希扩容是通过哈希维护线程进行处理的。</p>
+<p>准备开始扩容时，哈希维护线程会首先将所有 IO 工作线程和辅助线程进行<strong>暂停</strong>，其中辅助线程包括 LRU 维护线程、slab 维护线程、LRU 爬虫线程。待这些线程暂停后，哈希维护线程会将当前的主哈希表设为旧哈希表，然后将新的主哈希表<strong>扩容</strong>之前的 2 倍容量。然后，工作线程及辅助线程<strong>继续</strong>工作，同时哈希维护线程开始逐步将 Item 元素从旧哈希表<strong>迁移</strong>到主哈希表。</p>
+<p><strong>锁哈希表</strong></p>
+<p>Mc 在启动时，会根据设置的工作线程数，来构建 一个 Item 锁哈希表，线程越多，构建的锁哈希表越大，Mc 的锁哈希表中，每个桶对应一个 Item 锁，Item 锁哈希表最多有 32k 个桶，所以 Mc 最多只有 32768 个 Item 锁。</p>
+<p>Mc 哈希表在读取、变更以及扩容迁移过程中，先将 key hash 定位到 Item 锁哈希表的锁桶，然后对 Item 锁进行加锁，然后再进行实际操作。实际上，除了在哈希表，在其他任何时候，只要涉及到在对 Item 的操作，都会根据 Item 中的 key，进行 Item 哈希锁桶加锁，以避免 Item 被同时读写而产生脏数据。</p>
+<h3 id="LRU淘汰策略"><a href="#LRU淘汰策略" class="headerlink" title="LRU淘汰策略"></a>LRU淘汰策略</h3><p>Mc 作为缓存组件，意味着 Mc 中只能存储访问最频繁的热数据，一旦存入数据超过内存限制，就需要对 Mc 中的冷 key 进行淘汰工作。</p>
+<p>Mc 中的 key 基本都会有过期时间，在 key 过期后，出于性能考虑，<strong>Mc 并不会立即删除过期的 key，而是由维护线程逐步清理，只有这个失效的 key 被访问时，才会进行删除，从而回收存储空间</strong>。</p>
+<p>所以Mc的内存回收工作分为俩阶段：<strong>失效 和 删除</strong></p>
+<h4 id="失效"><a href="#失效" class="headerlink" title="失效"></a><strong>失效</strong></h4><p><strong>失效方式分为俩种</strong>：</p>
+<ul>
+<li><p><strong>过期失效</strong>：指 key 在 expire 时间之后的过期</p>
+</li>
+<li><p><strong>flush_all 失效</strong>：如果缓存数据写入异常，出现大量脏数据，而又没有简单的办法快速找出所有的脏数据，可以用 flush_all <strong>立即让所有数据失效</strong>，通过 key 重新从 DB 加载的方式来保证数据的正确性。</p>
+<p>该指令也可以通过 flush_all 指令后面加一个 expiretime 参数，可以让多个 Mc 在<strong>某个时间同时失效</strong>所有的 key。也可以将全局 setting 中的 oldest_live 设为指定 N 秒后的时间戳，即 N 秒后失效（<strong>延迟失效</strong>）；</p>
+</li>
+</ul>
+<h4 id="删除"><a href="#删除" class="headerlink" title="删除"></a>删除</h4><p><strong>删除分为三种</strong>：</p>
+<ul>
+<li><p><strong>惰性删除</strong>：失效的 key 被访问时，才会进行删除，从而回收存储空间。</p>
+</li>
+<li><p><strong>内存分配失败，LRU 同步淘汰</strong>：当需要对 Item 进行<strong>内存分配申请时，如果内存已全部用完</strong>，且该 Item 对应的slabclass 没有空闲的 chunk 可用，申请失败，则会对 LRU 队尾进行同步扫描，回收过期失效的 key，如果没有失效的 key，则会强制删除一个 key。</p>
+</li>
+<li><p>LRU 维护线程<strong>异步删除</strong>：不定期扫描 4 个 LRU 队列，对过期 key/value 进行异步淘汰。</p>
+<p>在 key 进行读取、插入或变更时，<strong>同步进行 key 淘汰回收</strong>，并不是一种高效的办法，因为淘汰回收操作相比请求处理，也是一个重量级操作，<strong>会导致 Mc 性能大幅下降</strong>。因此 Mc 额外增加了一个 LRU 维护线程，对过期失效 key 进行回收。</p>
+</li>
+</ul>
+<p>前面讲到，Mc 有 64 个 slabclass，其中 1<del>63 号 slabclass 用于存取 Item 数据。实际上，为了管理过期失效数据，**1</del>63 号 slabclass 还分别对应了 4 个 LRU（双向链表），分布是 TEMP、HOT、WARM、COLD LRU。<strong>所以这就总共有 63*4 = 252 个 LRU。</strong>LRU 维护线程，会按策略间断 sleep，待 sleep 结束，就开始对 4 个 LRU 进行队尾清理工作。**</p>
+<p><strong>四种 LRU 回收和迁移的要点如下：</strong></p>
+<ul>
+<li>Mc 在新写入 key 时，如果 key 的过期时间小于 61s，就会直接插入到 TEMP LRU 中，大于61s，就会直接插入到 HOT LRU。</li>
+<li>LRU 维护线程处理时，TEMP LRU 是在独立循环中进行，其他三个 LRU 在另外一个循环中进行，如果 HOT、WARM、COLD LRU 清理或移动的 keys 数为 0，则那个 500 次的大循环就立即停止。</li>
+<li>TEMP LRU 没有长度限制，且不进行队列内部的搬运和队列间的迁移，确保处理性能。</li>
+<li><strong>TEMP LRU 回收</strong>：首先会对 TEMP LRU 队尾进行 500 次轮询，然后在每次轮询时，会进行 5 次小循环。小循环时，首先检查 key是否过期失效，如果失效则进行回收淘汰，然后继续小循环；如果遇到一个没失效的 key，则回收该 key 并退出 TEMP LRU 的清理工作。如果 TEMP LRU 队尾 key 全部失效，维护线程一次可以回收 500*5 共 2500 个失效的 key。</li>
+<li><strong>HOT LRU 回收</strong>：同样500次大循环，5次小循环，遇到<ul>
+<li>失效key则回收</li>
+<li>非失效key,如果key状态是<ul>
+<li>ACTIVE，则迁移至<strong>WARM LRU</strong></li>
+<li>非 ACTIVE，如果 HOT LRU <strong>内存占用超过限制</strong>，则迁移到 <strong>COLD LRU</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>WARN LRU 回收</strong>：前提是 HOT LRU 中回收和迁移的 keys 数为 0才会进行， 同样500次大循环，5次小循环，遇到<ul>
+<li>失效key则回收</li>
+<li>非失效key,如果key状态是<ul>
+<li>ACTIVE，则迁移至 <strong>LRU 头部</strong></li>
+<li>非 ACTIVE，如果 WARN LRU <strong>内存占用超过限制</strong>，则迁移到 <strong>COLD LRU</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>COLD LRU 回收</strong>：前提是 WARN LRU 中回收和迁移的 keys 数为 0才会进行， 同样500次大循环，5次小循环，遇到<ul>
+<li>失效key则回收</li>
+<li>非失效key,如果key状态是<ul>
+<li>ACTIVE，则迁移至 <strong>WARN LRU 头部</strong></li>
+<li>非 ACTIVE，不处理，直接返回</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="slab内存管理机制"><a href="#slab内存管理机制" class="headerlink" title="slab内存管理机制"></a>slab内存管理机制</h3><p>Mc 内存分配采用 slab 机制，slab 机制可以规避内存碎片，是 Mc 能持续高性能进行数据读写的关键。</p>
+<p>Mc 在启动时，会构建长度为 64 的 slabclass 数组，其中 0 号 slabclass 用于 slab 的重新分配，1~63 号 slabclass 存储数据 Item。</p>
+<ul>
+<li><p>Mc 在分配内存时，<strong>先将内存按固定大小划分成 slab，然后再将不同 slab 分拆出固定 size 的 chunk。</strong>虽然 slab 内的 chunk 大小相同，但不同 slab 的 chunk size 并不同，Mc 会按照一个固定比例，使划分的 chunk size 逐步增大，从而满足不同大小 key/value 存储的需要。</p>
+</li>
+<li><p><strong>一组具有相同 chunk size 的所有 slab，就组成一个 slabclass</strong>。不同 slabclass 的 chunk size 按递增因子一次增加。Mc 就通过 slabclass 来管理一组 slab 内的存储空间的。最后一个 slabclass（即 63 号 slabclass）的 chunk size 会直接设为最大的 chunk size，默认是 0.5MB。</p>
+</li>
+<li><p><strong>每个 slabclass 内部有一个 freelist</strong> ，包含这组 slab 里所有空闲的 chunk，当需要存储数据时，从这个 freelist 里面快速分配一个 chunk 做存储空间。当 Item 数据淘汰剔除时，这个 Item 所在的 chunk 又被回收至这个 freelist。</p>
+<img src="/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%BA%8C%EF%BC%89-Memcached/cache_11.png" alt="slabclass结构" style="zoom:67%;">
+</li>
+<li><p>当需要空间分配时，<strong>如果 Mc 有空闲空间，则从 slabclass 的 freelist 分配；如果没有空闲空间，则从对应 slabclass id 对应的 LRU 中剔除一个 Item，来复用这个 Item 的空间</strong>。</p>
+</li>
+<li><p>在查找或变更一个 key 时，首先要定位这个 key 所在的存储位置。<strong>Mc 是通过哈希表 Hashtable 来定位 key 的</strong>。</p>
+</li>
+<li><p>Mc 内部是<strong>通过 LRU 来管理存储 Item 数据</strong>的，当内存不足时，会从 LRU 队尾中剔除一个过期或最不活跃的 key，供新的 Item 使用。</p>
+</li>
+</ul>
+<p>Mc 的存储空间分配是以 slab 为单位的，每个 slab 的默认大小时 1MB。因此在存数据时，<strong>Mc 的内存最小分配单位是 1MB。</strong></p>
+<p><strong>Item</strong></p>
+<p>Mc 中，slabclass 中的 chunk 会首先用 Item 结构体进行初始化，然后存到 freelist 链表中，待需要分配给数据存储时，再从 freelist 中取出，存入 key/value，以及各种辅助属性，然后再存到 LRU 链表及 Hashtable 中。</p>
+<p>Item 结构体，首先有两个 <strong>prev、next 指针</strong>，在分配给待存储数据之前，这两个指针用来串联 freelist 链表，在分配之后，则用来串联所在的 LRU 链表。接下来是一个 <strong>h_next 指针</strong>，用来在分配之后串联哈希表的桶单向链表。Item 结构体还存储了<strong>过期时间、所属 slabclass id，key 长度、cas 唯一 id 值</strong>等，最后在 Item 结构体尾部，存储了 <strong>key、flag、value 长度，以及 value block 数据</strong>。在 value 之后的 chunk 空间，就被浪费掉了。</p>
+<img src="/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%BA%8C%EF%BC%89-Memcached/cache_12.png" alt="item结构" style="zoom:67%;">
+
+<p>Item 在空闲期间，即<strong>初始分配时以及被回收后，都被 freelist 管理</strong>。</p>
+<p>在<strong>存储期间，被哈希表、LRU 管理</strong>。</p>
+<p><strong>数据分配流程：</strong></p>
+<ul>
+<li><strong>计算</strong>：当需要存储 key/value 数据时，首先根据 key/value size，以及 Item 结构体的 size，<strong>计算</strong>出存储这个 key/value 需要的字节数，然后根据这个字节数选择一个能存储的 chunk size 最小的 slabclass。</li>
+<li><strong>分配</strong>：再从这个 slabclass 的 freelist 分配一个空闲的 chunk 给这个 key/value 使用。<ul>
+<li>如果 <strong>freelist 为空</strong>，首先尝试为该 slabclass <strong>新分配一个 slab</strong>，如果 slab 分配成功，则将 slab 按 size 分拆出一些 chunk，通过 Item 结构初始化后填充到 freelist。</li>
+<li>如果 <strong>slab 分配失败</strong>，则通过 LRU <strong>淘汰失效的 Item 或强行剔除一个正常的 Item</strong>，然后这些 Item 也会填充到 freelist。当 freelist 有 Item 时，即可分配给 key/value。这个过程会重试 10 次，直到分配到 Item 位置。</li>
+</ul>
+</li>
+<li><strong>存入哈希表</strong>：当对 key/value 分配 Item 成功，并写入数据后，接下来就会将这个 Item 存入哈希表。</li>
+<li><strong>存入LRU</strong>：然后这个 Item 还会被存入 LRU，Mc 会根据这个 key 的过期时间进行判断，如果过期时间小于 61s，则存入 TEMP LRU，否则存入 HOT LRU。</li>
+</ul>
+<p>如果最终分配失败，则会回复一个 <strong>SERVER_ERROR</strong> 响应，通知 <strong>client</strong> 存储失败。</p>
+<h2 id="Mc协议"><a href="#Mc协议" class="headerlink" title="Mc协议"></a>Mc协议</h2><h3 id="异常错误响应"><a href="#异常错误响应" class="headerlink" title="异常错误响应"></a>异常错误响应</h3><p>首先看一下Mc在发现异常后，如何进行异常错误响应的，这里是<strong>返回三种错误信息</strong>：</p>
+<ul>
+<li><strong>协议错误</strong>：一个”ERROR\r\n”的字符串。表明 client 发送了一个非法命令。</li>
+<li><strong>client 错误</strong>：格式为”CLIENT_ERROR &lt;error-描述信息&gt;\r\n”。这个错误信息表明 ，client 发送的协议命令格式有误，比如少了字段、多了非法字段等。</li>
+<li><strong>server 错误</strong>：格式为”SERVER_ERROR &lt;error-描述信息&gt;\r\n”。这个错误信息表明 Mc server 端，在处理命令时出现的错误。比如在给 key/value 分配 Item 空间失败后，会返回”SERVER_ERROR out of memory storing object” 错误信息。</li>
+</ul>
+<p>除了错误响应外，还有四种正常的响应，分别为：</p>
+<ul>
+<li>“<strong>STORED\r\n</strong>”：存储修改成功</li>
+<li>“<strong>EXISTS\r\n</strong>”：待 cas 的key 已经被修改过了</li>
+<li>“<strong>NOT_STORED\r\n</strong>“：数据没有存储成功，但并不是遇到错误或异常</li>
+<li>“<strong>NOT_FOUND\r\n</strong>“：待 cas 的 key 在 Mc 中不存在</li>
+</ul>
+<h3 id="协议分类"><a href="#协议分类" class="headerlink" title="协议分类"></a>协议分类</h3><p>Mc 协议对应着相应的<strong>操作指令</strong>，主要分为三种：</p>
+<ul>
+<li>存储协议：Mc 存储指令分 2 行。第一行是<strong>报文首部</strong>，第二行是 <strong>value 的 data block 块</strong>。这两部分用 \r\n 来进行分割和收尾。存储协议指令共有6个：<ul>
+<li><strong>Set</strong> 指令用于存储一个 key/value；</li>
+<li><strong>Add</strong> 指令是在当 key 不存在时，才存储这个 key/value；</li>
+<li><strong>Replace</strong> 指令，是当 key 存在时，才存储这个 key/value；</li>
+<li><strong>Append</strong> 指令，是当 key 存在时，追加 data 到 value 的尾部；</li>
+<li><strong>Prepend</strong> 指令，是当 key 存在时，将 data 加到 value 的头部</li>
+<li><strong>cas</strong> 指令，是指只有当这个 key 存在，且从本 client 获取以来，没有其他任何人修改过时，才进行修改，cas 的英文含义是 compare and set，即比较成功后设置的意思。</li>
+</ul>
+</li>
+<li>获取协议：<ul>
+<li><strong>get</strong> 指令：get 指令只获取 key 的 flag 及 value</li>
+<li><strong>gets</strong> 指令： gets 会额外多获取一个 cas unique id值。gets 主要是为 cas 指令服务的。</li>
+</ul>
+</li>
+<li>其他协议：Mc 的其他协议指令包括 delete、incr、decr、touch、gat、gats、slabs、lru、stats 这 9 种指令。<ul>
+<li><strong>delete</strong> 用于删除一个 key。</li>
+<li><strong>incr/decr</strong> 用于对一个无符号长整型数字进行加或减。</li>
+<li><strong>touch、gat、gats</strong> 都可以用来修改 key 的过期时间。不同点是 touch 只修改 key 的过期时间，不获取 key对应的value。而 gat、gats 指令，不仅会修改 key 的过期时间，还会获取 key 对应的 flag 和 value 数据。gats 同 gets，还会额外获取 cas 唯一 id 值。</li>
+<li><strong>slabs automove</strong> 是一个开关指令，当打开时，就允许 Mc 后台线程自行决定何时将 slab 在slabclass 之间重新分配。</li>
+<li><strong>lru</strong> 指令用于 Mc LRU 的设置和调优。</li>
+<li><strong>stats</strong> 指令用于获取 Mc 的各种统计数据。</li>
+</ul>
+</li>
+</ul>
+<h2 id="Mc常见问题"><a href="#Mc常见问题" class="headerlink" title="Mc常见问题"></a>Mc常见问题</h2><p>Mc 在互联网企业应用广泛，热门语言基本都有 Mc client 的实现。</p>
+<h3 id="Java-Mc-Client-实现对比"><a href="#Java-Mc-Client-实现对比" class="headerlink" title="Java Mc Client 实现对比"></a>Java Mc Client 实现对比</h3><ul>
+<li>Memcached-Java-Client：推出时间早，性能一般，但足够稳定，不过这个 client 几年前就停止了更新。</li>
+<li>SpyMemcached：出现的比较晚，性能较好，但高并发访问场景，稳定性欠缺。近几年变更很少，基本停止了更新。</li>
+<li><strong>Xmemcached</strong>： <strong>性能较好，综合表现最佳。</strong>而且社区活跃度高，近些年也一直在持续更新中。Java 新项目启动，推荐使用 Xmemcached。</li>
+</ul>
+<h3 id="通用调优方案"><a href="#通用调优方案" class="headerlink" title="通用调优方案"></a>通用调优方案</h3><ul>
+<li>读写的 key/value 较大，需要设置更大的缓冲 buf，以提高性能。</li>
+<li>一些业务场景中，需要启用 TCP_NODELAY，避免 40ms 的延迟问题。</li>
+<li>存取的 key/value size 较大，可以设置一个压缩阀值，超过阀值，就对value 进行压缩算法，减少读写及存储的空间。</li>
+<li>为了避免缓存雪崩，并更好地应对极热 key 及洪水流量的问题，还可以对 Mc client 进行封装，加入多副本、多层级策略，使 Mc 缓存系统在任何场景下，都可做到高可用、高性能。</li>
+</ul>
+<h3 id="大数据时代-Mc-经典问题"><a href="#大数据时代-Mc-经典问题" class="headerlink" title="大数据时代 Mc 经典问题"></a><strong>大数据时代 Mc 经典问题</strong></h3><ul>
+<li><strong>容量问题</strong>：大数据时代，互联网系统中的很多核心业务，需要缓存的热数据在 300~500GB 以上，远远超过单机物理内存的容量。</li>
+<li><strong>性能瓶颈</strong>：线上访问QPS过大，单个物理机、单个资源池很难达到线上的业务要求。</li>
+<li><strong>连接瓶颈</strong>：业务实例的连接数远超过单个机器的稳定支撑范围。</li>
+<li><strong>硬件资源局部故障</strong>：对于数以万计的硬件设备，随时都有可能出现机器故障，从而导致 Mc 节点访问性能下降、宕机，海量访问穿透到 DB，引发 DB 过载，最终导致整个系统无法访问，引发雪崩现象。</li>
+<li><strong>流量洪峰下快速扩展</strong>：大数据时代，由于信息扩散的扁平化，突发事件、重大活动发生时，海量用户同时蜂拥而至，短时间引发巨大流量，很容易出现 CPU 飙升、带宽打满、机器负荷严重过载的现象。</li>
+</ul>
+<h3 id="Mc-常用架构"><a href="#Mc-常用架构" class="headerlink" title="Mc 常用架构"></a>Mc 常用架构</h3><p><strong>为了解决大中型互联网系统在使用 Mc 时的这些问题。我们可以使用下面的解决方案。</strong></p>
+<ul>
+<li><p><strong>Memcached 分拆缓存池</strong> ：对系统内的核心业务数据进行分拆，让访问量大的数据，使用独立的缓存池。    对于缓存池的<strong>分布策略</strong>，可以采用<strong>一致性哈希分布</strong>和<strong>哈希取模分布</strong>。Mc 节点故障不可避免，在 Mc 节点故障下线后，如果采用一致性 hash 分布，可以方便的通过 <strong>rehash 策略</strong>，将该 Mc 节点的 hash 点、访问量，均匀分散到其他 Mc 节点。如果采用取模分布，则会直接导致 1/N 的访问 miss，N 是 Mc 资源池的节点数。</p>
+</li>
+<li><p><strong>Master-Slave 两级架构</strong>：如果某些缓存服务器短期多次故障，反复上下线，多次 rehash 还会产生脏数据。对此，可以采用 Master-Slave 的两级架构方案。</p>
+<p>对于读操作，直接访问 master，如果访问 miss，再访问 slave。如果 slave 命中，就将读取到的 key 回写到 master。对于写操作，set、touch 等覆盖类指令，直接更新master 和 slave；而 cas、append 等，以 master 为准，master 在 cas、add 成功后，再将 key 直接 set 到 slave，以保持 master、slave 的数据一致性。</p>
+</li>
+<li><p><strong>M-S-L1 架构</strong>：80% 的请求会集中在 20% 的数据上，这种现象在互联网系统中广泛存在，我们可以通过在Master-Slave 两级架构基础上增加 L1 层来解决。<strong>L1 层用来缓存日常峰值的热数据</strong>。</p>
+<p>读请求时，首先随机选择一个 L1 进行读取，如果 miss 则访问 master，如果 master 也 miss，最后访问 slave。中途，只要任何一层命中，则对上一层资源池进行回写。</p>
+</li>
+</ul>
+<blockquote>
+<p>笔记来源：陈波 老师的 《300分钟吃透分布式缓存》课程</p>
+</blockquote>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://charleyzzzz.github.io/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%BA%8C%EF%BC%89-Memcached/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Memcached/" rel="tag">Memcached</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%BC%93%E5%AD%98/" rel="tag">缓存</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%9D%A2%E8%AF%95%E5%A4%8D%E4%B9%A0/" rel="tag">面试复习</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%B8%89%EF%BC%89-Redis/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            缓存（三）- Redis
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%B8%80%EF%BC%89-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">缓存（一）- 基础概念</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: 'fV6hp5I755QPrJ9W3gpD596M-gzGzoHsz',
+        app_key: '2BLVrJEhiPxBOjTvEyjpXD2c',
+        path: window.location.pathname,
+        notify: 'false',
+        verify: 'false',
+        avatar: 'monsterid',
+        placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2020-2021
+        <i class="ri-heart-fill heart_icon"></i> CharleyZZZZ
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>Visitors:<span id="busuanzi_value_site_uv"></span></s>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>Views:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="float_btns">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+      </div>
+    </main>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/timg.jpg" alt="Hello World !"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E7%94%9F%E6%B4%BB/">生活</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <script>
+      if (window.matchMedia("(max-width: 768px)").matches) {
+        document.querySelector('.content').classList.remove('on');
+        document.querySelector('.sidebar').classList.remove('on');
+      }
+    </script>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/wechat.jpg">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Subtitle -->
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+    console.log(err)
+  }
+</script>
+
+<!-- Tocbot -->
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto'
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+<!-- ClickLove -->
+
+
+<script src="/js/clickLove.js"></script>
+
+
+<!-- CodeCopy -->
+
+
+<link rel="stylesheet" href="/css/clipboard.css">
+
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="52"
+        src="//music.163.com/outchain/player?type=2&id=462472214&auto=1&height=32"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+  </div>
+</body>
+
+</html>

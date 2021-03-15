@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+
+
+<html lang="en">
+
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    数据结构与算法 |  Hello World !
+  </title>
+  <meta name="generator" content="hexo-theme-ayer">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/dist/main.css">
+
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css">
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+  
+  
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+
+  
+  
+
+  
+
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content on">
+      <section class="outer">
+  <article id="post-数据结构与算法" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  数据结构与算法
+</h1>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/03/15/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" class="article-date">
+  <time datetime="2021-03-15T07:15:35.000Z" itemprop="datePublished">2021-03-15</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0/">技术学习</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> Word count:</span>
+            <span class="post-count">6k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> Reading time≈</span>
+            <span class="post-count">20 min</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>数据结构与算法</p>
+<ul>
+<li>数据结构：线性表、栈、队列</li>
+<li>算法：基础概念（时间、空间复杂度）、常用算法优化思路</li>
+</ul>
+<h2 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h2><p><strong>数据结构</strong>即数据的组织方式。</p>
+<h3 id="线性表"><a href="#线性表" class="headerlink" title="线性表"></a>线性表</h3><p><strong>线性表</strong>是 <strong>n</strong> 个数据元素的有限序列，最常用的是链式表达，通常也叫作<strong>线性链表</strong>或者<strong>链表</strong>。链表是物理存储单元上非连续的、非顺序的存储结构，数据元素的逻辑顺序是通过链表的指针地址实现。在链表中存储的数据元素也叫作<strong>结点</strong>，一个结点存储的就是一条数据记录。</p>
+<p>每个结点的结构包括两个部分：</p>
+<ul>
+<li><p>第一是具体的数据值；</p>
+</li>
+<li><p>第二是指向下一个结点的指针。</p>
+</li>
+</ul>
+<p>在链表的最前面，通常会有个头指针用来指向第一个结点。</p>
+<p>对于链表的最后一个结点，由于在它之后没有下一个结点，因此它的指针是个空指针。</p>
+<ul>
+<li><strong>单向链表</strong>：单向链表只能通过上一个结点的指针找到下一个结点，反过来则不行。</li>
+<li><strong>循环链表</strong>：对于一个单向链表，让最后一个元素的指针指向第一个元素，就得到了循环链表。</li>
+<li><strong>双向链表</strong>：对于一个单向链表，除了有指向下一个结点的指针以外，再增加一个指向上一个结点的指针。这样就得到了双向链表。</li>
+<li><strong>双向循环链表</strong>：对双向链表和循环链表进行融合，就得到了双向循环链表。</li>
+</ul>
+<p><strong>线性表对于数据的增删查处理</strong></p>
+<ul>
+<li><strong>增</strong>：链表在执行数据新增的时候非常容易，只需要把待插入结点的指针指向原指针的目标，把原来的指针指向待插入的结点即可。</li>
+<li><strong>删</strong>：如果待删除的结点为 b，那么只需要把指向 b 的指针 （p.next），指向 b 的指针指向的结点（p.next.next）即可。</li>
+<li><strong>查找</strong>：<ul>
+<li>第一种情况是按照<strong>位置序号</strong>查找：链表的查找功能是比较弱的，对于查找问题，唯一的办法就是一个一个地遍历去查找。</li>
+<li>第二种情况是按照<strong>数据特性</strong>查找：遍历对比。</li>
+</ul>
+</li>
+</ul>
+<p><strong>优缺点</strong>：</p>
+<ul>
+<li>链表的优点：链表是很常用的一种数据结构，不需要初始化容量，可以任意加减元素；添加或者删除元素时只需要改变前后两个元素结点的指针域指向地址即可，时间复杂度O(1)。所以添加，删除很快；</li>
+<li>缺点：因为含有大量的指针域，占用空间较大；查找元素需要遍历链表来查找，非常耗时。</li>
+<li>适用场景：数据量较小，需要频繁增加，删除操作的场景。</li>
+</ul>
+<p><strong>案例1：给定一个链表，输出翻转后的链表。例如，输入1 -&gt;2 -&gt; 3 -&gt; 4 -&gt;5，输出 5 -&gt; 4 -&gt; 3 -&gt; 2 -&gt; 1。</strong></p>
+<p>解法：构造三个指针 prev、curr 和 next，对当前结点、以及它之前和之后的结点进行缓存，再完成翻转动作。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span>(curr)&#123;</span><br><span class="line">    next = curr.next;</span><br><span class="line">    curr.next = prev；</span><br><span class="line">    prev = curr;</span><br><span class="line">    curr = next;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>案例 2，给定一个奇数个元素的链表，查找出这个链表中间位置的结点的数值。</strong></p>
+<p>解法1：暴力解法，先通过一次遍历去计算链表的长度，这样我们就知道了链表中间位置是第几个。接着再通过一次遍历去查找这个位置的数值。</p>
+<p>解法2：利用快慢指针进行处理。其中快指针每次循环向后跳转两次，而慢指针每次向后跳转一次。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span>(fast &amp;&amp; fast.next &amp;&amp; fast.next.next)&#123;</span><br><span class="line">    fast = fast.next.next;</span><br><span class="line">    slow = slow.next;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>案例 3，判断链表是否有环。</strong></p>
+<p>解法：利用快慢指针，假设链表有环，则快慢指针一定会相遇（即判断fast == slow即可）。</p>
+<h3 id="栈"><a href="#栈" class="headerlink" title="栈"></a>栈</h3><p><strong>栈</strong>是一种特殊的<strong>线性表</strong>。既然是线性表，那么它也包含了表头和表尾。不过在栈结构中，由于其操作的特殊性，会对表头和表尾的名字进行改造。</p>
+<p>表尾用来输入数据，通常也叫作<strong>栈顶（top）</strong>；相应地，表头就是<strong>栈底（bottom）</strong>。栈顶和栈底是用来表示这个栈的两个指针。跟线性表一样，栈也有顺序表示和链式表示，分别称作<strong>顺序栈</strong>和<strong>链栈</strong>。栈顶允许操作，栈底不允许操作。</p>
+<p>栈的特点是：先进后出，或者说是后进先出，从栈顶放入元素的操作叫<strong>入栈</strong>，取出元素叫<strong>出栈</strong>。</p>
+<p><strong>顺序栈</strong></p>
+<p>栈的顺序存储可以借助数组来实现。一般来说，会把数组的首元素存在栈底，最后一个元素放在栈顶。然后定义一个 top 指针来指示栈顶元素在数组中的位置。假设栈中只有一个数据元素，则 top = 0。一般以 top 是否为 -1 来判定是否为空栈。当定义了栈的最大容量为 <strong>StackSize</strong> 时，则栈顶 top 必须小于 <strong>StackSize</strong>。</p>
+<p>当需要<strong>新增</strong>数据元素，即入栈操作时，就需要将新插入元素放在栈顶，并将栈顶指针增加 1。</p>
+<p><strong>删除</strong>数据元素，即出栈操作，只需要 top - 1 就可以了。</p>
+<p>对于<strong>查找</strong>操作，栈没有额外的改变，跟线性表一样，它也需要遍历整个栈来完成基于某些条件的数值查找。</p>
+<p><strong>链栈</strong></p>
+<p>关于链式栈，就是<strong>用链表的方式表示栈</strong>。通常，可以把栈顶放在单链表的头部，栈底是单链表的尾部。</p>
+<p>链栈的后进先出，原来的头指针就显得毫无作用了。因此，对于链栈来说，是不需要头指针的。相反，它需要增加指向栈顶的 top 指针，这是压栈和出栈操作的重要支持。</p>
+<p><strong>新增数据</strong>的压栈操作，需要让新的结点指向原栈顶，即 top 指针指向的对象，再让 top 指针指向新的结点。</p>
+<p><strong>删除数据</strong>的出栈操作，需将栈顶的 top 指针指向栈顶元素的 next 指针即可完成删除。对于链式栈来说，新增删除数据元素没有任何循环操作，其时间复杂度均为 O(1)。</p>
+<p><strong>查找操作</strong>，相对链表而言，链栈没有额外的改变，它也需要遍历整个栈来完成基于某些条件的数值查找。</p>
+<p><strong>案例1：例 1，给定一个只包括 ‘(‘，’)’，’{‘，’}’，’[‘，’]’ 的字符串，判断字符串是否有效。有效字符串需满足：左括号必须与相同类型的右括号匹配，左括号必须以正确的顺序匹配。例如，{ [ ( ) ( ) ] } 是合法的，而 { ( [ ) ] } 是非法的。</strong></p>
+<p>解法：匹配括号是否合法时，左括号是从左到右依次出现，而右括号则需要按照“后进先出”的顺序依次与左括号匹配。因此，实现方案就是通过栈的进出来完成。</p>
+<p><strong>案例2：浏览器的页面访问都包含了后退和前进功能，利用栈如何实现？</strong></p>
+<p>解法：为了支持前进、后退的功能，利用栈来记录用户历史访问网页的顺序信息是一个不错的选择。此时需要维护两个栈，分别用来支持后退和前进。当用户访问了一个新的页面，则对后退栈进行压栈操作。当用户后退了一个页面，则后退栈进行出栈，同时前进栈执行压栈。当用户前进了一个页面，则前进栈出栈，同时后退栈压栈。</p>
+<h3 id="队列"><a href="#队列" class="headerlink" title="队列"></a>队列</h3><p>与栈相似，队列也是一种特殊的<strong>线性表</strong>，与线性表的不同之处也是体现在对数据的增和删的操作上。栈的特点是先进后出，而队列的特点是<strong>先进先出</strong>。</p>
+<p>与栈一样，队列也存在这两种存储方式，即<strong>顺序队列</strong>和<strong>链式队列</strong>。</p>
+<p><strong>顺序队列</strong>，依赖数组来实现，其中的数据在内存中也是顺序存储。</p>
+<p>而<strong>链式队列</strong>，则依赖链表来实现，其中的数据依赖每个结点的指针互联，在内存中并不是顺序存储。链式队列，实际上就是只能<strong>尾进头出的线性表的单链表</strong>。</p>
+<p><strong>顺序队列</strong></p>
+<p>队列从队头（front）删除元素，从队尾（rear）插入元素。对于一个<strong>顺序队列的数组</strong>来说，会设置一个 front 指针来指向队头，并设置另一个 rear 指针指向队尾。当我们不断进行<strong>插入删除操作</strong>时，头尾两个指针都会不断向后移动。因为数组长度限制，不断插入数据后队尾指针会出现<strong>数组越界</strong>的问题。</p>
+<p>两个简单粗暴的解决方法就是：</p>
+<ul>
+<li>删除元素时，不惜消耗 O(n) 的时间复杂度去移动数据；</li>
+<li>开辟足够大的内存空间确保数组不会越界。</li>
+</ul>
+<p><strong>循环队列</strong></p>
+<p>数组越界问题可以通过队列的一个特殊变种来解决，叫作循环队列。</p>
+<p>循环队列进行<strong>新增数据元素操作时</strong>，首先判断队列是否为满。如果不满，则可以将新元素赋值给队尾，然后让 rear 指针向后移动一个位置。如果已经排到队列最后的位置，则 rear指针<strong>重新指向头部</strong>。</p>
+<p>同样的<strong>删除数据元素操作时</strong>，需要判断队列是否为空，然后将队头元素赋值给返回值，front 指针向后移一个位置。如果已经排到队列最后的位置，就把 front 指针<strong>重新指向到头部</strong>。</p>
+<p>这样就能在不开辟大量存储空间的前提下，不采用 O(n) 的操作，也能通过移动数据来完成频繁的新增和删除数据。</p>
+<p>当队列为空时，有 front 指针和 rear 指针相等，当队列是满的时候，同样有 front 指针和 rear 指针相等，这时就需要，设置一个标志变量 flag 来区别队列是空还是满。</p>
+<p><strong>链式队列</strong></p>
+<p>链式队列就是一个单链表，同时增加了 front 指针和 rear 指针。链式队列和单链表一样，通常会增加一个<strong>头结点</strong>，并另 front 指针指向头结点。<strong>头结点不存储数据，只是用来辅助标识</strong>。</p>
+<p>链式队列进行<strong>新增数据操作时</strong>，将拥有数值 X 的新结点 s 赋值给原队尾结点的后继，即 rear.next。然后把当前的 s 设置为队尾结点，指针 rear 指向 s。</p>
+<p>当链式队列进行<strong>删除数据操作时</strong>，实际删除的是头结点的后继结点。这是因为头结点仅仅用来标识队列，并不存储数据。因此，出队列的操作，就需要找到头结点的后继，这就是要删除的结点。接着，让头结点指向要删除结点的后继。</p>
+<p>对于队列的<strong>查找操作</strong>，不管是顺序还是链式，队列都没有额外的改变。跟线性表一样，它也需要遍历整个队列来完成基于某些条件的数值查找。因此时间复杂度也是 <strong>O(n)</strong>。</p>
+<p><strong>案例1：约瑟夫环问题：已知 n 个人（以编号 1，2，3…n 分别表示）围坐在一张圆桌周围。从编号为 k 的人开始报数，数到 m 的那个人出列；他的下一个人又从 1 开始报数，数到 m 的那个人又出列；依此规律重复下去，直到圆桌周围的人全部出列。输出 n 个人出列的顺序。</strong></p>
+<p>解法：先把所有人都放入循环队列中。注意这个循环队列的长度要大于或者等于 n。从第一个人开始依次出队列，出队列一次则计数变量 i 自增。如果 i 比 m 小，则<strong>还需要再入队列</strong>。直到i等于 m 的人出队列时，就不用再让这个人进队列了。而是<strong>放入一个用来记录出队列顺序的数组中</strong>。直到数完 n 个人为止。当队列为空时，则表示队列中的 n 个人都出队列了。这时结束队列循环，输出数组内记录的元素。</p>
+<h3 id="数组"><a href="#数组" class="headerlink" title="数组"></a><strong>数组</strong></h3><p><strong>数组</strong>是可以再内存中连续存储多个元素的结构，在内存中的分配也是连续的，数组中的元素通过数组下标进行访问。</p>
+<p><strong>优点</strong>：</p>
+<ul>
+<li><p>按照索引查询元素速度快</p>
+</li>
+<li><p>按照索引遍历数组方便</p>
+</li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li><p>数组的大小固定后就无法扩容了</p>
+</li>
+<li><p>数组只能存储一种类型的数据3、添加，删除的操作慢，因为要移动其他的元素。</p>
+</li>
+</ul>
+<p><strong>增加</strong>：若插入数据在最后，则时间复杂度为 O(1)；如果中间某处插入数据，则时间复杂度为 O(n)。</p>
+<p><strong>删除</strong>：对应位置的删除，扫描全数组，时间复杂度为 O(n)。</p>
+<p><strong>查找</strong>：如果只需根据索引值进行一次查找，时间复杂度是 O(1)。但是要在数组中查找一个数值满足指定条件的数据，则时间复杂度是 O(n)。</p>
+<h3 id="字符串"><a href="#字符串" class="headerlink" title="字符串"></a>字符串</h3><p><strong>字符串（string）</strong> 是由 n 个字符组成的一个有序整体（ n &gt;= 0 ）。</p>
+<p>字符串的逻辑结构和线性表很相似，不同之处在于字符串针对的是字符集，也就是字符串中的元素都是字符，线性表则没有这些限制。</p>
+<p><strong>空串</strong>，指含有零个字符的串。例如，s = “”，书面中也可以直接用 Ø 表示。</p>
+<p><strong>空格串</strong>，只包含空格的串。它和空串是不一样的，空格串中是有内容的，只不过包含的是空格，且空格串中可以包含多个空格。例如，s = “  “，就是包含了 3 个空格的字符串。</p>
+<p><strong>子串</strong>，串中任意连续字符组成的字符串叫作该串的子串。</p>
+<p><strong>原串</strong>通常也称为<strong>主串</strong>。例如：a = “BEI”，b = “BEIJING”，c = “BJINGEI” 。对于字符串 a 和 b 来说，由于 b 中含有字符串 a ，所以可以称 a 是 b 的子串，b 是 a 的主串；</p>
+<p><strong>子串查找（字符串匹配）</strong></p>
+<p>我们把主串的长度记为 n，子串长度记为 m。</p>
+<p>在主串中查找子串，因此，主串的长度肯定比子串长，n&gt;m。因此，字符串匹配算法的时间复杂度就是 n 和 m 的函数。</p>
+<p>假设要从主串 s = “goodgoogle” 中找到 t = “google” 子串。思考逻辑为：</p>
+<ul>
+<li>需要从主串中找到跟子串的第 1 个字符相等的位置</li>
+<li>然后再去匹配后续字符是否与子串相等</li>
+</ul>
+<p>从实现的角度来看，需要两层的循环，这种匹配算法的时间复杂度为 O(nm)。</p>
+<p><strong>案例：查找出两个字符串的最大公共字串</strong></p>
+<p>解法：假设字符串 a 的长度为 n，字符串 b 的长度为 m，可见时间复杂度是 n 和 m 的函数。首先，你需要对于字符串 a 和 b 找到第一个共同出现的字符，这就是 O(nm)。旦找到了共同出现的字符之后，还需要再继续查找共同出现的字符串，这也就是又嵌套了一层循环。可见最终的时间复杂度是 O(nmm)，即 O(nm²)。</p>
+<h3 id="树和二叉树"><a href="#树和二叉树" class="headerlink" title="树和二叉树"></a>树和二叉树</h3><p><strong>树</strong>是由结点和边组成的，不存在环的一种数据结构。</p>
+<p><img src="/2021/03/15/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/algorithm_01.png" alt="树结构"></p>
+<p>树满足<strong>递归</strong>定义的特性。也就是说，如果一个数据结构是树结构，那么剔除掉根结点后，得到的若干个子结构也是树，通常称作<strong>子树</strong>。</p>
+<p>在一棵树中，根据结点之间层次关系的不同，对结点的称呼也有所不同。</p>
+<img src="/2021/03/15/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/algorithm_02.png" alt="树节点层次关系" style="zoom:45%;">
+
+
+
+<p>例如：A 结点是 B 结点和 C 结点的上级，则 A 就是 B 和 C 的<strong>父结点</strong>，B 和 C 是 A 的<strong>子结点</strong>。B 和 C 同时是 A 的“孩子”，则可以称 B 和 C 互为<strong>兄弟结点</strong>。A 没有父结点，则可以称 A 为<strong>根结点</strong>。G、H、I、F 结点都没有子结点，则称 G、H、I、F 为<strong>叶子结点</strong>。</p>
+<p>当有了一棵树之后，还需要用<strong>深度、层</strong>来描述这棵树中结点的位置。结点的层次从根结点算起，根为第一层，根的“孩子”为第二层，根的“孩子”的“孩子”为第三层，依此类推。<strong>树中结点的最大层次数，就是这棵树的树深</strong>（称为深度，也称为高度）。</p>
+<p><strong>二叉树</strong></p>
+<p>在树的大家族中，有一种被高频使用的特殊树，它就是<strong>二叉树</strong>。在二叉树中，<strong>每个结点最多有两个分支</strong>，即每个结点最多有两个子结点，分别称作<strong>左子结点和右子结点</strong>。</p>
+<p>在二叉树中，有下面两个特殊的类型：</p>
+<ul>
+<li><p><strong>满二叉树</strong>：定义为除了叶子结点外，所有结点都有 2 个子结点。</p>
+<img src="/2021/03/15/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/algorithm_03.png" alt="满二叉树" style="zoom:43%;">
+</li>
+<li><p><strong>完全二叉树</strong>：定义为<strong>除了最后一层</strong>以外，其他层的结点个数都达到最大，并且最后一层的叶子结点都靠左排列。</p>
+<img src="/2021/03/15/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/algorithm_04.png" alt="完全二叉树" style="zoom:34%;">
+
+</li>
+</ul>
+<p>你可能会困惑，完全二叉树看上去并不完全，但为什么这样称呼它呢？</p>
+<p>这其实和二叉树的存储有关系。存储二叉树有两种办法，一种是基于指针的<strong>链式存储法</strong>，另一种是<strong>基于数组的顺序存储法</strong>。</p>
+<p><strong>链式存储法</strong>，也就是像链表一样，每个结点有三个字段，一个存储数据，另外两个分别存放指向左右子结点的指针。</p>
+<img src="/2021/03/15/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/algorithm_05.png" alt="链式存储法" style="zoom:40%;">
+
+<p><strong>顺序存储法</strong>，就是按照规律把结点存放在数组里。</p>
+<img src="/2021/03/15/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/algorithm_06.png" alt="顺序存储法" style="zoom:35%;">
+
+<p>之所以称为完全二叉树，是从<strong>存储空间利用效率</strong>的视角来看的。对于一棵完全二叉树而言，仅仅浪费了下标为 0 的存储位置。而如果是一棵非完全二叉树，则会浪费大量的存储空间。</p>
+<p><strong>树的遍历</strong></p>
+<ul>
+<li><strong>前序遍历</strong>，对树中的任意结点来说，先打印这个结点，然后前序遍历它的左子树，最后前序遍历它的右子树</li>
+<li><strong>中序遍历</strong>，对树中的任意结点来说，先中序遍历它的左子树，然后打印这个结点，最后中序遍历它的右子树</li>
+<li><strong>后序遍历</strong>，对树中的任意结点来说，先后序遍历它的左子树，然后后序遍历它的右子树，最后打印它本身。</li>
+</ul>
+<p><img src="/2021/03/15/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/algorithm_07.png" alt="树的遍历"></p>
+<p>对于没有任何特殊性质的二叉树而言，抛开遍历的时间复杂度以外，真正执行<strong>增加和删除操作的时间复杂度是 O(1)</strong>。树数据的<strong>查找</strong>操作和链表一样，都需要遍历每一个数据去判断，所以<strong>时间复杂度是 O(n)</strong>。</p>
+<p>但当二叉树具备一些特性的时候，则可以利用这些特性实现时间复杂度的降低。</p>
+<p><strong>特性</strong></p>
+<p>在二叉查找树中的任意一个结点，其左子树中的每个结点的值，都要小于这个结点的值。</p>
+<p>在二叉查找树中的任意一个结点，其右子树中每个结点的值，都要大于这个结点的值。</p>
+<p>在二叉查找树中，会尽可能规避两个结点数值相等的情况。</p>
+<p>对二叉查找树进行<strong>中序遍历</strong>，就可以<strong>输出一个从小到大的有序数据队列</strong>。</p>
+<p><strong>二叉查找树的查找操作</strong></p>
+<p>在利用二叉查找树执行查找操作时，我们可以进行以下判断：</p>
+<ul>
+<li>首先判断根结点是否等于要查找的数据，如果是就返回。</li>
+<li>如果根结点大于要查找的数据，就在左子树中递归执行查找动作，直到叶子结点。</li>
+<li>如果根结点小于要查找的数据，就在右子树中递归执行查找动作，直到叶子结点。这样的“二分查找”所消耗的时间复杂度就可以降低为 O(logn)。</li>
+</ul>
+<p><strong>二叉查找树的插入操作</strong></p>
+<p>从根结点开始，如果要插入的数据比根结点的数据大，且根结点的右子结点不为空，则在根结点的右子树中继续尝试执行插入操作。直到找到为空的子结点执行插入动作。</p>
+<p>二叉查找树插入数据的时间复杂度是 O(logn)。这里的时间复杂度更多是消耗在了遍历数据去找到查找位置上，真正执行插入动作的时间复杂度仍然是 O(1)。</p>
+<p><strong>二叉查找树的删除操作</strong></p>
+<p>二叉查找树的删除操作会比较复杂，这是因为删除完某个结点后的树，仍然要满足二叉查找树的性质。我们分为下面三种情况：</p>
+<ul>
+<li>如果要删除的结点是某个叶子结点，则直接删除，将其父结点指针指向 null 即可。</li>
+<li>如果要删除的结点只有一个子结点，只需要将其父结点指向的子结点的指针换成其子结点的指针即可。</li>
+<li>如果要删除的结点有两个子结点，则有两种可行的操作方式。<ul>
+<li>找到这个结点的左子树中最大的结点，替换要删除的结点。</li>
+<li>找到这个结点的右子树中最小的结点，替换要删除的结点。</li>
+</ul>
+</li>
+</ul>
+<h2 id="算法"><a href="#算法" class="headerlink" title="算法"></a>算法</h2><h3 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h3><h4 id="复杂度"><a href="#复杂度" class="headerlink" title="复杂度"></a><strong>复杂度</strong></h4><p><strong>复杂度</strong>是衡量代码运行效率的重要的度量因素。</p>
+<ul>
+<li><strong>复杂度是一个关于输入数据量 n 的函数</strong>：例如 O(n) 和 O(2n) 表示的是同样的复杂度</li>
+<li><strong>多项式级的复杂度相加的时候，选择高者作为结果</strong>：例如 O(n²)+O(n) 和 O(n²) 表示的是同样的复杂度。</li>
+<li><strong>O(1) 也是表示一个特殊复杂度</strong></li>
+</ul>
+<p>假设你的代码复杂度是 <strong>f(n)</strong>，那么就用个大写字母 <strong>O</strong> 和括号，把 <strong>f(n)</strong> 括起来就可以了，即 <strong>O(f(n))</strong>。</p>
+<h4 id="分类"><a href="#分类" class="headerlink" title="分类"></a>分类</h4><ul>
+<li><strong>时间复杂度</strong>：代码执行过程中消耗的计算时间；常用的降低时间复杂度的方法有<strong>递归、二分法、排序算法、动态规划</strong>等</li>
+<li><strong>空间复杂度</strong>：代码执行过程中消耗的计算空间；而降低空间复杂度的核心思路就是，<strong>用低复杂度的数据结代替高复杂度的数据结构</strong></li>
+</ul>
+<h4 id="方法论"><a href="#方法论" class="headerlink" title="方法论"></a>方法论</h4><p>降低复杂度的方法的三个步骤：</p>
+<ul>
+<li>第一步，<strong>暴力解法</strong>。在没有任何时间、空间约束下，完成代码任务的开发。</li>
+<li>第二步，<strong>无效操作处理</strong>。将代码中的无效计算、无效存储剔除，降低时间或空间复杂度。</li>
+<li>第三步，<strong>时空转换</strong>。设计合理数据结构，完成时间复杂度向空间复杂度的转移。</li>
+</ul>
+<p>掌握数据处理基本操作：<strong>增、删、查</strong></p>
+<p>常用的分析方法的三个步骤：</p>
+<ul>
+<li>首先，这段代码对数据进行了哪些操作？（转换为<strong>增、删、查</strong>）</li>
+<li>其次，这些操作中，哪个操作最影响效率，对时间复杂度的损耗最大？</li>
+<li>最后，哪种数据结构最能帮助你提高数据操作的使用效率？</li>
+</ul>
+<p><strong>查找：</strong></p>
+<ul>
+<li>根据元素的<strong>位置或索引</strong>来查找。</li>
+<li>根据元素的<strong>数值特征</strong>来查找。</li>
+</ul>
+<p><strong>增、删</strong>：</p>
+<ul>
+<li>在数据结构<strong>最后</strong>的增、删。</li>
+<li>在数据结构<strong>中间</strong>的增、删。</li>
+</ul>
+<blockquote>
+<p>笔记来源：公瑾 老师的《重学数据结构与算法》课程</p>
+</blockquote>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://charleyzzzz.github.io/2021/03/15/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" rel="tag">数据结构</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%AE%97%E6%B3%95/" rel="tag">算法</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%9D%A2%E8%AF%95%E5%A4%8D%E4%B9%A0/" rel="tag">面试复习</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2021/03/15/%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7%E9%9B%86/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            常用工具集
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2021/02/08/%E5%B9%B6%E5%8F%91%E4%B8%8E%E5%A4%9A%E7%BA%BF%E7%A8%8B%EF%BC%88%E4%BA%8C%EF%BC%89/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">并发与多线程（二）</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: 'fV6hp5I755QPrJ9W3gpD596M-gzGzoHsz',
+        app_key: '2BLVrJEhiPxBOjTvEyjpXD2c',
+        path: window.location.pathname,
+        notify: 'false',
+        verify: 'false',
+        avatar: 'monsterid',
+        placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2020-2021
+        <i class="ri-heart-fill heart_icon"></i> CharleyZZZZ
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>Visitors:<span id="busuanzi_value_site_uv"></span></s>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>Views:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="float_btns">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+      </div>
+    </main>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/timg.jpg" alt="Hello World !"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E7%94%9F%E6%B4%BB/">生活</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <script>
+      if (window.matchMedia("(max-width: 768px)").matches) {
+        document.querySelector('.content').classList.remove('on');
+        document.querySelector('.sidebar').classList.remove('on');
+      }
+    </script>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/wechat.jpg">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Subtitle -->
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+    console.log(err)
+  }
+</script>
+
+<!-- Tocbot -->
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto'
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+<!-- ClickLove -->
+
+
+<script src="/js/clickLove.js"></script>
+
+
+<!-- CodeCopy -->
+
+
+<link rel="stylesheet" href="/css/clipboard.css">
+
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="52"
+        src="//music.163.com/outchain/player?type=2&id=462472214&auto=1&height=32"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+  </div>
+</body>
+
+</html>

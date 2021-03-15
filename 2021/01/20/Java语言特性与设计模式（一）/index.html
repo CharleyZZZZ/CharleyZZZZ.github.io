@@ -737,15 +737,15 @@
 <p>使用 <strong>Stream API</strong>对集合数据进行操作就类似于使用<strong>SQL</strong>进行数据库查询；</p>
 <p>简而言之，<strong>Stream API</strong> 提供了一种高效且易于使用的数据处理方式。</p>
 <p><strong>概念</strong></p>
-<p>*<em>流 *</em>是数据渠道，用于操作数据源（集合，数组等）所生成的元素序列。</p>
+<p><strong>流</strong> 是数据渠道，用于操作数据源（集合，数组等）所生成的元素序列。</p>
 <p>集合讲的是<strong>数据</strong>，流讲的是<strong>计算</strong>。</p>
 <ul>
-<li>*<em>Stream *</em>自己不会存储元素，需要通过数据源来构造</li>
-<li>*<em>Stream *</em>的操作时延迟执行的，等到需要结果的时候才执行，即在存在终止操作时才会真正执行。</li>
+<li><strong>Stream</strong> 自己不会存储元素，需要通过数据源来构造</li>
+<li><strong>Stream</strong> 的操作时延迟执行的，等到需要结果的时候才执行，即在存在终止操作时才会真正执行。</li>
 </ul>
-<p><strong>并行流（parallelStream） *<em>与 *</em>串行流（默认生成的Stream）</strong></p>
-<p>*<em>并行流 *</em>就是把一个内容分成多个数据块，并用不同线程分别处理每个数据块的流，因此可以对数据进行多线程并行操作。</p>
-<p>*<em>Stream *</em>的使用步骤：</p>
+<p><strong>并行流（parallelStream）</strong> 与 <strong>串行流（默认生成的Stream</strong> </p>
+<p><strong>并行流</strong> 就是把一个内容分成多个数据块，并用不同线程分别处理每个数据块的流，因此可以对数据进行多线程并行操作。</p>
+<p><strong>Stream</strong> 的使用步骤：</p>
 <ol>
 <li><p><strong>源操作</strong>（创建<strong>Stream</strong>）：从一个数据源获得流</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">list.stream();</span><br><span class="line">Stream.of(array);</span><br></pre></td></tr></table></figure>

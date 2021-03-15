@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+
+
+<html lang="en">
+
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    缓存（一）- 基础概念 |  Hello World !
+  </title>
+  <meta name="generator" content="hexo-theme-ayer">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/dist/main.css">
+
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css">
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+  
+  
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+
+  
+  
+
+  
+
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content on">
+      <section class="outer">
+  <article id="post-缓存（一）-基础概念" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  缓存（一）- 基础概念
+</h1>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%B8%80%EF%BC%89-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/" class="article-date">
+  <time datetime="2021-03-15T07:36:45.000Z" itemprop="datePublished">2021-03-15</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0/">技术学习</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> Word count:</span>
+            <span class="post-count">5.5k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> Reading time≈</span>
+            <span class="post-count">19 min</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="缓存（一）-基础概念"><a href="#缓存（一）-基础概念" class="headerlink" title="缓存（一）- 基础概念"></a>缓存（一）- 基础概念</h1><ul>
+<li><p>概念：缓存思想、优缺点、读写模式、缓存分类</p>
+</li>
+<li><p>缓存设计：组件选择、数据结构设计、数据分布设计、缓存架构部署及运维管理、设计考量点</p>
+</li>
+<li><p>缓存问题：缓存失效、缓存穿透、缓存雪崩、数据不一致、数据并发竞争、Hot key 、Big key 问题</p>
+</li>
+</ul>
+<h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p><strong>缓存</strong>最初的含义，是指用于加速 <strong>CPU</strong> 数据交换的 <strong>RAM</strong>，即随机存取存储器，通常这种存储器使用更昂贵但快速的静态 <strong>RAM</strong>（<strong>SRAM</strong>）技术，用以对 <strong>DRAM</strong>进行加速。这是一个狭义缓存的定义。</p>
+<p>而广义缓存的定义则更宽泛，<strong>任何可以用于数据高速交换的存储介质都是缓存</strong>，可以是硬件也可以是软件。</p>
+<h3 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h3><h4 id="基本思想"><a href="#基本思想" class="headerlink" title="基本思想"></a>基本思想</h4><p><strong>缓存构建的基本思想</strong>是利用时间局限性原理，通过空间换时间来达到加速数据获取的目的，同时由于缓存空间的成本较高，在实际设计架构中还要考虑访问延迟和成本的权衡问题。</p>
+<ul>
+<li>时间局限性原理：即被获取过一次的数据在未来会被多次引用；</li>
+<li>空间换时间：因为原始数据获取太慢，所以我们开辟一块高速独立空间，提供高效访问，来达到数据获取加速的目的；</li>
+<li>性能成本：性能越高延迟越小，成本也会越高，所以在系统架构设计时，你需要在系统性能和开发运行成本之间做取舍。</li>
+</ul>
+<h4 id="优势与代价"><a href="#优势与代价" class="headerlink" title="优势与代价"></a>优势与代价</h4><p><strong>优点：</strong></p>
+<ul>
+<li><strong>提升访问性能</strong>：高速独立空间，提升访问效率。</li>
+<li><strong>降低网络拥堵</strong>：在实际业务场景中，缓存中存储的往往是需要频繁访问的中间数据甚至最终结果，这些数据相比 DB 中的原始数据小很多，这样就可以减少网络流量，降低网络拥堵。</li>
+<li><strong>减轻服务器负载</strong>：由于中间数据复用，减少了解析和计算，调用方和存储服务的负载也可以大幅降低。</li>
+<li><strong>增强可扩展性</strong>：缓存的读写性能很高，预热快，在数据访问存在性能瓶颈或遇到突发流量，系统读写压力大增时，可以快速部署上线，同时在流量稳定后，也可以随时下线，从而使系统的可扩展性大大增强。</li>
+</ul>
+<p>任何事情都有两面性，缓存也不例外，我们在享受缓存带来一系列好处的同时，也注定需要付出一定的代价。</p>
+<p><strong>代价</strong>：</p>
+<ul>
+<li><strong>增加系统复杂度</strong>：毫无疑问，引入缓存会增加系统复杂度，同时还面临许多新的问题，例如缓存不一致、缓存更新、缓存击穿、缓存雪崩等问题；</li>
+<li><strong>费用成本高</strong>：缓存相比原始 <strong>DB</strong> 存储的成本更高，所以系统部署及运行的费用也会更高。</li>
+<li><strong>学习投入</strong>：除了上面说的缓存一致性问题外，缓存体系本身也会存在可用性问题和分区的问题。这就需要我们加强对缓存原理、缓存组件以及优秀缓存体系实践的理解，从系统架构之初就对缓存进行良好设计，降低缓存引入的副作用。</li>
+</ul>
+<h4 id="缓存读写模式"><a href="#缓存读写模式" class="headerlink" title="缓存读写模式"></a>缓存读写模式</h4><p>业务系统读写缓存有 <strong>3 种</strong>模式：</p>
+<ul>
+<li><strong>Cache Aside</strong>（旁路缓存）</li>
+<li><strong>Read/Write Through</strong>（读写穿透）</li>
+<li><strong>Write Behind Caching</strong>（异步缓存写入）</li>
+</ul>
+<p><strong>Cache Aside</strong>（旁路缓存）</p>
+<p><strong>Cache Aside</strong> 模式中，业务应用方对于写，是更新 <strong>DB</strong> 后，直接将 <strong>key</strong> 从 <strong>cache</strong> 中删除，然后由 <strong>DB</strong> 驱动缓存数据的更新（例如Trigger组件）；而对于读，是先读 <strong>cache</strong>，如果 <strong>cache</strong> 没有，则读 <strong>DB</strong>，同时将从 <strong>DB</strong> 中读取的数据回写到 <strong>cache</strong>。</p>
+<p><img src="/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%B8%80%EF%BC%89-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/cache_02.png" alt="Cache Aside"></p>
+<p><strong>特点：</strong></p>
+<ul>
+<li>适用于数据一致性要求比较高的业务；</li>
+<li>适用于缓存更新比较复杂的业务；</li>
+</ul>
+<p><strong>Read/Write Through</strong>（读写穿透）</p>
+<p>相对于 <strong>Cache Aside</strong> 模式，业务应用需要同时维护 <strong>cache</strong> 和 <strong>DB</strong> 两个数据存储方，过于繁琐，于是就有了 <strong>Read/Write Through</strong> 模式。</p>
+<p>在这种模式下，业务应用<strong>只关注一个存储服务</strong>即可，业务方的读写 <strong>cache</strong> 和 <strong>DB</strong> 的操作，都由存储服务代理。存储服务收到业务应用的写请求时，会首先查 <strong>cache</strong>，如果数据在 <strong>cache</strong> 中不存在，则只更新 <strong>DB</strong>，如果数据在 <strong>cache</strong> 中存在，则先更新 <strong>cache</strong>，然后更新 <strong>DB</strong>。而存储服务收到读请求时，如果命中 <strong>cache</strong> 直接返回，否则先从 <strong>DB</strong> 加载，回种到 <strong>cache</strong> 后返回响应。</p>
+<p><img src="/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%B8%80%EF%BC%89-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/cache_03.png" alt="Read/Write Throuth"></p>
+<p><strong>特点：</strong></p>
+<ul>
+<li><p>存储服务封装了所有的数据处理细节，业务应用端代码只用关注业务逻辑本身，系统的隔离性更佳。</p>
+</li>
+<li><p>进行写操作时，如果 cache 中没有数据则不更新，有缓存数据才更新，内存效率更高。</p>
+</li>
+</ul>
+<p><strong>Write Behind Caching</strong>（异步缓存写入）</p>
+<p><strong>Write Behind Caching</strong> 模式与 <strong>Read/Write Through</strong> 模式类似，也由数据存储服务来管理 <strong>cache</strong> 和 <strong>DB</strong> 的读写。不同点是，数据更新时，<strong>Read/write Through</strong> 是<strong>同步更新</strong> <strong>cache</strong> 和 <strong>DB</strong>，而 <strong>Write Behind Caching</strong> 则是<strong>只更新缓存，不直接更新 DB</strong>，而是改为<strong>异步</strong>批量的方式来更新 <strong>DB</strong>。</p>
+<p><img src="/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%B8%80%EF%BC%89-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/cache_04.png" alt="Write Behind Caching"></p>
+<p><strong>特点：</strong></p>
+<ul>
+<li><p>数据存储的写性能最高，非常适合一些变更特别频繁的业务；</p>
+</li>
+<li><p>非常适合<strong>合并写</strong>请求的业务，比如对一些计数业务，一条 Feed 被点赞 1万 次，如果更新 1万 次 DB 代价很大，而合并成一次请求直接加 1万，则是一个非常轻量的操作；</p>
+</li>
+<li><p>缺点是数据一致性变差，<strong>DB</strong>如果更新不成功可能会有数据丢失。</p>
+</li>
+</ul>
+<h3 id="缓存分类"><a href="#缓存分类" class="headerlink" title="缓存分类"></a>缓存分类</h3><h4 id="宿主层次分类"><a href="#宿主层次分类" class="headerlink" title="宿主层次分类"></a>宿主层次分类</h4><ul>
+<li><strong>本地缓存：</strong>是指业务进程内的缓存，这类缓存由于在业务系统进程内，所以读写性能超高且无任何网络开销，但不足是会随着业务系统重启而丢失</li>
+<li><strong>进程间缓存</strong>：是本机独立运行的缓存，这类缓存读写性能较高，不会随着业务系统重启丢数据，并且可以大幅减少网络开销，但不足是业务系统和缓存都在相同宿主机，运维复杂，且存在资源竞争，受宿主机资源限制。</li>
+<li><strong>远程缓存</strong>：指跨机器部署的缓存，这类缓存因为独立设备部署，容量大且易扩展，在互联网企业使用最广泛。不过远程缓存需要跨机访问，在高读写压力下，带宽容易成为瓶颈。例如分布式缓存。</li>
+</ul>
+<h4 id="存储介质分类"><a href="#存储介质分类" class="headerlink" title="存储介质分类"></a>存储介质分类</h4><ul>
+<li><strong>内存型缓存</strong>：将数据存储在内存，读写性能很高，但缓存系统重启或 <strong>Crash</strong> 后，内存数据会丢失；</li>
+<li><strong>持久化型缓存</strong>：将数据存储到 <strong>SSD/Fusion-IO</strong> 硬盘中，相同成本下，这种缓存的容量会比内存型缓存大 1 个数量级以上，而且数据会持久化落地，重启不丢失，但读写性能相对低 1～2 个数量级。<strong>Memcached</strong> 是典型的内存型缓存。</li>
+</ul>
+<h3 id="缓存设计考虑因素"><a href="#缓存设计考虑因素" class="headerlink" title="缓存设计考虑因素"></a>缓存设计考虑因素</h3><h4 id="缓存组件选择"><a href="#缓存组件选择" class="headerlink" title="缓存组件选择"></a><strong>缓存组件选择</strong></h4><p>在设计架构缓存时，你首先要选定缓存组件，比如要用 <strong>Local-Cache</strong>，还是 <strong>Redis</strong>、<strong>Memcached</strong>、<strong>Pika</strong> 等开源缓存组件，需要根据业务需求做出相应选择。</p>
+<h4 id="数据结构设计"><a href="#数据结构设计" class="headerlink" title="数据结构设计"></a><strong>数据结构设计</strong></h4><p>对于直接简单 <strong>KV</strong> 读写的业务，你可以将这些业务数据封装为 <strong>String</strong>、<strong>Json</strong>、<strong>Protocol Buffer</strong> 等格式，序列化成字节序列，然后直接写入缓存中。读取时，先从缓存组件获取到数据的字节序列，再进行反序列化操作即可。</p>
+<p>对于只需要存取部分字段或需要在缓存端进行计算的业务，你可以把数据设计为 <strong>Hash</strong>、<strong>Set</strong>、<strong>List</strong>、<strong>Geo</strong> 等结构，存储到支持复杂集合数据类型的缓存中，如 <strong>Redis</strong>、<strong>Pika</strong> 等。</p>
+<h4 id="数据分布设计"><a href="#数据分布设计" class="headerlink" title="数据分布设计"></a><strong>数据分布设计</strong></h4><ul>
+<li><strong>确认数据分布算法</strong>，例如<strong>取模</strong>或者<strong>一致性hash</strong>分布。取模分布的方案简单，每个 key 只会存在确定的缓存节点，一致性 Hash 分布的方案相对复杂，一个 key 对应的缓存节点不确定。但一致性 Hash 分布，可以在部分缓存节点异常时，将失效节点的数据访问均衡分散到其他正常存活的节点，从而更好地保证了缓存系统的稳定性。</li>
+<li><strong>分布读写访问方式</strong>，一种是由缓存 <strong>Client</strong> 直接进行 <strong>Hash</strong> 分布定位读写，另一种是通过 Proxy 代理来进行读写路由。前者是Client 直接读写，读写性能最佳，但需要 Client 感知分布策略。在缓存部署发生在线变化时，也需要及时通知所有缓存 Client，对业务系统侵入较强；后者通过 Proxy 路由，Client 只需直接访问 Proxy，分布逻辑及部署变更都由 Proxy 来处理，对业务应用开发最友好，但业务访问多一跳，访问性能会有一定的损失。</li>
+<li><strong>缓存节点动态拆分</strong>，缓存系统运行过程中，如果待缓存的数据量增长过快，会导致大量缓存数据被剔除，缓存命中率会下降，数据访问性能会随之降低，这样就需要将数据从缓存节点进行动态拆分，把部分数据水平迁移到其他缓存节点。这个迁移过程需要考虑，是由 Proxy 进行迁移还是缓存 Server 自身进行迁移，甚至根本就不支持迁移。</li>
+</ul>
+<h4 id="缓存架构部署及运维管理"><a href="#缓存架构部署及运维管理" class="headerlink" title="缓存架构部署及运维管理"></a><strong>缓存架构部署及运维管理</strong></h4><ul>
+<li><strong>分池：</strong>核心的、高并发访问的不同数据，需要分别分拆到独立的缓存池中，进行分别访问，避免相互影响；访问量较小、非核心的业务数据，则可以混存；</li>
+<li><strong>分层：</strong>对海量数据、访问超过 10～100万 级的业务数据，要考虑分层访问，并且要分摊访问量，避免缓存过载。</li>
+<li><strong>跨IDC部署</strong>：由于实际场景下，业务系统可能需要多IDC（互联网数据中心）部署，则需要对缓存体系也进行多 IDC 部署，跨 IDC 缓存数据更新，可以采用直接跨 IDC 读写，也可以采用 DataBus 配合队列机进行不同 IDC 的消息同步，然后由消息处理机进行缓存更新，还可以由各个 IDC 的 DB Trigger 进行缓存更新。</li>
+</ul>
+<h4 id="常见考量点"><a href="#常见考量点" class="headerlink" title="常见考量点"></a><strong>常见考量点</strong></h4><ul>
+<li><p><strong>读写方式</strong>：全部读写，还是部分读写，或者缓存服务器负责部分计算等；</p>
+</li>
+<li><p><strong>KV size</strong>：单个业务的 <strong>KV size</strong> 过大，需要分拆成多个 <strong>KV</strong> 来缓存；不同缓存数据的 <strong>KV size</strong> 如果差异过大，也不能缓存在一起，避免缓存效率的低下和相互影响。</p>
+</li>
+<li><p><strong>key 数量</strong>：<strong>key</strong>数量不大，则缓存全量数据，不存在也不需要再查数据库；<strong>key</strong> 数量较大，则冷热数据分离，缓存中尽可能只保留频繁访问的热数据，对于冷数据直接访问 <strong>DB</strong>。</p>
+</li>
+<li><p><strong>读写峰值</strong>：峰值过大，如果小于 10万 级别，简单分拆到独立 Cache 池即可；超过 10万 甚至到达 100万 级的QPS，则需要对 Cache 进行分层处理，可以同时使用 Local-Cache 配合远程 cache，甚至远程缓存内部继续分层叠加分池进行处理。</p>
+</li>
+<li><p><strong>命中率</strong>：缓存的命中率对整个服务体系的性能影响甚大。对于核心高并发访问的业务，需要预留足够的容量，确保核心业务缓存维持较高的命中率。为了持续保持缓存的命中率，缓存体系需要持续监控，及时进行故障处理或故障转移。同时在部分缓存节点异常、命中率下降时，故障转移方案，需要考虑是采用一致性 <strong>Hash</strong> 分布的访问漂移策略，还是采用数据多层备份策略。</p>
+</li>
+<li><p><strong>淘汰策略：</strong></p>
+<ul>
+<li><strong>FIFO</strong>: 先进先出策略，在实时性的场景下，需要经常访问最新的数据，那么就可以使用FIFO,使最先进入的数据(最晚的数据)被淘汰。</li>
+<li><strong>LFU</strong>: 最少使用策略：<br>无论是否过期，根据元素被使用次数判断，清除使用次数较少的元素释放空间。算法主要比较元素的hitcount(命中次数)，在保证高频数据有效性的场景下，可是使用这类策略。</li>
+<li><strong>LRU</strong>(Least Recently Used): 最近最久未使用策略，优先淘汰最久未使用的数据，也就是上次访问时间举例现在最远的数据。该策略可以保证内存中的数据都是热点数据，也就是经常被访问的数据，从而保证缓存命中率。</li>
+<li>根据过期时间判断，清理过期时间最长的元素；（可以使用较短过期时间或者key 带时间戳的方式）</li>
+<li>根据过期时间判断，清理最近要过期的元素；</li>
+<li>随机清理；</li>
+</ul>
+</li>
+<li><p><strong>缓存可以运维性</strong>：对于缓存的可运维性考虑，则需要考虑缓存体系的集群管理，如何进行一键扩缩容，如何进行缓存组件的升级和变更，如何快速发现并定位问题，如何持续监控报警，最好有一个完善的运维平台，将各种运维工具进行集成。</p>
+</li>
+<li><p><strong>缓存安全性</strong>：对于缓存的安全性考虑，一方面可以限制来源 IP，只允许内网访问，同时对于一些关键性指令，需要增加访问权限，避免被攻击或误操作时，导致重大后果。</p>
+</li>
+</ul>
+<h3 id="缓存常见问题"><a href="#缓存常见问题" class="headerlink" title="缓存常见问题"></a>缓存常见问题</h3><p>缓存常见七大问题：</p>
+<ul>
+<li>缓存失效</li>
+<li>缓存穿透</li>
+<li>缓存雪崩</li>
+<li>数据一致性</li>
+<li>数据并发竞争</li>
+<li>Hot Key</li>
+<li>Big Key</li>
+</ul>
+<h4 id="缓存失效"><a href="#缓存失效" class="headerlink" title="缓存失效"></a>缓存失效</h4><p><strong>问题描述：</strong>大量缓存同时失效（DB批量更新缓存，设置相同过期时间），查询穿透到DB，DB短时间内查询量过大，导致性能问题。</p>
+<p><strong>解决方案：</strong>将过期时间设置为：<strong>过期时间 = baes 时间 + 随机时间</strong>，即相同业务数据写缓存时，在基础过期时间之上，再加一个随机的过期时间，让数据在未来一段时间内慢慢过期，避免瞬时全部过期，对 DB 造成过大压力。</p>
+<h4 id="缓存穿透"><a href="#缓存穿透" class="headerlink" title="缓存穿透"></a>缓存穿透</h4><p><strong>问题描述</strong>：批量查询一个不存在的<strong>key</strong>，导致每次查询都会穿透到 <strong>DB</strong>，<strong>DB</strong>压力过大，影响正常服务。</p>
+<p><strong>解决方案</strong>：</p>
+<ul>
+<li><strong>缓存非法key</strong>：查询这些不存在的数据时，第一次查 DB，虽然没查到结果返回 NULL，仍然记录这个 key 到缓存，只是这个 key 对应的 value 是一个特殊设置的值。但是如果不存在的 key 数量过多，会占用大量缓存空间，可以设置较短的过期时间，防止非法 key 占用过多缓存空间；也可以设立独立缓存空间存储非法key，从缓存查找时，先查正常的缓存组件，如果 miss，则查一下公共的非法 key 的缓存，如果后者命中，直接返回，否则穿透 DB，如果查出来是空，则回种到非法 key 缓存，否则回种到正常缓存。</li>
+<li><strong>布隆过滤器（BloomFilter）</strong>：构建一个 BloomFilter 缓存过滤器，访问数据时，可以直接通过 BloomFilter 判断这个 key 是否存在，如果不存在直接返回即可，根本无需查缓存和 DB。BloomFilter 可以缓存全量数据key，但是数量不宜过多，也可以用来缓存非法key集合，但是累计非法 key 数量会持续增长，可以用过设置过期时间定期清理。</li>
+</ul>
+<h4 id="缓存雪崩"><a href="#缓存雪崩" class="headerlink" title="缓存雪崩"></a><strong>缓存雪崩</strong></h4><p><strong>问题描述</strong>： 缓存雪崩是指部分缓存节点不可用，导致整个缓存体系甚至甚至服务系统不可用的情况。</p>
+<ul>
+<li><strong>缓存节点不支持 rehash</strong>，较多缓存节点不可用时，大量 Cache 访问会失败，根据缓存读写模型，这些请求会进一步访问 DB，造成 DB 过载，大量慢查询，最终阻塞甚至 Crash，从而导致服务异常。</li>
+<li><strong>缓存节点支持 rehash</strong>，一致性 Hash 分布方式中，在部分节点异常时，采用 rehash 策略，即把异常节点请求平均分散到其他缓存节点。但在较大的流量洪峰到临之时，如果大流量 key 比较集中，正好在某 1～2 个缓存节点，很容易将这些缓存节点的内存、网卡过载，缓存节点异常 Crash，然后这些异常节点下线，这些大流量 key 请求又被 rehash 到其他缓存节点，进而导致其他缓存节点也被过载 Crash，缓存异常持续扩散，最终导致整个缓存体系异常，无法对外提供服务。</li>
+</ul>
+<p><strong>解决方案</strong>：</p>
+<ul>
+<li>针对 DB 增加读写开关，当发现 DB 请求变慢、阻塞，慢请求超过阀值时，就会关闭读开关，部分或所有读 DB 的请求进行 failfast 立即返回，待 DB 恢复后再打开读开关；</li>
+<li>增加缓存副本，缓存异常或请求 miss 后，再读取其他缓存副本，而且多个缓存副本尽量部署在不同机架，从而确保在任何情况下，缓存系统都会正常对外提供服务；</li>
+<li>对缓存体系进行实时监控，当请求访问的慢速比超过阀值时，及时报警，通过机器替换、服务替换进行及时恢复；也可以通过各种自动故障转移策略，自动关闭异常接口、停止边缘服务、停止部分非核心功能措施，确保在极端场景下，核心功能的正常运行。</li>
+</ul>
+<h4 id="数据不一致"><a href="#数据不一致" class="headerlink" title="数据不一致"></a>数据不一致</h4><p><strong>问题描述</strong>：DB 和 缓存数据不一致（缓存更新异常，缓存多次rehash 也可能导致节点脏数据）。</p>
+<p><strong>解决方案</strong>：</p>
+<ul>
+<li>cache 更新失败后，可以进行重试，如果重试失败，则将失败的 key 写入队列机服务，待缓存访问恢复后，将这些 key 从缓存删除。这些 key 在再次被查询时，重新从 DB 加载，从而保证数据的一致性。</li>
+<li>缓存时间适当调短，让缓存数据及早过期后，然后从 DB 重新加载，确保数据的最终一致性。</li>
+<li>不采用 rehash 漂移策略，而采用缓存分层策略，尽量避免脏数据产生。</li>
+</ul>
+<h4 id="数据并发竞争"><a href="#数据并发竞争" class="headerlink" title="数据并发竞争"></a>数据并发竞争</h4><p><strong>问题描述</strong>：是指在高并发访问场景，一旦缓存访问没有找到数据，大量请求就会并发查询 DB，导致 DB 压力大增的现象。主要是由于多个进程/线程中，有大量并发请求获取相同的数据，而这个数据 key 因为正好过期、被剔除等各种原因在缓存中不存在，这些进程/线程之间没有任何协调，然后一起并发查询 DB，请求那个相同的 key，最终导致 DB 压力大增。</p>
+<p><strong>解决方案</strong>：</p>
+<ul>
+<li><strong>加全局锁</strong>：当缓存请求 miss 后，先尝试加全局锁，只有加全局锁成功的线程，才可以到 DB 去加载数据。其他进程/线程在读取缓存数据 miss 时，如果发现这个 key 有全局锁，就进行等待，待之前的线程将数据从 DB 回种到缓存后，再从缓存获取。</li>
+<li><strong>增加缓存备份</strong>：对缓存数据保持多个备份，即便其中一个备份中的数据过期或被剔除了，还可以访问其他备份。</li>
+</ul>
+<h4 id="Hot-key"><a href="#Hot-key" class="headerlink" title="Hot key"></a>Hot key</h4><p><strong>问题描述</strong>：大多数互联网系统，数据是分冷热的，当超大量的请求同时访问热点数据对应的缓存节点（比如微博热点新闻），缓存机器很容易被打到物理网卡、带宽、CPU 的极限，从而导致缓存访问变慢、卡顿。</p>
+<p><strong>解决方案</strong>：</p>
+<p><strong>Hot key</strong> 问题的关键是先找到 <strong>Hot key</strong> ，然后对 <strong>Hot key</strong> 进行分散处理，可以被分散为 hotkey#1、hotkey#2、hotkey#3，……hotkey#n，这 n 个 key 分散存在多个缓存节点，然后 client 端请求时，随机访问其中某个后缀的 hotkey，这样就可以把热 key 的请求打散，避免一个缓存节点过载。</p>
+<p>根据现实场景，<strong>Hot key</strong> 可以分为 <strong>可以预知的Hot key</strong>（例如重要节假日、线上促销活动等） ，和 <strong>突发的Hot key</strong> （例如突发事件）</p>
+<ul>
+<li>对于可预知的 Hot key ，可以提前部署，对 Hot key 缓存分散处理。</li>
+<li>对于不可预知的Hot key，可以通过 Spark，对应流任务进行实时分析，及时发现新发布的热点 key。</li>
+</ul>
+<h4 id="Big-key"><a href="#Big-key" class="headerlink" title="Big key"></a>Big key</h4><p><strong>问题描述</strong>：大 key，是指在缓存访问时，部分 Key 的 Value 过大，读写、加载易超时的现象。</p>
+<p><strong>解决方案</strong>：</p>
+<ul>
+<li>压缩，阈值预警，当 value 的长度超过阀值，则对内容启用压缩。</li>
+<li>大 key 拆分，尽量减少大 key 的存在。</li>
+<li>尽量不淘汰：由于大 key 一旦穿透到 DB，加载耗时很大，所以可以对这些大 key 进行特殊照顾，比如设置较长的过期时间，比如缓存内部在淘汰 key 时，同等条件下，尽量不淘汰这些大 key。</li>
+</ul>
+<blockquote>
+<p>笔记来源：陈波 老师的 《300分钟吃透分布式缓存》课程</p>
+</blockquote>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://charleyzzzz.github.io/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%B8%80%EF%BC%89-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%BC%93%E5%AD%98/" rel="tag">缓存</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%9D%A2%E8%AF%95%E5%A4%8D%E4%B9%A0/" rel="tag">面试复习</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%BA%8C%EF%BC%89-Memcached/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            缓存（二）- Memcached
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2021/03/15/%E5%BF%85%E4%BC%9A%E6%A1%86%E6%9E%B6%EF%BC%88%E4%BA%8C%EF%BC%89-Mybatis/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">必会框架（二）- Mybatis</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: 'fV6hp5I755QPrJ9W3gpD596M-gzGzoHsz',
+        app_key: '2BLVrJEhiPxBOjTvEyjpXD2c',
+        path: window.location.pathname,
+        notify: 'false',
+        verify: 'false',
+        avatar: 'monsterid',
+        placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2020-2021
+        <i class="ri-heart-fill heart_icon"></i> CharleyZZZZ
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>Visitors:<span id="busuanzi_value_site_uv"></span></s>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>Views:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="float_btns">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+      </div>
+    </main>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/timg.jpg" alt="Hello World !"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E7%94%9F%E6%B4%BB/">生活</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <script>
+      if (window.matchMedia("(max-width: 768px)").matches) {
+        document.querySelector('.content').classList.remove('on');
+        document.querySelector('.sidebar').classList.remove('on');
+      }
+    </script>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/wechat.jpg">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Subtitle -->
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+    console.log(err)
+  }
+</script>
+
+<!-- Tocbot -->
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto'
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+<!-- ClickLove -->
+
+
+<script src="/js/clickLove.js"></script>
+
+
+<!-- CodeCopy -->
+
+
+<link rel="stylesheet" href="/css/clipboard.css">
+
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="52"
+        src="//music.163.com/outchain/player?type=2&id=462472214&auto=1&height=32"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+  </div>
+</body>
+
+</html>
