@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+
+
+<html lang="en">
+
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    消息队列 |  Hello World !
+  </title>
+  <meta name="generator" content="hexo-theme-ayer">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/dist/main.css">
+
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css">
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+  
+  
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+
+  
+  
+
+  
+
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content on">
+      <section class="outer">
+  <article id="post-消息队列" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  消息队列
+</h1>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/03/15/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" class="article-date">
+  <time datetime="2021-03-15T08:09:05.000Z" itemprop="datePublished">2021-03-15</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0/">技术学习</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> Word count:</span>
+            <span class="post-count">3.9k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> Reading time≈</span>
+            <span class="post-count">13 min</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="消息队列"><a href="#消息队列" class="headerlink" title="消息队列"></a>消息队列</h1><ul>
+<li>JMS（Java消息服务规范）：特点、消息模型、消费方式、编程模型</li>
+<li>使用场景：应用解耦合、服务通信、异步任务、削峰填谷、消息广播</li>
+<li>消息协议：JMS、AMQP</li>
+<li>常用队列：RabbitMQ、ActiveMQ、RocketMQ、Kafka（优劣对比）</li>
+</ul>
+<h2 id="Java-消息服务接口（JMS）"><a href="#Java-消息服务接口（JMS）" class="headerlink" title="Java 消息服务接口（JMS）"></a>Java 消息服务接口（JMS）</h2><blockquote>
+<p><strong>JMS</strong> 即 <strong>Java消息服务（Java Message Service）应用程序接口</strong>，是一个<a href="https://baike.baidu.com/item/Java平台" target="_blank" rel="noopener">Java平台</a>中关于面向<a href="https://baike.baidu.com/item/消息中间件/5899771" target="_blank" rel="noopener">消息中间件</a>（MOM）的<a href="https://baike.baidu.com/item/API/10154" target="_blank" rel="noopener">API</a>，用于在两个应用程序之间，或<a href="https://baike.baidu.com/item/分布式系统/4905336" target="_blank" rel="noopener">分布式系统</a>中发送消息，进行<a href="https://baike.baidu.com/item/异步通信/2273903" target="_blank" rel="noopener">异步通信</a>。Java消息服务是一个与具体平台无关的API，绝大多数MOM提供商都对JMS提供支持。</p>
+<p>《百度百科》</p>
+</blockquote>
+<p><strong>JMS *<em>只是 *</em>Java EE</strong> 中定义的一组标准 <strong>API</strong>，它自身并不是一个消息服务系统，它是消息传送服务的一个<strong>抽象</strong>，也就是说它定义了消息传送的接口而并没有具体实现。</p>
+<p>JMS其实就是一个<code>Java</code>业界的<code>标准规范</code>而已，提供了一些编程接口给第三方去实现。包括消息产生、发送、读取、接收等。像<code>ActiveMQ</code>、<code>RocketMQ</code>之类的框架都是针对这个标准去实现的。</p>
+<h3 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h3><ul>
+<li><strong>异步</strong>：规范（标准）指出：消息的发送应该是异步的、非阻塞的。也就是说消息的发送者发送完消息后就直接返回了，不需要等待接收者返回后才能返回，发送者和接收者可以说是互不影响，减轻或消除系统瓶颈，实现系统之间去除耦合，提高系统的整体可伸缩性和灵活性。</li>
+<li><strong>可靠</strong>：JMS保证消息只会递送一次。</li>
+</ul>
+<h3 id="消息模型"><a href="#消息模型" class="headerlink" title="消息模型"></a>消息模型</h3><ul>
+<li><strong>Point-to-Point(P2P)（点对点）</strong></li>
+<li><strong>Publish/Subscribe(Pub/Sub) （发布/订阅模式）</strong></li>
+</ul>
+<h4 id="Point-to-Point-P2P"><a href="#Point-to-Point-P2P" class="headerlink" title="Point-to-Point(P2P)"></a>Point-to-Point(P2P)</h4><p><img src="/2021/03/15/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/message_queue_01.png" alt="点对点消息模型"></p>
+<p>在<strong>P2P通信模式</strong>中，应用程序由消息队列，发送方，接收方组成。每个消息都被发送到一个特定的队列，接收者从队列中获取消息。队列保留着消息，直到他们被消费或超时。</p>
+<ul>
+<li>每个消息只有一个消费者；</li>
+<li>发送者和接收者之间在时间上没有依赖性，也就是说当发送者发送了消息之后，不管接收者有没有正在运行，它不会影响到消息被发送到队列；</li>
+<li>发送方不管是否在发送消息，接收方都可以从消息队列中去读消息；</li>
+<li>接收方在接收完消息之后，需要向消息队列应答成功。</li>
+</ul>
+<h4 id="Publish-Subscribe-Pub-Sub"><a href="#Publish-Subscribe-Pub-Sub" class="headerlink" title="Publish/Subscribe(Pub/Sub)"></a>Publish/Subscribe(Pub/Sub)</h4><img src="/2021/03/15/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/message_queue_02.png" alt="订阅发布模型" style="zoom:115%;">
+
+
+
+<p>在<strong>发布/订阅消息模型</strong>中，发布者发布一个消息，该消息通过<strong>topic</strong>传递给所有的客户端。</p>
+<p>该模式下，发布者与订阅者都是匿名的，即发布者与订阅者都不知道对方是谁。并且可以动态的发布与订阅<strong>Topic</strong>。<strong>Topic</strong>主要用于保存和传递消息，且会一直保存消息直到消息被传递给客户端。</p>
+<ul>
+<li>一个消息可以传递个多个订阅者；</li>
+<li>发布者与订阅者具有时间约束，针对某个主题（<strong>Topic</strong>）的订阅者，它必须创建一个订阅者之后，才能消费发布者的消息，而且为了消费消息，订阅者必须保持运行的状态。</li>
+<li>为了缓和这样严格的时间相关性，<strong>JMS</strong>允许订阅者创建一个可持久化的订阅。这样，即使订阅者没有被激活（运行），它也能接收到发布者的消息。</li>
+</ul>
+<h3 id="消息的消费方式"><a href="#消息的消费方式" class="headerlink" title="消息的消费方式"></a>消息的消费方式</h3><ul>
+<li><strong>同步</strong>：消费者通过调用<code>receive</code>方法显式地从<code>Destination</code>中获取消息。该<code>receive</code>方法在消息到达之前会一直阻塞，或者如果消息没有在指定的时间限制内到达，则可以超时。</li>
+<li><strong>异步</strong>：使用异步方式接收消息的话，消息订阅者需注册一个消息监听者，类似于事件监听器，只要消息到达，JMS服务提供者会通过调用监听器的<code>onMessage()</code>递送消息</li>
+</ul>
+<h3 id="JMS编程模型"><a href="#JMS编程模型" class="headerlink" title="JMS编程模型"></a>JMS编程模型</h3><p><strong>ConnectionFactory</strong></p>
+<p>创建 Connection对象的工厂，针对两种不同的jms消息模型，分别有QueueConnectionFactory和TopicConnectionFactory两种。可以通过JNDI来查找ConnectionFactory对象。</p>
+<p><strong>Destination</strong></p>
+<p>Destination的意思是消息生产者的消息发送目标或者说消息消费者的消息来源。对于消息生产者来说，它的Destination是某个队列（Queue）或某个主题（Topic）;对于消息消费者来说，它的Destination也是某个队列或主题（即消息来源）。</p>
+<p>所以，Destination实际上就是两种类型的对象：Queue、Topic可以通过JNDI来查找Destination。</p>
+<p><strong>Connection</strong></p>
+<p>Connection表示在客户端和JMS系统之间建立的链接（对TCP/IP socket的包装）。Connection可以产生一个或多个Session。跟ConnectionFactory一样，Connection也有两种类型：QueueConnection和TopicConnection。</p>
+<p><strong>Session</strong></p>
+<p>Session是我们操作消息的接口。可以通过session创建生产者、消费者、消息等。Session提供了事务的功能。当我们需要使用session发送/接收多个消息时，可以将这些发送/接收动作放到一个事务中。同样，也分QueueSession和TopicSession。</p>
+<p><strong>消息的生产者</strong></p>
+<p>消息生产者由Session创建，并用于将消息发送到Destination。同样，消息生产者分两种类型：QueueSender和TopicPublisher。可以调用消息生产者的方法（send或publish方法）发送消息。</p>
+<p><strong>消息消费者</strong></p>
+<p>消息消费者由Session创建，用于接收被发送到Destination的消息。两种类型：QueueReceiver和TopicSubscriber。可分别通过session的createReceiver(Queue)或createSubscriber(Topic)来创建。当然，也可以session的creatDurableSubscriber方法来创建持久化的订阅者。</p>
+<p><strong>MessageListener</strong></p>
+<p>消息监听器。如果注册了消息监听器，一旦消息到达，将自动调用监听器的onMessage方法。EJB中的MDB（Message-Driven Bean）就是一种MessageListener。</p>
+<h2 id="消息中间件"><a href="#消息中间件" class="headerlink" title="消息中间件"></a>消息中间件</h2><p>消息队列中间件是分布式系统中重要的组件，主要解决<strong>应用解耦，异步消息，流量削锋</strong>等问题，实现高性能，高可用，可伸缩和最终一致性架构。目前使用较多的消息队列有ActiveMQ，RabbitMQ，RocketMQ，Kafka等。</p>
+<h3 id="RabbitMQ"><a href="#RabbitMQ" class="headerlink" title="RabbitMQ"></a>RabbitMQ</h3><p>RabbitMQ于2007年发布，是一个在<strong>AMQP</strong>(高级消息队列协议)基础上完成的，可复用的企业消息系统，是当前最主流的消息中间件之一。</p>
+<h4 id="主要特性"><a href="#主要特性" class="headerlink" title="主要特性"></a>主要特性</h4><ol>
+<li>可靠性：提供了多种技术可以让你在性能和可靠性之间进行权衡。这些技术包括持久性机制、投递确认、发布者证实和高可用性机制；</li>
+<li>灵活的路由：消息在到达队列前是通过交换机进行路由的。RabbitMQ为典型的路由逻辑提供了多种内置交换机类型。如果你有更复杂的路由需求，可以将这些交换机组合起来使用，你甚至可以实现自己的交换机类型，并且当做RabbitMQ的插件来使用；</li>
+<li>消息集群：在相同局域网中的多个RabbitMQ服务器可以聚合在一起，作为一个独立的逻辑代理来使用；</li>
+<li>队列高可用：队列可以在集群中的机器上进行镜像，以确保在硬件问题下还保证消息安全；</li>
+<li>支持多种协议：支持多种消息队列协议；</li>
+<li>支持多种语言：用Erlang语言编写，支持只要是你能想到的所有编程语言；</li>
+<li>管理界面：RabbitMQ有一个易用的用户界面，使得用户可以监控和管理消息Broker的许多方面；</li>
+<li>跟踪机制：如果消息异常，RabbitMQ 提供消息跟踪机制，使用者可以找出发生了什么；</li>
+<li>插件机制：提供了许多插件，来从多方面进行扩展，也可以编写自己的插件。</li>
+</ol>
+<h5 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h5><ol>
+<li>由于Erlang语言的特性，消息队列性能较好，支持高并发；</li>
+<li>健壮、稳定、易用、跨平台、支持多种语言、文档齐全；</li>
+<li>有消息确认机制和持久化机制，可靠性高；</li>
+<li>高度可定制的路由；</li>
+<li>管理界面较丰富，在互联网公司也有较大规模的应用，社区活跃度高。</li>
+</ol>
+<h5 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h5><ol>
+<li>尽管结合 Erlang 语言本身的并发优势，性能较好，但是不利于做二次开发和维护；</li>
+<li>实现了代理架构，意味着消息在发送到客户端之前可以在中央节点上排队。此特性使得RabbitMQ易于使用和部署，但是使得其运行速度较慢，因为中央节点 增加了延迟，消息封装后也比较大；需要学习比较复杂的接口和协议，学习和维护成本较高。</li>
+</ol>
+<h3 id="ActiveMQ"><a href="#ActiveMQ" class="headerlink" title="ActiveMQ"></a>ActiveMQ</h3><p>ActiveMQ是由Apache出品，ActiveMQ是一个完全支持JMS1.1和J2EE 1.4规范的JMS Provider实现。它非常快速，支持多种语言的客户端和协议，而且可以非常容易的嵌入到企业的应用环境中，并有许多高级功能。</p>
+<h4 id="主要特性-1"><a href="#主要特性-1" class="headerlink" title="主要特性"></a>主要特性</h4><ol>
+<li>服从JMS规范：JMS 规范提供了良好的标准和保证，包括：同步 或 异步 的消息分发，一次和仅一次的消息分发，消息接收和订阅等等。遵从JMS规范的好处在于，不论使用什么JMS实现提供者，这些基础特性都是可用的；</li>
+<li>连接灵活性：ActiveMQ提供了广泛的连接协议，支持的协议有：HTTP/S，IP多播，SSL，TCP，UDP等等。对众多协议的支持让ActiveMQ拥有了很好的灵活性；</li>
+<li>支持的协议种类多：OpenWire、STOMP、REST、XMPP、AMQP；</li>
+<li>持久化插件和安全插件：ActiveMQ提供了多种持久化选择。而且，ActiveMQ的安全性也可以完全依据用户需求进行自定义鉴权和授权；</li>
+<li>支持的客户端语言种类多：除了Java之外，还有：C/C++，.NET，Perl，PHP，Python，Ruby；</li>
+<li>代理集群：多个ActiveMQ代理可以组成一个集群来提供服务；</li>
+<li>异常简单的管理：ActiveMQ是以开发者思维被设计的。所以，它并不需要专门的管理员，因为它提供了简单又使用的管理特性。有很多中方法可以监控ActiveMQ不同层面的数据，包括使用在JConsole或者在ActiveMQ的WebConsole中使用JMX。通过处理JMX的告警消息，通过使用命令行脚本，甚至可以通过监控各种类型的日志。</li>
+</ol>
+<h5 id="优点-1"><a href="#优点-1" class="headerlink" title="优点"></a>优点</h5><ol>
+<li>跨平台(JAVA编写与平台无关，ActiveMQ几乎可以运行在任何的JVM上)；</li>
+<li>可以用JDBC：可以将数据持久化到数据库。虽然使用JDBC会降低ActiveMQ的性能，但是数据库一直都是开发人员最熟悉的存储介质；</li>
+<li>支持JMS规范：支持JMS规范提供的统一接口;</li>
+<li>支持自动重连和错误重试机制；</li>
+<li>有安全机制：支持基于shiro，jaas等多种安全配置机制，可以对Queue/Topic进行认证和授权；</li>
+<li>监控完善：拥有完善的监控，包括WebConsole，JMX，Shell命令行，Jolokia的RESTful API；</li>
+<li>界面友善：提供的WebConsole可以满足大部分情况，还有很多第三方的组件可以使用，比如hawtio；</li>
+</ol>
+<h5 id="缺点-1"><a href="#缺点-1" class="headerlink" title="缺点"></a>缺点</h5><ol>
+<li>社区活跃度不及RabbitMQ高；</li>
+<li>根据其他用户反馈，会出莫名其妙的问题，会丢失消息；</li>
+<li>目前重心放到activemq6.0产品Apollo，对5.x的维护较少；</li>
+<li>不适合用于上千个队列的应用场景；</li>
+</ol>
+<h3 id="RocketMQ"><a href="#RocketMQ" class="headerlink" title="RocketMQ"></a>RocketMQ</h3><p>RocketMQ出自阿里的开源产品，用Java语言实现，在设计时参考了Kafka，并做出了自己的一些改进，消息可靠性上比Kafka更好。RocketMQ在阿里内部被广泛应用在订单，交易，充值，流计算，消息推送，日志流式处理，binglog分发等场景。</p>
+<h4 id="主要特性-2"><a href="#主要特性-2" class="headerlink" title="主要特性"></a>主要特性</h4><ol>
+<li>基于 队列模型：具有高性能、高可靠、高实时、分布式等特点；</li>
+<li>Producer、Consumer、队列都支持分布式；</li>
+<li>Producer向一些队列轮流发送消息，队列集合称为Topic。Consumer如果做广播消费，则一个Consumer实例消费这个Topic对应的所有队列；如果做集群消费，则多个Consumer 实例平均消费这个Topic对应的队列集合；</li>
+<li>能够保证严格的消息顺序；</li>
+<li>提供丰富的消息拉取模式；</li>
+<li>高效的订阅者水平扩展能力；</li>
+<li>实时的消息订阅机制；</li>
+<li>亿级消息堆积 能力；</li>
+<li>较少的外部依赖。</li>
+</ol>
+<h5 id="优点-2"><a href="#优点-2" class="headerlink" title="优点"></a>优点</h5><ol>
+<li>单机支持1万以上持久化队列；</li>
+<li>RocketMQ的所有消息都是持久化的，先写入系统PAGECACHE，然后刷盘，可以保证内存与磁盘都有一份数据，而访问时，直接从内存读取。</li>
+<li>模型简单，接口易用（JMS的接口很多场合并不太实用）；</li>
+<li>性能非常好，可以允许大量堆积消息在Broker中；</li>
+<li>支持多种消费模式，包括集群消费、广播消费等；</li>
+<li>各个环节分布式扩展设计，支持主从和高可用；</li>
+<li>开发度较活跃，版本更新很快。</li>
+</ol>
+<h5 id="缺点-2"><a href="#缺点-2" class="headerlink" title="缺点"></a>缺点</h5><ol>
+<li>支持的 客户端语言不多，目前是Java及C++，其中C++还不成熟；</li>
+<li>RocketMQ社区关注度及成熟度也不及前两者；</li>
+<li>没有Web管理界面，提供了一个 CLI (命令行界面) 管理工具带来查询、管理和诊断各种问题；</li>
+<li>没有在MQ核心里实现JMS等接口；</li>
+</ol>
+<h3 id="Kafka"><a href="#Kafka" class="headerlink" title="Kafka"></a>Kafka</h3><p>Apache Kafka是一个分布式消息发布订阅系统。它最初由LinkedIn公司基于独特的设计实现为一个分布式的日志提交系统(a distributed commit log)，之后成为Apache项目的一部分。Kafka性能高效、可扩展良好并且可持久化。它的分区特性，可复制和可容错都是其不错的特性。</p>
+<h4 id="主要特性-3"><a href="#主要特性-3" class="headerlink" title="主要特性"></a>主要特性</h4><ol>
+<li>快速持久化：可以在O(1)的系统开销下进行消息持久化；</li>
+<li>高吞吐：在一台普通的服务器上既可以达到10W/s的吞吐速率；</li>
+<li>完全的分布式系统：Broker、Producer和Consumer都原生自动支持分布式，自动实现负载均衡；</li>
+<li>支持同步和异步复制两种高可用机制；</li>
+<li>支持数据批量发送和拉取；</li>
+<li>零拷贝技术(zero-copy)：减少IO操作步骤，提高系统吞吐量；</li>
+<li>数据迁移、扩容对用户透明；</li>
+<li>无需停机即可扩展机器；</li>
+<li>其他特性：丰富的消息拉取模型、高效订阅者水平扩展、实时的消息订阅、亿级的消息堆积能力、定期删除机制；</li>
+</ol>
+<h5 id="优点-3"><a href="#优点-3" class="headerlink" title="优点"></a>优点</h5><ol>
+<li>客户端语言丰富：支持Java、.Net、PHP、Ruby、Python、Go等多种语言；</li>
+<li>高性能：单机写入TPS约在100万条/秒，消息大小10个字节；</li>
+<li>提供完全分布式架构，并有replica机制，拥有较高的可用性和可靠性，理论上支持消息无限堆积；</li>
+<li>支持批量操作；</li>
+<li>消费者采用Pull方式获取消息。消息有序，通过控制能够保证所有消息被消费且仅被消费一次；</li>
+<li>有优秀的第三方KafkaWeb管理界面Kafka-Manager；</li>
+<li>在日志领域比较成熟，被多家公司和多个开源项目使用。</li>
+</ol>
+<h5 id="缺点-3"><a href="#缺点-3" class="headerlink" title="缺点"></a>缺点</h5><ol>
+<li>Kafka单机超过64个队列/分区时，Load时会发生明显的飙高现象。队列越多，负载越高，发送消息响应时间变长；</li>
+<li>使用短轮询方式，实时性取决于轮询间隔时间；</li>
+<li>消费失败不支持重试；</li>
+<li>支持消息顺序，但是一台代理宕机后，就会产生消息乱序；</li>
+<li>社区更新较慢。</li>
+</ol>
+<p><img src="/2021/03/15/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/message_queue_03.png" alt="消息中间件对比图"></p>
+<blockquote>
+<p>笔记来源：</p>
+<p><a href="https://www.cnblogs.com/jaycekon/p/6220200.html" target="_blank" rel="noopener">https://www.cnblogs.com/jaycekon/p/6220200.html</a></p>
+<p><a href="https://my.oschina.net/blogByRzc/blog/3012251" target="_blank" rel="noopener">https://my.oschina.net/blogByRzc/blog/3012251</a></p>
+</blockquote>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://charleyzzzz.github.io/2021/03/15/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%9D%A2%E8%AF%95%E5%A4%8D%E4%B9%A0/" rel="tag">面试复习</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2021/03/15/%E8%AF%A6%E8%A7%A3Mysql%EF%BC%88%E4%B8%80%EF%BC%89/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            详解Mysql（一）
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%B8%89%EF%BC%89-Redis/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">缓存（三）- Redis</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: 'fV6hp5I755QPrJ9W3gpD596M-gzGzoHsz',
+        app_key: '2BLVrJEhiPxBOjTvEyjpXD2c',
+        path: window.location.pathname,
+        notify: 'false',
+        verify: 'false',
+        avatar: 'monsterid',
+        placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2020-2021
+        <i class="ri-heart-fill heart_icon"></i> CharleyZZZZ
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>Visitors:<span id="busuanzi_value_site_uv"></span></s>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>Views:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="float_btns">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+      </div>
+    </main>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/timg.jpg" alt="Hello World !"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E7%94%9F%E6%B4%BB/">生活</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <script>
+      if (window.matchMedia("(max-width: 768px)").matches) {
+        document.querySelector('.content').classList.remove('on');
+        document.querySelector('.sidebar').classList.remove('on');
+      }
+    </script>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/wechat.jpg">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Subtitle -->
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+    console.log(err)
+  }
+</script>
+
+<!-- Tocbot -->
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto'
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+<!-- ClickLove -->
+
+
+<script src="/js/clickLove.js"></script>
+
+
+<!-- CodeCopy -->
+
+
+<link rel="stylesheet" href="/css/clipboard.css">
+
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="52"
+        src="//music.163.com/outchain/player?type=2&id=462472214&auto=1&height=32"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+  </div>
+</body>
+
+</html>

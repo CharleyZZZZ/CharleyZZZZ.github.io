@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+
+
+<html lang="en">
+
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    详解Mysql（二） |  Hello World !
+  </title>
+  <meta name="generator" content="hexo-theme-ayer">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/dist/main.css">
+
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css">
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+  
+  
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+
+  
+  
+
+  
+
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content on">
+      <section class="outer">
+  <article id="post-详解Mysql（二）" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  详解Mysql（二）
+</h1>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/03/15/%E8%AF%A6%E8%A7%A3Mysql%EF%BC%88%E4%BA%8C%EF%BC%89/" class="article-date">
+  <time datetime="2021-03-15T08:13:28.000Z" itemprop="datePublished">2021-03-15</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0/">技术学习</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> Word count:</span>
+            <span class="post-count">3.8k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> Reading time≈</span>
+            <span class="post-count">13 min</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="详解Mysql（二）"><a href="#详解Mysql（二）" class="headerlink" title="详解Mysql（二）"></a>详解Mysql（二）</h1><ul>
+<li>单库性能优化：硬件优化、Mysql参数优化、Mysql复制原理、经典架构及场景</li>
+<li>Mysql高可用</li>
+<li>Mysql高扩展</li>
+</ul>
+<h2 id="单库性能优化"><a href="#单库性能优化" class="headerlink" title="单库性能优化"></a>单库性能优化</h2><p>单库性能优化主要从以下几个方面入手：</p>
+<ul>
+<li>数据库服务器硬件优化</li>
+<li>MYSQL 参数优化</li>
+<li>MYSQL 复制</li>
+<li>经典架构及应用场景</li>
+</ul>
+<h3 id="服务器硬件优化"><a href="#服务器硬件优化" class="headerlink" title="服务器硬件优化"></a>服务器硬件优化</h3><h4 id="CPU"><a href="#CPU" class="headerlink" title="CPU"></a><strong>CPU</strong></h4><p>MySQL 5.6 版本后多核支持加强，可以支持到 128 核甚至更多。每个连接对应一个线程，每个并发 Query 只能使用一个核，所以要想提升 SQL 执行效率，单个 SQL 执行尽可能快。在考虑 CPU 的时候，我们应该优先选择高主频 CPU 来加速单条 SQL 语句的执行效率。</p>
+<p>MySQL 引入了 <strong>Thread Pool</strong> 功能来提升性能。，线程处理的最小单位是 statement（SQL 语句），一个线程可以处理多个连接的请求。这样，在保证充分利用硬件资源情况下（合理设置线程池大小），可以避免瞬间连接数暴增导致的服务器抖动。</p>
+<p><strong>优化点：</strong></p>
+<ul>
+<li>系统配置选择 Performance Per Watt Optimized（DAPC），发挥最大功耗性能，而不是节能模式（高运算节点禁用），节能模式在低高频性能转换时易出现Bug。</li>
+<li>CPU优先选择高主频以提高运算能力；其次选择核数多，可以多线程并发处理和多实例部署。</li>
+<li>关闭 C1E（增强型空闲电源管理状态转换）和 C states，DB 服务器不需要节能和省电运行，默认是开启状态，DB 服务器建议关闭以提高 CPU 效率。</li>
+<li>数据库服务器选择高主频多核数 CPU 类型，同时开启最大性能和关闭 CPU CIE 和 C States。 高频加速 SQL 执行，多核解决并发。</li>
+</ul>
+<h4 id="内存"><a href="#内存" class="headerlink" title="内存"></a><strong>内存</strong></h4><p>对于数据库服务器而言优先选择大内存，同时开启最大性能并关闭NUMA。</p>
+<h4 id="磁盘"><a href="#磁盘" class="headerlink" title="磁盘"></a><strong>磁盘</strong></h4><ul>
+<li>RAID 策略选择： Sata SSD、PCIe SSD 无需 RAID，机械硬盘优先选择 RAID10，其次是 RAID5。</li>
+<li>RAID CACHE &amp; BBU 选择：购置阵列卡同时配备 CACHE 及 BBU 模块，可提升机械盘 IOPS，定期检查或监控 CACHE 及 BBU 模块的健康状况，确保意外时不至于丢失数据。</li>
+<li>磁盘类型选择：优先选择 SSD 或 PCIe SSD，机械盘使用高速硬盘。</li>
+<li>读写策略选择：有阵列卡时设置阵列写策略为 WB 或 Force WB with no battery，严禁 WT。同时关闭陈列预读策略，只用作写缓存。</li>
+</ul>
+<h3 id="MYSQL-参数优化"><a href="#MYSQL-参数优化" class="headerlink" title="MYSQL 参数优化"></a>MYSQL 参数优化</h3><p>分为：</p>
+<ul>
+<li>系统全局内存参数（<strong>SGA</strong>）</li>
+<li>线程全局内存参数（<strong>PGA</strong>）</li>
+</ul>
+<h4 id="系统全局内存参数（SGA）"><a href="#系统全局内存参数（SGA）" class="headerlink" title="系统全局内存参数（SGA）"></a><strong>系统全局内存参数（SGA）</strong></h4><ul>
+<li>innodb_buffer_pool_size ，用于缓存行数据、索引数据，以及事务锁和自适应哈希等。 单机多实例的情况内存建议按实际数据热点数据量的30%规划，单机单实例（独享实例）的情况建议是分配50%～80%。</li>
+<li>innodb_buffer_pool_instances，用于提升性能。</li>
+<li>innodb_additional_mem_pool_size，用于缓存所有数据字典。</li>
+<li>innodb_log_buffer_size ，InnoDB Redo日志缓冲，提高Redo日志写入效率。</li>
+<li>key_buffer_size，MyISAM 表索引高速缓冲，提高 MyISAM 表索引读写效率。</li>
+<li>query_cache_size，查询缓存，缓存相同SQL查询结果，提高查询结果返回效率，建议禁用。</li>
+<li>table_cache &amp;&amp; table_definiton_cache，表空间文件描述符缓存和表定义文件描述符缓存，提供数据表打开效率。</li>
+</ul>
+<h4 id="线程全局内存参数（PGA）"><a href="#线程全局内存参数（PGA）" class="headerlink" title="线程全局内存参数（PGA）"></a><strong>线程全局内存参数（PGA）</strong></h4><p><img src="/2021/03/15/%E8%AF%A6%E8%A7%A3Mysql%EF%BC%88%E4%BA%8C%EF%BC%89/mysql_11.png" alt="PGA参数"></p>
+<h4 id="Log-参数"><a href="#Log-参数" class="headerlink" title="Log 参数"></a><strong>Log 参数</strong></h4><ul>
+<li><p>第一个是控制 Redo Log 刷盘策略的 <strong>innodb_flush_log_at_trx_commit</strong>，它有三个取值策略：</p>
+<ul>
+<li>当取值为 0 ，表示事务提交时，MySQL 不会去处理日志缓存区（Log Buffer）的内容，也不会去处理日志文件的刷盘操作，由 MySQL 的后台 Master 线程每隔 1s 将缓存区的文件刷新到日志文件中。</li>
+<li>当取值为 1 ，表示事务提交时，会将日志缓冲区的日志写入文件中，同时会刷新到磁盘中，保证数据库事务完全不会丢失。这种设置影响数据库性能。</li>
+<li>当取值为 2，表示事务提交时，会将日志缓存区日志写入到文件中，但是不会刷新到磁盘中。由 MySQL 的后台 Master 线程每隔 1s 将系统缓存的日志文件刷新到磁盘中。</li>
+</ul>
+</li>
+<li><p>第二个参数是控制 Binlog 刷盘策略的 <strong>sync_binlog</strong>，其取值分为 0、1、N（N&gt;1）三类：</p>
+<ul>
+<li>当取值为 0 时，事务提交时，MySQL 将 Binlog 信息写入 Binlog 文件（OS Cache）中，但是 MySQL不控制 Binlog 的刷磁盘操作，由文件系统自己控制其缓存的刷新。这是最危险的，一旦操作系统宕机，在 Binlog cache 中的所有 Binlog 都会丢失。如果只是数据库宕机，而操作系统未宕机，那么数据库所生成的 Binlog 都不会丢失。</li>
+<li>当取值为 1 时，每一个事务提交时，MySQL 都会把 Binlog 刷新到磁盘中。这样，数据库安全性最高，但是性能损耗也是最大的。如果这样设置的话，在数据库或操作系统宕机的情况下，二进制日志中缺少的任何事务也只能处于准备阶段，那么导致服务器自动恢复时，会回滚这些事务，保证无数据丢失。虽然 Binlog 是顺序 IO，但是多个事务同时提交，同样会对 MySQL 和 IO 的性能带来很大影响，不过 MySQL 可以通过 Group Commit 来缓解这种压力。</li>
+<li>当取值为 N 时，表示每 N 次事务提交，MySQL 调用文件系统的刷新操作将缓存刷新到磁盘中。如果数据库或操作系统在这个时候宕机，数据库可能会丢失一些事务。</li>
+</ul>
+</li>
+<li><p>innodb_flush_log_at_timeout：每隔 N 秒写入并刷新日志，默认为 1 即每秒 flush一次,可选 [1-2700]。该参数值允许增加 flush 之间的间隔以减少刷新，避免影响二进制日志组提交的性能。</p>
+</li>
+<li><p>innodb_log_file_size：日志文件大小，建议设置1～2GB。</p>
+</li>
+<li><p>innodb_log_files_in_group：日志文件组个数。</p>
+</li>
+</ul>
+<h4 id="其他参数"><a href="#其他参数" class="headerlink" title="其他参数"></a>其他参数</h4><p><img src="/2021/03/15/%E8%AF%A6%E8%A7%A3Mysql%EF%BC%88%E4%BA%8C%EF%BC%89/mysql_12.png" alt="Mysql参数"></p>
+<p><img src="/2021/03/15/%E8%AF%A6%E8%A7%A3Mysql%EF%BC%88%E4%BA%8C%EF%BC%89/mysql_13.png" alt="Mysql参数"></p>
+<h3 id="MYSQL复制"><a href="#MYSQL复制" class="headerlink" title="MYSQL复制"></a>MYSQL复制</h3><h4 id="分类"><a href="#分类" class="headerlink" title="分类"></a>分类</h4><ul>
+<li>异步复制<ul>
+<li>主从异步复制</li>
+<li>半同步复制</li>
+</ul>
+</li>
+<li>同步复制<ul>
+<li>Galera Cluster</li>
+<li>MySQL Group Replication</li>
+</ul>
+</li>
+</ul>
+<h4 id="异步复制"><a href="#异步复制" class="headerlink" title="异步复制"></a>异步复制</h4><h5 id="主从异步复制"><a href="#主从异步复制" class="headerlink" title="主从异步复制"></a>主从异步复制</h5><p><img src="/2021/03/15/%E8%AF%A6%E8%A7%A3Mysql%EF%BC%88%E4%BA%8C%EF%BC%89/mysql_14.png" alt="MYSQL复制原理图"></p>
+<p>涉及三个 Thread</p>
+<ul>
+<li>Master 的 Binlog Dump Thred</li>
+<li>Slave 的 I/O Thread </li>
+<li>Slave 的 SQL Thread。</li>
+</ul>
+<p>数据同步过程：</p>
+<ul>
+<li>Master 服务器上对数据库的变更操作记录在 Binlog 中。</li>
+<li>Master 的 Binlog Dump Thread 接到写入请求后读取 Binlog 推送给 Slave I/O Thread。</li>
+<li>Slave I/O Thread 将读取的 Binlog 写入到本地 relay log 文件。</li>
+<li>Slave SQL thread 检测到 relay log 的变更请求，解析 relay log 并在从库上进行应用。</li>
+</ul>
+<p>以上整个复制过程都是异步操作，所以主从复制俗称<strong>异步复制</strong>，存在数据延迟。</p>
+<h5 id="半同步复制（after-commit）"><a href="#半同步复制（after-commit）" class="headerlink" title="半同步复制（after commit）"></a>半同步复制（after commit）</h5><p>考虑到一个场景，主库正常写入数据并提交事务 T1，但是 Slave1 和 Slave2 由于某种原因（例如网络原因）一直无法接受到 Binlog Dump Thread Event 的推送请求，如果这时候 Master Crash，Slave 提升为 Master 后导致事务 T1 数据丢失。为了提升数据安全，MySQL 让 Master 在某一个时间点等待 Slave 节点的 ACK 消息后才进行事务提交，这就是<strong>半同步复制</strong>的基础。</p>
+<p>MySQL 事务写入碰到主从复制时的完整过程：</p>
+<ol>
+<li>InnoDB Redo File Write (Prepare Write)；</li>
+<li>Binlog File Flush &amp; Sync to Binlog File；</li>
+<li>InnoDB Redo File Commit（Commit Write）；</li>
+<li>Send Binlog to Slave。</li>
+</ol>
+<p>当 Master 不需要关注 Slave 是否接受到 Binlog Event 时，即为传统的主从复制。</p>
+<p>当 Master 需要在第三步等待 Slave 返回 ACK 时，即为 <strong>半同步复制 after-commit</strong>。</p>
+<p>当 Master 需要在第二步等待 Slave 返回 ACK 时，即为 <strong>增强半同步 after-sync</strong>。</p>
+<p><strong>MySQL Master 将事务写入 Binlog（sync_binlog=1）并推送给 Slave 后主库将事务提交到存储引擎（此时未返回客户端但是其他会话可以访问到事务提交信息），Slave  I/O Thread 将读取的 Binlog 写入到本地 relay log 文件（sync_relay=1）后向 Master 返回 ACK 消息，当主库 Master 等到 Slave 返回的 ACK 消息后 Master 将事务提交成功的结果返回给客户端。</strong></p>
+<h5 id="增强半同步-after-sync"><a href="#增强半同步-after-sync" class="headerlink" title="增强半同步 after-sync"></a>增强半同步 after-sync</h5><p>为了提升数据的安全性，MySQL 5.7 引入了<strong>增强半同步 after_sync（无损复制）</strong>，并将其设置为默认的半同步方式来解决数据丢失的问题。</p>
+<p><strong>after-sync 是将 Master 等待 ACK 消息放到了 Binlog File Flush &amp; Sync to Binlog File 之后，Engine Commit 之前，这样就可以保证数据不会丢失，因为 Slave 接受到event 并写入自身 relay log。</strong></p>
+<h4 id="同步复制（准同步）"><a href="#同步复制（准同步）" class="headerlink" title="同步复制（准同步）"></a>同步复制（准同步）</h4><h5 id="Galera-Cluster"><a href="#Galera-Cluster" class="headerlink" title="Galera Cluster"></a><strong>Galera Cluster</strong></h5><ul>
+<li><strong>Multi-Master 多主架构</strong>：通常由三个实例组成的一个集群，三个节点均可以提供读写.</li>
+<li><strong>Share-Nothing 架构：</strong>客户端可以读写访问集群任意一个节点，集群节点间组成了 Group communication。这可以用来保证集群节点数据的强一致性，这种架构是 Share-Nothing，不共享数据、多副本的高冗余架构，拥有多点写入、同步复制、无复制延迟、并法复制、随意切换、节点自动配置、健康检查等功能。     </li>
+</ul>
+<p>Galera Cluster是一个强一致性集群，当集群节点有数据写入时，Group communication 会向组内所有成员广播写集（初步可简单理解为写入的Binlog），所有节点验证通过之后写节点开始提交，其他节点执行写集应用和提交，当出现数据冲突时则写节点执行回滚，其他节点丢弃该写集。</p>
+<h5 id="MySQL-Group-Replication"><a href="#MySQL-Group-Replication" class="headerlink" title="MySQL Group Replication"></a><strong>MySQL Group Replication</strong></h5><p>MySQL 在 5.7 版本参考 Galera Cluster 的技术实现推出了 MySQL Group Replication（简称 <strong>MGR</strong>）。</p>
+<p>MGR 同样是一个<strong>支持多点写入的多主复制架构</strong>，它<strong>基于原生 MySQL 主从复制的基础上</strong>构建组通信层，由 Group Replication 提供一组原子消息并且按照全局顺序进行消息传递，集群任何节点均可写入，但所有写入事务只有在获得<strong>复制组认证</strong>通过（多数派协议 Paxos）后才能进行提交。例如由若干个节点共同组成一个复制组，一个事务的提交必须经过组内大多数节点（N / 2 + 1）决议并通过，才能得以提交。</p>
+<h4 id="使用场景"><a href="#使用场景" class="headerlink" title="使用场景"></a>使用场景</h4><ul>
+<li><strong>主从复制</strong>：通常适合于轻量级程序、高可用要求不高的业务场景。这类架构中应用程序直连访问 Master 和 Slave 进行读写分离，当 Master 出现故障时由于无法自动切换导致服务受损。因此通常会基于此架构加上 VIP/DNS + Keepalived 及双主复制来做一个简单的高可用切换。</li>
+<li><strong>双主复制</strong>：通常为其中一个 Master 提供线上服务，另一个 Master 作为 Standby 供高可用切换，Master 下游挂载 Slave 承担读请求。</li>
+<li><strong>树形复制</strong>：这类架构通常适用于数据访问策略分层，例如 MySQL Master 和 MySQL Slave 参与线上业务访问及高可用切换，MySQL Statistic 节点提供离线查询、报表慢查和非线上业务访问。</li>
+</ul>
+<h3 id="海量数据架构设计"><a href="#海量数据架构设计" class="headerlink" title="海量数据架构设计"></a>海量数据架构设计</h3><h4 id="指标"><a href="#指标" class="headerlink" title="指标"></a>指标</h4><ul>
+<li><strong>响应时间</strong>：系统对请求做出响应的时间，一般取平均响应时间。</li>
+<li><strong>吞吐量</strong>：单位时间内处理的请求数量。</li>
+<li><strong>QPS</strong>：每秒处理的查询次数。</li>
+<li><strong>TPS</strong>：每秒处理的事务数。</li>
+<li><strong>并发用户数</strong>：同时承载正常使用系统功能的用户数量。</li>
+</ul>
+<p><strong>基本方法：</strong></p>
+<ul>
+<li>垂直扩展</li>
+<li>水平扩展</li>
+<li>分布式</li>
+</ul>
+<h4 id="垂直扩展-Scale-Up"><a href="#垂直扩展-Scale-Up" class="headerlink" title="垂直扩展 Scale-Up"></a>垂直扩展 Scale-Up</h4><p>纵向扩展：也叫垂直扩展，扩展一个点的能力以支撑更多的请求。</p>
+<p>主要分为一下4个方向：</p>
+<ul>
+<li>增强单机硬件性能：CPU、内存、硬盘、网络等</li>
+<li>提升单机架构性能：例如增加缓存、增加队列</li>
+<li>无锁数据结构：例如业务解耦</li>
+<li>分区：分区是指按照一定的规则，把数据库中的一个表分解成多个更小的、更容易管理的部分，分区有利于管理非常大的表。<ul>
+<li>分区可以把数据打散存储到不同的文件系统上，和单个磁盘或者文件系统相比，可以存储更多的数据。</li>
+<li>优化查询。where 子句包含分区条件时，可以只扫描对应分区，缩小了查询范围。</li>
+<li>同时在涉及 count() 和 sum() 等聚合函数时，可以在多个分区上并行处理。</li>
+<li>对于已经过期或不需要的数据，可以通过删除分区快速删除。跨多个磁盘来分散数据查询，以获得更大的查询吞吐量。</li>
+</ul>
+</li>
+</ul>
+<p>关于分区的问题：</p>
+<ul>
+<li>一个表最多只能有 1024 个分区，MySQL 5.6 之后支持 8192 个分区。</li>
+<li>如果分区字段中有主键或者唯一索引列，那么所有主键列和唯一索引列都必须包含进来，如果表中有主键或唯一索引，那么分区键必须是主键或唯一索引。</li>
+<li>MySQL 分区适用于一个表的所有数据和索引，不能只对表数据分区而不对索引分区，也不能只对一个表的部分数据进行分区。</li>
+<li>无论使用何种分区类型，不能使用主键/唯一键之外的其他字段进行分区。</li>
+<li>分区表中无法使用外键约束。</li>
+<li>MySQL 数据库支持的分区类型为水平分区，并不支持垂直分区，因此，MySQL 数据库的分区中索引是局部分区索引，一个分区中既存放了数据又存放了索引，而全局分区是指数据库放在各个分区中，但是所有的数据的索引放在另外一个对象中。</li>
+<li>目前 MySQL 不支持对空间类型和临时表类型进行分区。不支持全文索引。</li>
+</ul>
+<h4 id="水平扩展-Scale-Out"><a href="#水平扩展-Scale-Out" class="headerlink" title="水平扩展 Scale-Out"></a>水平扩展 Scale-Out</h4><p>横向扩展：也叫水平扩展，用更多的节点支撑更大量的请求，达到线性扩充系统的能力。</p>
+<ul>
+<li><p>主从复制。通过主从复制来扩展从库，从而提升读性能。</p>
+</li>
+<li><p>分库分表。这个又可以称之为 “ 数据分片（Sharding）”</p>
+</li>
+<li><p>数据库中间件。例如：使用中间件来达到读写分离的目的。</p>
+</li>
+<li><p>集群。例如：使用 PXC 或者 MGR 集群来弥补单机性能的不足。</p>
+</li>
+</ul>
+<h4 id="分布式"><a href="#分布式" class="headerlink" title="分布式"></a>分布式</h4><p>分布式关系型数据库发展到今天，主要分为两个阵营：</p>
+<ul>
+<li>基于分布式事务的数据库，以 Google Cloud Spanner 和 PingCAP 的 TiDB 为代表。</li>
+<li>基于分布式存储的数据库，以 AWS 的 Aurora 和极数云舟的 ArkDB 为代表。</li>
+</ul>
+<h4 id="常用数据库架构方案对比"><a href="#常用数据库架构方案对比" class="headerlink" title="常用数据库架构方案对比"></a>常用数据库架构方案对比</h4><p><img src="/2021/03/15/%E8%AF%A6%E8%A7%A3Mysql%EF%BC%88%E4%BA%8C%EF%BC%89/mysql_15.png" alt="常用数据库架构方案对比"></p>
+<blockquote>
+<p>笔记来源：</p>
+<p>周彦伟 老师的 《高性能Mysql实战》课程</p>
+</blockquote>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://charleyzzzz.github.io/2021/03/15/%E8%AF%A6%E8%A7%A3Mysql%EF%BC%88%E4%BA%8C%EF%BC%89/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Mysql/" rel="tag">Mysql</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%9D%A2%E8%AF%95%E5%A4%8D%E4%B9%A0/" rel="tag">面试复习</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+    
+      <a href="/2021/03/15/%E8%AF%A6%E8%A7%A3Mysql%EF%BC%88%E4%B8%80%EF%BC%89/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">详解Mysql（一）</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: 'fV6hp5I755QPrJ9W3gpD596M-gzGzoHsz',
+        app_key: '2BLVrJEhiPxBOjTvEyjpXD2c',
+        path: window.location.pathname,
+        notify: 'false',
+        verify: 'false',
+        avatar: 'monsterid',
+        placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2020-2021
+        <i class="ri-heart-fill heart_icon"></i> CharleyZZZZ
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>Visitors:<span id="busuanzi_value_site_uv"></span></s>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>Views:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="float_btns">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+      </div>
+    </main>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/timg.jpg" alt="Hello World !"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E7%94%9F%E6%B4%BB/">生活</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <script>
+      if (window.matchMedia("(max-width: 768px)").matches) {
+        document.querySelector('.content').classList.remove('on');
+        document.querySelector('.sidebar').classList.remove('on');
+      }
+    </script>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/wechat.jpg">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Subtitle -->
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+    console.log(err)
+  }
+</script>
+
+<!-- Tocbot -->
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto'
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+<!-- ClickLove -->
+
+
+<script src="/js/clickLove.js"></script>
+
+
+<!-- CodeCopy -->
+
+
+<link rel="stylesheet" href="/css/clipboard.css">
+
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+
+
+
+    
+    <div id="music">
+    
+    
+    
+    <iframe frameborder="no" border="1" marginwidth="0" marginheight="0" width="200" height="52"
+        src="//music.163.com/outchain/player?type=2&id=462472214&auto=1&height=32"></iframe>
+</div>
+
+<style>
+    #music {
+        position: fixed;
+        right: 15px;
+        bottom: 0;
+        z-index: 998;
+    }
+</style>
+    
+  </div>
+</body>
+
+</html>

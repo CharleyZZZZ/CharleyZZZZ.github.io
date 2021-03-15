@@ -80,6 +80,824 @@
     
     
     
+    <article id="post-分布式架构之事务管理" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/"
+    >分布式架构之事务管理</a> 
+</h2>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/" class="article-date">
+  <time datetime="2020-05-27T15:06:37.000Z" itemprop="datePublished">2020-05-27</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0/">技术学习</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="事务"><a href="#事务" class="headerlink" title="事务"></a>事务</h3><blockquote>
+<p>事务（Transaction），一般是指要做的或所做的事情。在计算机<a href="https://baike.baidu.com/item/术语" target="_blank" rel="noopener">术语</a>中是指访问并可能更新数据库中各种<a href="https://baike.baidu.com/item/数据项/3227309" target="_blank" rel="noopener">数据项</a>的一个程序执行单元(unit)。事务通常由<a href="https://baike.baidu.com/item/高级数据库/1439366" target="_blank" rel="noopener">高级数据库</a>操纵语言或编程语言（如SQL，C++或Java）书写的<a href="https://baike.baidu.com/item/用户程序/7450916" target="_blank" rel="noopener">用户程序</a>的执行所引起，并用形如<strong>begin transaction</strong>和<strong>end transaction</strong>语句（或<a href="https://baike.baidu.com/item/函数调用/4127405" target="_blank" rel="noopener">函数调用</a>）来界定。事务由事务开始(<strong>begin transaction</strong>)和事务结束(<strong>end transaction</strong>)之间执行的全体操作组成。</p>
+<p>— 来自百度百科</p>
+</blockquote>
+<h3 id="数据库事务"><a href="#数据库事务" class="headerlink" title="数据库事务"></a>数据库事务</h3><p>数据库事务的特性包括<strong>原子性</strong>（Atomicity）、<strong>一致性</strong>（Consistency）、<strong>隔离性</strong>（Isolation）和<strong>持久性</strong>（Durabilily），简称 <strong>ACID</strong>。</p>
+<p>在数据库执行中，多个并发执行的事务如果涉及到同一份数据的读写就容易出现数据不一致的情况，不一致的异常现象有以下几种。</p>
+<p><strong>脏读</strong>，是指一个事务中访问到了另外一个事务未提交的数据。</p>
+<p>例如事务 T1 中修改的数据项在尚未提交的情况下被其他事务（T2）读取到，如果 T1 进行回滚操作，则 T2 刚刚读取到的数据实际并不存在。</p>
+<p><strong>不可重复读</strong>，是指一个事务读取同一条记录 2 次，得到的结果不一致。</p>
+<p>例如事务 T1 第一次读取数据，接下来 T2 对其中的数据进行了更新或者删除，并且 Commit 成功。这时候 T1 再次读取这些数据，那么会得到 T2 修改后的数据，发现数据已经变更，这样 T1 在一个事务中的两次读取，返回的结果集会不一致。</p>
+<p><strong>幻读</strong>，是指一个事务读取 2 次，得到的记录条数不一致。</p>
+<p>例如事务 T1 查询获得一个结果集，T2 插入新的数据，T2 Commit 成功后，T1 再次执行同样的查询，此时得到的结果集记录数不同。</p>
+<p>脏读、不可重复读和幻读有以下的包含关系，如果发生了脏读，那么幻读和不可重复读都有可能出现。</p>
+<img src="/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/transaction_01.png" style="zoom:80%;">
+
+<h3 id="不同隔离级别"><a href="#不同隔离级别" class="headerlink" title="不同隔离级别"></a>不同隔离级别</h3><p>SQL 标准根据三种不一致的异常现象，将隔离性定义为<strong>四个隔离级别</strong>（Isolation Level），<strong>隔离级别和数据库的性能呈反比，隔离级别越低，数据库性能越高；而隔离级别越高，数据库性能越差</strong>，具体如下：</p>
+<img src="/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/transaction_02.png" style="zoom: 50%;">
+
+<h4 id="Read-uncommitted-读未提交"><a href="#Read-uncommitted-读未提交" class="headerlink" title="Read uncommitted 读未提交"></a>Read uncommitted 读未提交</h4><p>在该级别下，一个事务对数据修改的过程中，不允许另一个事务对该行数据进行修改，但允许另一个事务对该行数据进行读，不会出现更新丢失，但会出现<strong>脏读、不可重复读</strong>的情况。</p>
+<h4 id="Read-committed-读已提交"><a href="#Read-committed-读已提交" class="headerlink" title="Read committed 读已提交"></a>Read committed 读已提交</h4><p>在该级别下，未提交的写事务不允许其他事务访问该行，不会出现脏读，但是读取数据的事务允许其他事务访问该行数据，因此会出现<strong>不可重复读</strong>的情况。</p>
+<h4 id="Repeatable-read-可重复读"><a href="#Repeatable-read-可重复读" class="headerlink" title="Repeatable read 可重复读"></a>Repeatable read 可重复读</h4><p>在该级别下，在同一个事务内的查询都是和事务开始时刻一致的，保证对同一字段的多次读取结果都相同，除非数据是被本身事务自己所修改，不会出现同一事务读到两次不同数据的情况。因为没有约束其他事务的新增Insert操作，所以 SQL 标准中可重复读级别会出现<strong>幻读</strong>。</p>
+<p>值得一提的是，可重复读是 MySQL InnoDB 引擎的默认隔离级别，但是在 MySQL 额外添加了间隙锁（Gap Lock），可以防止幻读。</p>
+<h4 id="Serializable-序列化"><a href="#Serializable-序列化" class="headerlink" title="Serializable 序列化"></a>Serializable 序列化</h4><p>该级别要求所有事务都必须串行执行，可以避免各种并发引起的问题，效率也最低。</p>
+<p>对不同隔离级别的解释，其实是为了保持数据库事务中的隔离性（Isolation），目标是使并发事务的执行效果与串行一致，隔离级别的提升带来的是并发能力的下降，两者是负相关的关系。</p>
+<h3 id="分布式事务产生的原因"><a href="#分布式事务产生的原因" class="headerlink" title="分布式事务产生的原因"></a>分布式事务产生的原因</h3><p>分布式事务是伴随着系统拆分出现的，分布式系统解决了海量数据服务对扩展性的要求，但是增加了架构上的复杂性，在这一点上，分布式事务就是典型的体现。</p>
+<p>在实际开发中，分布式事务产生的原因主要来源于<strong>存储和服务的拆分</strong>。</p>
+<h4 id="存储层拆分"><a href="#存储层拆分" class="headerlink" title="存储层拆分"></a>存储层拆分</h4><p>存储层拆分，最典型的就是数据库分库分表，一般来说，当单表容量达到千万级，就要考虑数据库拆分，从单一数据库变成多个分库和多个分表。在业务中如果需要进行跨库或者跨表更新，同时要保证数据的一致性，就产生了分布式事务问题。</p>
+<img src="/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/transaction_03.png" style="zoom:67%;">
+
+<h4 id="服务层拆分"><a href="#服务层拆分" class="headerlink" title="服务层拆分"></a>服务层拆分</h4><p>服务层拆分也就是业务的服务化，系统架构的演进是从集中式到分布式，业务功能之间越来越解耦合。</p>
+<p>比如电商网站系统，业务初期可能是一个单体工程支撑整套服务，但随着系统规模进一步变大，参考康威定律，大多数公司都会将核心业务抽取出来，以作为独立的服务。商品、订单、库存、账号信息都提供了各自领域的服务，业务逻辑的执行散落在不同的服务器上。</p>
+<p>用户如果在某网站上进行一个下单操作，那么会同时依赖订单服务、库存服务、支付扣款服务，这几个操作如果有一个失败，那下单操作也就完不成，这就需要分布式事务来保证了。</p>
+<img src="/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/transaction_04.png" style="zoom: 67%;">
+
+<h3 id="分布式事务解决方案"><a href="#分布式事务解决方案" class="headerlink" title="分布式事务解决方案"></a>分布式事务解决方案</h3><p>分布式事务的解决方案，典型的有<strong>两阶段和三阶段提交协议</strong>、 <strong>TCC 分段提交</strong>，和<strong>基于消息队列的最终一致性</strong>设计。</p>
+<h4 id="2PC-两阶段提交"><a href="#2PC-两阶段提交" class="headerlink" title="2PC 两阶段提交"></a>2PC 两阶段提交</h4><p>两阶段提交（2PC，Two-phase Commit Protocol）是非常经典的<strong>强一致性</strong>、<strong>中心化的原子提交协议</strong>，在各种事务和一致性的解决方案中，都能看到两阶段提交的应用。</p>
+<p>二阶段提交算法的成立是基于以下假设的：</p>
+<ul>
+<li>在该分布式系统中，存在一个节点作为<strong>协调者</strong>（Coordinator），其他节点作为<strong>参与者</strong>（Participants），且节点之间可以进行网络通信；</li>
+<li>所有节点都采用<strong>预写式</strong>日志，日志被写入后被保存在可靠的存储设备上，即使节点损坏也不会导致日志数据的丢失；</li>
+<li>所有节点不会永久性损坏，即使损坏后仍然可以恢复。</li>
+</ul>
+<p>两阶段提交中的两个阶段，指的是 <strong>Commit-request</strong> 阶段和 <strong>Commit</strong> 阶段，两阶段提交的流程如下：</p>
+<p><img src="/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/transaction_07.png" alt></p>
+<h5 id="提交请求阶段"><a href="#提交请求阶段" class="headerlink" title="提交请求阶段"></a>提交请求阶段</h5><p>在提交请求阶段，协调者将通知事务参与者准备提交事务，然后进入表决过程。在表决过程中，参与者将告知协调者自己的决策：同意（事务参与者本地事务执行成功）或取消（本地事务执行故障），在第一阶段，参与节点并没有进行Commit操作。</p>
+<h5 id="提交阶段"><a href="#提交阶段" class="headerlink" title="提交阶段"></a>提交阶段</h5><p>在提交阶段，协调者将基于第一个阶段的投票结果进行决策：提交或取消这个事务。这个结果的处理和前面基于半数以上投票的一致性算法不同，必须<strong>当且仅当所有的参与者同意提交</strong>，协调者才会通知各个参与者提交事务，否则协调者将通知各个参与者取消事务。</p>
+<p>参与者在接收到协调者发来的消息后将执行对应的操作，也就是本地 Commit 或者 Rollback。</p>
+<h5 id="存在的问题"><a href="#存在的问题" class="headerlink" title="存在的问题"></a>存在的问题</h5><p><img src="/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/transaction_08.png" alt></p>
+<p>两阶段提交协议有几个明显的问题：</p>
+<ul>
+<li>资源被同步阻塞<br>在执行过程中，所有参与节点都是事务独占状态，当参与者占有公共资源时，那么第三方节点访问公共资源会被阻塞。</li>
+<li>协调者可能出现单点故障<br>一旦协调者发生故障，参与者会一直阻塞下去。</li>
+<li>在 Commit 阶段出现数据不一致<br>在第二阶段中，假设协调者发出了事务 Commit 的通知，但是由于网络问题该通知仅被一部分参与者所收到并执行 Commit，其余的参与者没有收到通知，一直处于阻塞状态，那么，这段时间就产生了数据的不一致性。</li>
+</ul>
+<h4 id="3PC-三阶段提交"><a href="#3PC-三阶段提交" class="headerlink" title="3PC 三阶段提交"></a>3PC 三阶段提交</h4><p>三阶段提交协议（3PC，Three-phase_commit_protocol）是在 2PC 之上扩展的提交协议，主要是为了解决两阶段提交协议的阻塞问题，从原来的两个阶段扩展为三个阶段，增加了超时机制。<strong>并且把两阶段提交协议的第一个阶段拆分成了两步：询问，然后再锁资源，最后真正提交。</strong></p>
+<p>三阶段中的 Three Phase 分别为 <strong>CanCommit</strong>、<strong>PreCommit</strong>、<strong>DoCommit</strong> 阶段。</p>
+<p><img src="/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/transaction_09.png" alt></p>
+<h5 id="CanCommit-阶段"><a href="#CanCommit-阶段" class="headerlink" title="CanCommit 阶段"></a>CanCommit 阶段</h5><p>3PC 的 CanCommit 阶段其实和 2PC 的准备阶段很像。协调者向参与者发送 Commit 请求，参与者如果可以提交就返回 Yes 响应，否则返回 No 响应。</p>
+<h5 id="PreCommit-阶段"><a href="#PreCommit-阶段" class="headerlink" title="PreCommit 阶段"></a>PreCommit 阶段</h5><p>协调者根据参与者的反应情况来决定是否可以继续事务的 PreCommit 操作。根据响应情况，有以下两种可能。</p>
+<ul>
+<li><p>A. 假如协调者从所有的参与者获得的反馈都是 Yes 响应，那么就会进行事务的预执行：</p>
+<p>发送预提交请求，协调者向参与者发送 PreCommit 请求，并进入 Prepared 阶段；<br>事务预提交，参与者接收到 PreCommit 请求后，会执行事务操作；<br>响应反馈，如果参与者成功执行了事务操作，则返回 ACK 响应，同时开始等待最终指令。</p>
+</li>
+<li><p>B. 假如有任何一个参与者向协调者发送了 No 响应，或者等待超时之后，协调者都没有接到参与者的响应，那么就中断事务：</p>
+<p>发送中断请求，协调者向所有参与者发送 abort 请求；<br>中断事务，参与者收到来自协调者的 abort 请求之后，执行事务的中断。</p>
+</li>
+</ul>
+<h5 id="DoCommit-阶段"><a href="#DoCommit-阶段" class="headerlink" title="DoCommit 阶段"></a>DoCommit 阶段</h5><p>该阶段进行真正的事务提交，也可以分为以下两种情况。</p>
+<ul>
+<li><p>A. 执行提交</p>
+<p>发送提交请求。协调者接收到参与者发送的 ACK 响应后，那么它将从预提交状态进入到提交状态，并向所有参与者发送 doCommit 请求。<br>事务提交。参与者接收到 doCommit 请求之后，执行正式的事务提交，并在完成事务提交之后释放所有事务资源。<br>响应反馈。事务提交完之后，向协调者发送 ACK 响应。<br>完成事务。协调者接收到所有参与者的 ACK 响应之后，完成事务。</p>
+</li>
+<li><p>B. 中断事务<br>协调者没有接收到参与者发送的 ACK 响应，可能是因为接受者发送的不是 ACK 响应，也有可能响应超时了，那么就会执行中断事务。</p>
+</li>
+<li><p>C.超时提交<br>参与者如果没有收到协调者的通知，超时之后会执行 Commit 操作。</p>
+</li>
+</ul>
+<h5 id="三阶段提交做的改进"><a href="#三阶段提交做的改进" class="headerlink" title="三阶段提交做的改进"></a>三阶段提交做的改进</h5><p><strong>引入超时机制</strong><br>在 2PC 中，只有协调者拥有超时机制，如果在一定时间内没有收到参与者的消息则默认失败，3PC 同时在协调者和参与者中都引入超时机制。</p>
+<p><strong>添加预提交阶段</strong><br>在 2PC 的准备阶段和提交阶段之间，插入一个准备阶段，使 3PC 拥有 CanCommit、PreCommit、DoCommit 三个阶段，PreCommit 是一个缓冲，保证了在最后提交阶段之前各参与节点的状态是一致的</p>
+<h5 id="存在问题"><a href="#存在问题" class="headerlink" title="存在问题"></a>存在问题</h5><p>三阶段提交协议同样存在问题，具体表现为，在阶段三中，如果参与者接收到了 PreCommit 消息后，出现了不能与协调者正常通信的问题，在这种情况下，参与者依然会进行事务的提交，这就出现了数据的不一致性。</p>
+<h5 id="二阶段和三阶段提交的应用"><a href="#二阶段和三阶段提交的应用" class="headerlink" title="二阶段和三阶段提交的应用"></a>二阶段和三阶段提交的应用</h5><p>两阶段提交是一种比较精简的一致性算法/协议，很多关系型数据库都是采用两阶段提交协议来完成分布式事务处理的，典型的比如 MySQL 的 XA 规范。</p>
+<p>在事务处理、数据库和计算机网络中，两阶段提交协议提供了分布式设计中的数据一致性的保障，整个事务的参与者要么一致性全部提交成功，要么全部回滚。MySQL Cluster 内部数据的同步就是用的 2PC 协议。</p>
+<p><strong>MySQL 的主从复制</strong><br>    在 MySQL 中，二进制日志是 server 层，主要用来做主从复制和即时点恢复时使用的；而事务日志（Redo Log）是 InnoDB 存储引擎层，用来保证事务安全的。</p>
+<p>​    在数据库运行中，需要保证 Binlog 和 Redo Log 的一致性，如果顺序不一致， 则意味着 Master-Slave 可能不一致。</p>
+<p>​    在开启 Binlog 后，如何保证 Binlog 和 InnoDB redo 日志的一致性呢？MySQL 使用的就是二阶段提交，内部会自动将普通事务当做一个 XA 事务（内部分布式事务）来处理：</p>
+<ul>
+<li>Commit 会被自动的分成 Prepare 和 Commit 两个阶段；</li>
+<li>Binlog 会被当做事务协调者（Transaction Coordinator），Binlog Event 会被当做协调者日志。</li>
+</ul>
+<h4 id="TCC-分段提交"><a href="#TCC-分段提交" class="headerlink" title="TCC 分段提交"></a>TCC 分段提交</h4><p>TCC 是一个分布式事务的处理模型，将事务过程拆分为 Try、Confirm、Cancel 三个步骤，在保证强一致性的同时，最大限度提高系统的可伸缩性与可用性。</p>
+<p>TCC 提出了一种新的事务模型，基于<strong>业务层面的事务定义</strong>，锁粒度完全由业务自己控制，目的是解决复杂业务中，跨表跨库等大颗粒度资源锁定的问题。TCC 把事务运行过程分成 Try、Confirm / Cancel 两个阶段，每个阶段的逻辑由业务代码控制，避免了长事务，可以获取更高的性能。</p>
+<h5 id="TCC-的各个阶段"><a href="#TCC-的各个阶段" class="headerlink" title="TCC 的各个阶段"></a>TCC 的各个阶段</h5><p>TCC 的具体流程如下图所示：</p>
+<p><img src="/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/transaction_10.png" alt></p>
+<p><strong>Try 阶段</strong>：调用 Try 接口，尝试执行业务，完成所有业务检查，预留业务资源。</p>
+<p><strong>Confirm 或 Cancel 阶段</strong>：两者是互斥的，只能进入其中一个，并且都满足幂等性，允许失败重试。</p>
+<ul>
+<li>Confirm 操作：对业务系统做确认提交，确认执行业务操作，不做其他业务检查，只使用 Try 阶段预留的业务资源。</li>
+<li>Cancel 操作：在业务执行错误，需要回滚的状态下执行业务取消，释放预留资源。<br>Try 阶段失败可以 Cancel，如果 Confirm 和 Cancel 阶段失败了怎么办？</li>
+</ul>
+<p>TCC 中会添加事务日志，如果 Confirm 或者 Cancel 阶段出错，则会进行重试，所以这两个阶段需要支持幂等；如果重试失败，则需要人工介入进行恢复和处理等。</p>
+<h5 id="应用-TCC-的优缺点"><a href="#应用-TCC-的优缺点" class="headerlink" title="应用 TCC 的优缺点"></a>应用 TCC 的优缺点</h5><p>实际开发中，TCC 的本质是把数据库的二阶段提交上升到微服务来实现，从而避免数据库二阶段中长事务引起的低性能风险。</p>
+<p>所以说，TCC 解决了跨服务的业务操作原子性问题，比如下订单减库存，多渠道组合支付等场景，通过 TCC 对业务进行拆解，可以让应用自己定义数据库操作的粒度，可以降低锁冲突，提高系统的业务吞吐量。</p>
+<p>TCC 的不足主要体现在对微服务的<strong>侵入性强</strong>，TCC 需要对业务系统进行改造，业务逻辑的每个分支都需要实现 try、Confirm、Cancel 三个操作，并且 Confirm、Cancel 必须保证幂等。</p>
+<p>另外 TCC 的事务管理器要记录事务日志，也会损耗一定的性能。</p>
+<h5 id="从真实业务场景分析-TCC"><a href="#从真实业务场景分析-TCC" class="headerlink" title="从真实业务场景分析 TCC"></a>从真实业务场景分析 TCC</h5><p>下面以一个电商中的支付业务来演示，用户在支付以后，需要进行更新订单状态、扣减账户余额、增加账户积分和扣减商品操作。</p>
+<p>在实际业务中为了防止超卖，有下单减库存和付款减库存的区别，支付除了账户余额，还有各种第三方支付等，这里我们为了描述方便，统一使用扣款减库存，扣款来源是用户账户余额。</p>
+<p><img src="/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/transaction_11.png" alt></p>
+<p><strong>业务逻辑拆解</strong></p>
+<p>我们把订单业务拆解为以下几个步骤：</p>
+<ul>
+<li>订单更新为支付完成状态</li>
+<li>扣减用户账户余额</li>
+<li>增加用户账户积分</li>
+<li>扣减当前商品的库存</li>
+</ul>
+<p>​    如果不使用事务，上面的几个步骤都可能出现失败，最终会造成大量的数据不一致，比如订单状态更新失败，扣款却成功了；或者扣款失败，库存却扣减了等情况，这个在业务上是不能接受的，会出现大量的客诉。</p>
+<p>如果直接应用事务，不使用分布式事务，比如在代码中添加 Spring 的声明式事务 @Transactional 注解，这样做实际上是在事务中嵌套了远程服务调用，一旦服务调用出现超时，事务无法提交，就会导致数据库连接被占用，出现大量的阻塞和失败，会导致服务宕机。另一方面，如果没有定义额外的回滚操作，比如遇到异常，非 DB 的服务调用失败时，则无法正确执行回滚。</p>
+<p><strong>业务系统改造</strong></p>
+<p>下面应用 TCC 事务，需要对业务代码改造，抽象 Try、Confirm 和 Cancel 阶段。</p>
+<p><strong>Try 操作</strong><br>    Try 操作一般都是锁定某个资源，设置一个预备的状态，冻结部分数据。比如，订单服务添加一个预备状态，修改为 UPDATING，也就是更新中的意思，冻结当前订单的操作，而不是直接修改为支付成功。</p>
+<p>​    库存服务设置冻结库存，可以扩展字段，也可以额外添加新的库存冻结表。积分服务和库存一样，添加一个预增加积分，比如本次订单积分是 100，添加一个额外的存储表示等待增加的积分，账户余额服务等也是一样的操作。</p>
+<p><strong>Confirm 操作</strong><br>    Confirm 操作就是把前边的 Try 操作锁定的资源提交，类比数据库事务中的 Commit 操作。在支付的场景中，包括订单状态从准备中更新为支付成功；库存数据扣减冻结库存，积分数据增加预增加积分。</p>
+<p><strong>Cancel 操作</strong><br>    Cancel 操作执行的是业务上的回滚处理，类比数据库事务中的 Rollback 操作。首先订单服务，撤销预备状态，还原为待支付状态或者已取消状态，库存服务删除冻结库存，添加到可销售库存中，积分服务也是一样，将预增加积分扣减掉。</p>
+<p><strong>执行业务操作</strong></p>
+<p>​    下面来分析业务的实际执行操作，首先业务请求过来，开始执行 Try 操作，如果 TCC 分布式事务框架感知到各个服务的 Try 阶段都成功了以后，就会执行各个服务的 Confirm 逻辑。</p>
+<p>如果 Try 阶段有操作不能正确执行，比如订单失效、库存不足等，就会执行 Cancel 的逻辑，取消事务提交。</p>
+<h5 id="TCC-对比-2PC-两阶段提交"><a href="#TCC-对比-2PC-两阶段提交" class="headerlink" title="TCC 对比 2PC 两阶段提交"></a>TCC 对比 2PC 两阶段提交</h5><p>TCC 事务模型的思想类似 2PC 提交，对比 TCC 和基于 2PC 事务 XA 规范：</p>
+<p><strong>对比 2PC 提交</strong></p>
+<p><img src="/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/transaction_12.png" alt></p>
+<p><strong>第一阶段</strong><br>    在 XA 事务中，各个 RM 准备提交各自的事务分支，事实上就是准备提交资源的更新操作（insert、delete、update 等）；而在 TCC 中，是主业务操作请求各个子业务服务预留资源。</p>
+<p><strong>第二阶段</strong><br>    XA 事务根据第一阶段每个 RM 是否都 prepare 成功，判断是要提交还是回滚。如果都 prepare 成功，那么就 commit 每个事务分支，反之则 rollback 每个事务分支。</p>
+<p>​    在 TCC 中，如果在第一阶段所有业务资源都预留成功，那么进入 Confirm 步骤，提交各个子业务服务，完成实际的业务处理，否则进入 Cancel 步骤，取消资源预留请求。</p>
+<p><strong>与 2PC/XA 两阶段提交的区别</strong></p>
+<p>​    2PC/XA 是数据库或者存储资源层面的事务，实现的是强一致性，在两阶段提交的整个过程中，一直会持有数据库的锁。<br>​    TCC 关注业务层的正确提交和回滚，在 Try 阶段不涉及加锁，是业务层的分布式事务，关注最终一致性，不会一直持有各个业务资源的锁。<br>​    TCC 的核心思想是针对每个业务操作，都要添加一个与其对应的确认和补偿操作，同时把相关的处理，从数据库转移到业务中，以此实现跨数据库的事务。</p>
+<h5 id="TCC-分布式服务组件"><a href="#TCC-分布式服务组件" class="headerlink" title="TCC 分布式服务组件"></a>TCC 分布式服务组件</h5><p>在业务中引入 TCC 一般是依赖单独的 TCC 事务框架，可以选择自研或者应用开源组件。TCC 框架扮演了资源管理器的角色，常用的 TCC 开源组件有 Tcc-transaction、ByteTCC、Spring-cloud-rest-tcc 等。</p>
+<p>前面介绍过的 Seata，可以选择 <strong>TCC 事务模式</strong>，也支持了 <strong>AT 模式</strong>及 <strong>Saga 模式</strong>。（这俩种模式及框架解决方案可自行查阅）</p>
+<h4 id="基于消息补偿的最终一致性"><a href="#基于消息补偿的最终一致性" class="headerlink" title="基于消息补偿的最终一致性"></a>基于消息补偿的最终一致性</h4><p>异步化在分布式系统设计中随处可见，基于消息队列的最终一致性就是一种异步事务机制，在业务中广泛应用。</p>
+<p>在具体实现上，基于消息补偿的一致性主要有<strong>本地消息表</strong>和<strong>第三方可靠消息队列</strong>等。</p>
+<h5 id="本地消息表"><a href="#本地消息表" class="headerlink" title="本地消息表"></a>本地消息表</h5><p>本地消息表的方案最初是由 ebay 的工程师提出，核心思想是将分布式事务拆分成本地事务进行处理，通过消息日志的方式来异步执行。</p>
+<p>本地消息表是一种业务耦合的设计，消息生产方需要额外建一个事务消息表，并记录消息发送状态，消息消费方需要处理这个消息，并完成自己的业务逻辑，另外会有一个异步机制来定期扫描未完成的消息，确保最终一致性。</p>
+<p>下面我们用下单减库存业务来简单模拟本地消息表的实现过程：</p>
+<p><img src="/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/transaction_05.png" alt></p>
+<p>（1）系统收到下单请求，将订单业务数据存入到订单库中，并且同时存储该订单对应的消息数据，比如购买商品的 ID 和数量，消息数据与订单库为同一库，更新订单和存储消息为一个本地事务，要么都成功，要么都失败。</p>
+<p>（2）库存服务通过消息中间件收到库存更新消息，调用库存服务进行业务操作，同时返回业务处理结果。</p>
+<p>（3）消息生产方，也就是订单服务收到处理结果后，将本地消息表的数据删除或者设置为已完成。</p>
+<p>（4）设置异步任务，定时去扫描本地消息表，发现有未完成的任务则重试，保证最终一致性。</p>
+<p>以上就是基于本地消息表一致性的主流程，在具体实践中，还有许多分支情况，比如消息发送失败、下游业务方处理失败等。</p>
+<h5 id="不要求最终一致性的柔性事务"><a href="#不要求最终一致性的柔性事务" class="headerlink" title="不要求最终一致性的柔性事务"></a>不要求最终一致性的柔性事务</h5><p>除了上述几种，还有一种不保证最终一致性的柔性事务，也称为尽最大努力通知，这种方式适合可以接受部分不一致的业务场景。</p>
+<h3 id="分布式事务有哪些开源组件"><a href="#分布式事务有哪些开源组件" class="headerlink" title="分布式事务有哪些开源组件"></a>分布式事务有哪些开源组件</h3><p>分布式事务开源组件应用比较广泛的是蚂蚁金服开源的 <strong>Seata</strong>，也就是 <strong>Fescar</strong>，前身是阿里中间件团队发布的 TXC（Taobao Transaction Constructor）和升级后的 GTS（Global Transaction Service）。</p>
+<p><img src="/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/transaction_06.png" alt></p>
+<p>Seata 的设计思想是把一个分布式事务拆分成一个包含了若干分支事务（Branch Transaction）的全局事务（Global Transaction）。分支事务本身就是一个满足 ACID 的 本地事务，全局事务的职责是协调其下管辖的分支事务达成一致，要么一起成功提交，要么一起失败回滚。 </p>
+<p>在 Seata 中，全局事务对分支事务的协调基于两阶段提交协议，类似数据库中的 XA 规范，XA 规范定义了三个组件来协调分布式事务，分别是 AP 应用程序、TM 事务管理器、RM 资源管理器、CRM 通信资源管理器。关于 XA 规范的详细内容，将会在后面的课时中介绍。</p>
+<p><strong>以上学习内容均来自邴越老师《分布式技术原理与实战》课程，用于学习记录，希望大家共同进步，欧耶。</strong></p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BA%8B%E5%8A%A1/" rel="tag">事务</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag">分布式</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+  
+  
+
+</article>
+    
+    <article id="post-分布式架构之基础理论学习" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/05/14/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E5%9F%BA%E7%A1%80%E7%90%86%E8%AE%BA%E5%AD%A6%E4%B9%A0/"
+    >分布式架构之基础理论学习</a> 
+</h2>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/05/14/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E5%9F%BA%E7%A1%80%E7%90%86%E8%AE%BA%E5%AD%A6%E4%B9%A0/" class="article-date">
+  <time datetime="2020-05-14T08:53:33.000Z" itemprop="datePublished">2020-05-14</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0/">技术学习</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="分布式系统特点"><a href="#分布式系统特点" class="headerlink" title="分布式系统特点"></a>分布式系统特点</h3><p>​        随着移动互联网的快速发展，互联网的用户数量越来越多，产生的数据规模也越来越大，对应用系统提出了更高的要求，我们的系统必须支持高并发访问和海量数据处理。</p>
+<p>分布式系统技术就是用来解决集中式架构的性能瓶颈问题，来适应快速发展的业务规模，一般来说，分布式系统是建立在网络之上的硬件或者软件系统，<strong>彼此之间通过消息等方式进行通信和协调</strong>。</p>
+<p>分布式系统的核心是<strong>可扩展性</strong>，通过对服务、存储的扩展，来提高系统的处理能力，通过对多台服务器协同工作，来完成单台服务器无法处理的任务，尤其是高并发或者大数据量的任务。</p>
+<p>除了对可扩展性的需求，分布式系统还有<strong>不出现单点故障、服务或者存储无状态</strong>等特点。</p>
+<ul>
+<li><p><strong>单点故障</strong>（Single Point Failure）是指在系统中某个组件一旦失效，这会让整个系统无法工作，而不出现单点故障，单点不影响整体，就是分布式系统的设计目标之一；</p>
+</li>
+<li><p><strong>无状态</strong>，是因为无状态的服务才能满足部分机器宕机不影响全部，可以随时进行扩展的需求。</p>
+</li>
+</ul>
+<h3 id="CAP-理论"><a href="#CAP-理论" class="headerlink" title="CAP 理论"></a>CAP 理论</h3><p>由于分布式系统的特点，在分布式环境中更容易出现问题，比如<strong>节点之间通信失败、网络分区故障、多个副本的数据不一致</strong>等，为了更好的在分布式系统下进行开发，出现了一系列的理论，其中具有代表性的就是 <strong>CAP 理论</strong>。</p>
+<p><strong>CAP 理论</strong>可以表述为，一个分布式系统最多只能同时满足<strong>一致性</strong>（Consistency）、<strong>可用性</strong>（Availability）和<strong>分区容忍性</strong>（Partition Tolerance）这三项中的两项。</p>
+<p><img src="/2020/05/14/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E5%9F%BA%E7%A1%80%E7%90%86%E8%AE%BA%E5%AD%A6%E4%B9%A0/CAP.png" alt></p>
+<ul>
+<li><p><strong>一致性</strong>是指“所有节点同时看到相同的数据”，即更新操作成功并返回客户端完成后，所有节点在同一时间的数据完全一致，等同于所有节点拥有数据的最新版本。</p>
+</li>
+<li><p><strong>可用性</strong>是指“任何时候，读写都是成功的”，即服务一直可用，而且是正常响应时间。我们平时会看到一些 IT 公司的对外宣传，比如系统稳定性已经做到 3 个 9、4 个 9，即 99.9%、99.99%，这里的 N 个 9 就是对可用性的一个描述，叫做 SLA，即服务水平协议。比如我们说月度 99.95% 的 SLA，则意味着每个月服务出现故障的时间只能占总时间的 0.05%，如果这个月是 30 天，那么就是 21.6 分钟。</p>
+</li>
+<li><p><strong>分区容忍性</strong>具体是指“当部分节点出现消息丢失或者分区故障的时候，分布式系统仍然能够继续运行”，即系统容忍网络出现分区，并且在遇到某节点或网络分区之间网络不可达的情况下，仍然能够对外提供满足一致性和可用性的服务。</p>
+</li>
+</ul>
+<p>在分布式系统中，由于系统的各层拆分，<strong>P</strong> 是确定的，CAP 的应用模型就是 <strong>CP 架构</strong>和 <strong>AP 架构</strong>。</p>
+<h3 id="CP-和-AP-架构的取舍"><a href="#CP-和-AP-架构的取舍" class="headerlink" title="CP 和 AP 架构的取舍"></a>CP 和 AP 架构的取舍</h3><p>在通常的分布式系统中，为了保证数据的高可用，通常会将数据保留多个副本（Replica），<strong>网络分区</strong>是既成的现实，于是只能在<strong>可用性</strong>和<strong>一致性</strong>两者间做出选择。CAP 理论关注的是在绝对情况下，在工程上，<strong>可用性和一致性并不是完全对立的，我们关注的往往是如何在保持相对一致性的前提下，提高系统的可用性。</strong></p>
+<p>业务上对一致性的要求会直接反映在系统设计中，典型的就是 <strong>CP</strong> 和 <strong>AP</strong> 架构。</p>
+<p><strong>CP 架构：</strong>放弃可用性，追求一致性和分区容错性。</p>
+<p>​    我们熟悉的 <strong>ZooKeeper</strong>，就是采用了 <strong>CP</strong> 一致性，ZooKeeper 是一个分布式的服务框架，主要用来解决分布式集群中应用系统的协调和一致性问题。Zookeeper 采用 数据一致性算法 <strong>ZAB</strong> （基于Paxos）保证数据一致性。在 Zookeeper中，当<strong>master</strong> 节点因为网络故障与其他节点失去联系时，其余节点会重新进行<strong>leader</strong> 选举，一般选举时间为 <strong>30~120 s</strong>，且选举期间整个zk集群都是<strong>不可用的</strong>，这会导致在选举期间注册服务瘫痪。失去可用性。</p>
+<p><strong>AP 架构：</strong>放弃强一致性，追求分区容错性和可用性，这是很多分布式系统设计时的选择，后面的 Base 也是根据 AP 来扩展的。</p>
+<p>​    和 ZooKeeper 相对的是 Eureka，Eureka 是 Spring Cloud 微服务技术栈中的服务发现组件，Eureka 的各个节点都是平等的，几个节点挂掉不影响正常节点的工作，剩余的节点依然可以提供注册和查询服务，只要有一台 Eureka 还在，就能保证注册服务可用，只不过查到的信息可能不是最新的版本，不保证一致性。</p>
+<h3 id="Base-理论"><a href="#Base-理论" class="headerlink" title="Base 理论"></a>Base 理论</h3><p>对于 CAP 来说，放弃<strong>强一致性</strong>（这里说的一致性是强一致性），追求分区容错性和可用性，这是很多分布式系统设计时的选择。在工程实践中，基于 CAP 定理逐步演化，就提出了 Base 理论。</p>
+<p>Base 是三个短语的简写，即<strong>基本可用</strong>（Basically Available）、<strong>软状态</strong>（Soft State）和<strong>最终一致性</strong>（Eventually Consistent）。</p>
+<img src="/2020/05/14/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E5%9F%BA%E7%A1%80%E7%90%86%E8%AE%BA%E5%AD%A6%E4%B9%A0/Base.png" style="zoom:70%;">
+
+<p><strong>Base 理论</strong>的核心思想是<strong>最终一致性</strong>，即使无法做到强一致性（Strong Consistency），但每个应用都可以根据自身的业务特点，采用适当的方式来使系统达到<strong>最终一致性</strong>（Eventual Consistency）。</p>
+<ul>
+<li><strong>基本可用：</strong> 就是不追求 CAP 中的「任何时候，读写都是成功的」，而是系统能够基本运行，一直提供服务。基本可用强调了分布式系统在出现不可预知故障的时候，允许损失部分可用性，相比正常的系统，可能是响应时间延长，或者是服务被降级。</li>
+<li><strong>软状态：</strong>软状态可以对应 ACID 事务中的原子性（在 ACID 的事务中，实现的是强制一致性，要么全做要么不做，所有用户看到的数据一致。其中的原子性（Atomicity）要求多个节点的数据副本都是一致的，强调数据的一致性，可以理解为一种“硬状态”），软状态则是允许系统中的数据存在中间状态，并认为该状态不影响系统的整体可用性，即允许系统在多个不同节点的数据副本存在数据延时。</li>
+<li><strong>最终一致性：</strong>数据不可能一直是软状态，必须在一个时间期限之后达到各个节点的一致性，在期限过后，应当保证所有副本保持数据一致性，也就是达到数据的最终一致性。在系统设计中，最终一致性实现的时间取决于网络延时、系统负载、不同的存储选型、不同数据复制方案设计等因素。</li>
+</ul>
+<p><strong>不同数据一致性模型</strong></p>
+<p>一般来说，数据一致性模型可以分为<strong>强一致性</strong>和<strong>弱一致性</strong>，强一致性也叫做线性一致性，除此以外，所有其他的一致性都是弱一致性的特殊情况。弱一致性根据不同的业务场景，又可以分解为更细分的模型，不同一致性模型又有不同的应用场景。</p>
+<p>在互联网领域的绝大多数场景中，都需要牺牲强一致性来换取系统的高可用性，系统往往只需要保证“最终一致性”，只要这个最终时间是在用户可以接受的范围内即可。</p>
+<img src="/2020/05/14/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E5%9F%BA%E7%A1%80%E7%90%86%E8%AE%BA%E5%AD%A6%E4%B9%A0/Consistency.png" style="zoom: 67%;">
+
+<p>对于一致性，可以分为从服务端和客户端两个不同的视角，结合全局时钟概念，这里关注的主要是外部一致性。</p>
+<p><strong>强一致性</strong></p>
+<p>当更新操作完成之后，任何多个后续进程的访问都会返回最新的更新过的值，这种是对用户最友好的，就是用户上一次写什么，下一次就保证能读到什么。根据 CAP 理论，这种实现需要牺牲可用性。</p>
+<p><strong>弱一致性</strong></p>
+<p>系统在数据写入成功之后，不承诺立即可以读到最新写入的值，也不会具体的承诺多久之后可以读到。用户读到某一操作对系统数据的更新需要一段时间，我们称这段时间为“不一致性窗口”。</p>
+<p><strong>最终一致性</strong></p>
+<p>最终一致性是弱一致性的特例，强调的是所有的数据副本，在经过一段时间的同步之后，最终都能够达到一个一致的状态。因此，最终一致性的本质是需要系统保证最终数据能够达到一致，而不需要实时保证系统数据的强一致性。</p>
+<p>到达最终一致性的时间 ，就是不一致窗口时间，在没有故障发生的前提下，不一致窗口的时间主要受通信延迟，系统负载和复制副本的个数影响。</p>
+<p>最终一致性模型根据其提供的不同保证可以划分为更多的模型，包括因果一致性和会话一致性等。</p>
+<ul>
+<li><p><strong>因果一致性</strong> ： 因果一致性要求有因果关系的操作顺序得到保证，非因果关系的操作顺序则无所谓。例如：进程 A 在更新完某个数据项后通知了进程 B，那么进程 B 之后对该数据项的访问都应该能够获取到进程 A 更新后的最新值，并且如果进程 B 要对该数据项进行更新操作的话，务必基于进程 A 更新后的最新值。</p>
+</li>
+<li><p><strong>会话一致性</strong>：会话一致性将对系统数据的访问过程框定在了一个会话当中，约定了系统能保证在同一个有效的会话中实现“读己之所写”的一致性，就是在你的一次访问中，执行更新操作之后，客户端能够在同一个会话中始终读取到该数据项的最新值。实际开发中有分布式的 Session 一致性问题，可以认为是会话一致性的一个应用。</p>
+</li>
+</ul>
+<p><strong>CAP  和 Base  的关系</strong></p>
+<p>Base 理论是在 CAP 上发展的，CAP 理论描述了分布式系统中数据一致性、可用性、分区容错性之间的制约关系，当你选择了其中的两个时，就不得不对剩下的一个做一定程度的牺牲。</p>
+<p>Base 理论则是对 CAP 理论的实际应用，也就是在分区和副本存在的前提下，通过一定的系统设计方案，放弃强一致性，实现基本可用，这是大部分分布式系统的选择，比如 NoSQL 系统、微服务架构。在这个前提下，如何把基本可用做到最好，就是分布式工程师们追求的。</p>
+<p>除了 CAP 和 Base，还有 ACID 原理，ACID 是一种强一致性模型，强调原子性、一致性、隔离性和持久性，主要用于在<strong>数据库</strong>实现中。Base 理论面向的是高可用、可扩展的分布式系统，ACID 适合传统金融等业务，在实际场景中，不同业务对数据的一致性要求不一样，ACID 和 Base 理论往往会结合使用。</p>
+<h3 id="全局时钟和逻辑时钟"><a href="#全局时钟和逻辑时钟" class="headerlink" title="全局时钟和逻辑时钟"></a>全局时钟和逻辑时钟</h3><p>​    分布式系统解决了<strong>传统单体架构的单点问题和性能容量问题</strong>，另一方面也带来了很多新的问题，其中一个问题就是<strong>多节点的时间同步问题</strong>：不同机器上的物理时钟难以同步，导致无法区分在分布式系统中多个节点的事件时序。</p>
+<p>没有全局时钟，绝对的<strong>内部一致性</strong>是没有意义的，一般来说，我们讨论的一致性都是外部一致性，而外部一致性主要指的是多并发访问时更新过的数据如何获取的问题。</p>
+<p>和全局时钟相对的，是<strong>逻辑时钟</strong>，逻辑时钟描绘了分布式系统中事件发生的时序，是为了区分现实中的物理时钟提出来的概念。</p>
+<p>一般情况下我们提到的时间都是指物理时间，但实际上很多应用中，只要所有机器有相同的时间就够了，这个时间不一定要跟实际时间相同。更进一步解释：如果两个节点之间不进行交互，那么它们的时间甚至都不需要同步。 因此问题的关键点在于节点间的交互要在事件的发生顺序上达成一致，而不是对于时间达成一致。</p>
+<p>逻辑时钟的概念也被用来解决分布式一致性问题。</p>
+<p><strong>以上学习内容均来自邴越老师《分布式技术原理与实战》课程，用于学习记录，希望大家共同进步，欧耶。</strong></p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag">分布式</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%90%86%E8%AE%BA/" rel="tag">理论</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+  
+  
+
+</article>
+    
+    <article id="post-Spring-Spring-常用注解-一" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/05/13/Spring-Spring-%E5%B8%B8%E7%94%A8%E6%B3%A8%E8%A7%A3-%E4%B8%80/"
+    >[Spring] Spring 常用注解(一)</a> 
+</h2>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/05/13/Spring-Spring-%E5%B8%B8%E7%94%A8%E6%B3%A8%E8%A7%A3-%E4%B8%80/" class="article-date">
+  <time datetime="2020-05-13T09:44:15.000Z" itemprop="datePublished">2020-05-13</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0/">技术学习</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="1-Bean相关"><a href="#1-Bean相关" class="headerlink" title="1. Bean相关"></a>1. Bean相关</h3><h4 id="1-1-Autowired"><a href="#1-1-Autowired" class="headerlink" title="1.1 @Autowired"></a>1.1 @Autowired</h4><p>依赖注入，自动导入对象到类中，该类同样要求被 <strong>Spring</strong> 容器管理，例如 <strong>Controller</strong> 中注入 <strong>Service</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@RequestMapping</span>(<span class="string">"/hello"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloController</span> </span>&#123;</span><br><span class="line">   <span class="meta">@Autowired</span></span><br><span class="line">   <span class="keyword">private</span> UserService userService;</span><br><span class="line">   ......</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserService</span> </span>&#123;</span><br><span class="line">  ......</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="1-2-Bean-注册"><a href="#1-2-Bean-注册" class="headerlink" title="1.2 Bean 注册"></a>1.2 Bean 注册</h4><ul>
+<li><p>*<em>@Component *</em> 注解表明一个类会作为组件类，并告知Spring要为这个类创建bean</p>
+</li>
+<li><p><strong>@Repository</strong>  对应持久层即 Dao 层，主要用于数据库相关操作</p>
+</li>
+<li><p><strong>@Service</strong>  对应服务层，主要涉及一些复杂的逻辑，需要用到 Dao 层。</p>
+</li>
+<li><p><strong>@Controller</strong>  对应 Spring MVC 控制层，主要用户接受用户请求并调用 Service 层返回数据给前端页面。</p>
+</li>
+<li><p>*<em>@Bean *</em> 注解告诉Spring这个方法将会返回一个对象，这个对象要注册为Spring应用上下文中的bean。通常方法体中包含了最终产生bean实例的逻辑；</p>
+</li>
+<li><p><strong>@Configuration</strong>  与 <strong>@Component</strong> 功能类似，语义上是声明配置类，也可用 <strong>@Component</strong> 替代</p>
+</li>
+</ul>
+<h4 id="1-3-Scope-Bean做用域"><a href="#1-3-Scope-Bean做用域" class="headerlink" title="1.3 @Scope Bean做用域"></a>1.3 <strong>@Scope</strong> Bean做用域</h4><p>声明 Spring Bean 的作用域，使用方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Scope</span>(<span class="string">"singleton"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> Person <span class="title">personSingleton</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Person();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>四种常见的 Spring Bean 的作用域：</strong></p>
+<ul>
+<li><strong>singleton</strong> : 唯一 bean 实例，Spring 中的 bean 默认都是单例的。</li>
+<li><strong>prototype</strong> : 每次请求都会创建一个新的 bean 实例。</li>
+<li><strong>request</strong> : 每一次 HTTP 请求都会产生一个新的 bean，该 bean 仅在当前 HTTP request 内有效。</li>
+<li><strong>session</strong> : 每一次 HTTP 请求都会产生一个新的 bean，该 bean 仅在当前 HTTP session 内有效。</li>
+</ul>
+<h3 id="2-Controller层常用"><a href="#2-Controller层常用" class="headerlink" title="2. Controller层常用"></a>2. Controller层常用</h3><h4 id="2-1-基本注解"><a href="#2-1-基本注解" class="headerlink" title="2.1 基本注解"></a>2.1 基本注解</h4><ul>
+<li><p>@<strong>RequestMapping(“url”)</strong>  这里的 url写的是请求路径的一部分，一般作用在 Controller的方法上，作为请求的映射地址。</p>
+</li>
+<li><p>@<strong>RestController</strong>  该注解是  @<strong>ResponseBody</strong>  和 @<strong>Controller</strong> 注解的集合，</p>
+</li>
+<li><p>@<strong>RequestBody</strong>  作用在形参列表上，用于将前台发送过来固定格式的数据【xml 格式或者 json等】封装为对应的 <strong>JavaBean</strong> 对象，封装时使用到的一个对象是系统默认配置的 HttpMessageConverter进行解析，然后封装到形参上。</p>
+</li>
+<li><p>@<strong>ResponseBody</strong>  作用在方法上，将方法的返回结果直接写入 <strong>HTTP response body</strong> 中，用<strong>json</strong>的格式 返回</p>
+</li>
+</ul>
+<h4 id="2-2-Http请求相关注解"><a href="#2-2-Http请求相关注解" class="headerlink" title="2.2 Http请求相关注解"></a>2.2 Http请求相关注解</h4><p><strong>五种常见的请求类型:</strong></p>
+<ul>
+<li><p><strong>GET</strong> ：请求从服务器获取特定资源。举个例子：GET /users（获取所有学生）</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 等价于@RequestMapping(value="/users",method=RequestMethod.GET)</span></span><br><span class="line"><span class="meta">@GetMapping</span>(<span class="string">"users"</span>)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>POST</strong> ：在服务器</p>
+</li>
+<li><p>创建一个新的资源。举个例子：POST /users（创建学生）</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 等价于@RequestMapping(value="/users",method=RequestMethod.POST)</span></span><br><span class="line"><span class="meta">@PostMapping</span>(<span class="string">"users"</span>)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>PUT</strong> ：更新服务器上的资源（客户端提供更新后的整个资源）。举个例子：PUT /users/12（更新编号为 12 的学生）</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 等价于@RequestMapping(value="/users/&#123;userId&#125;",method=RequestMethod.PUT)</span></span><br><span class="line"><span class="meta">@PutMapping</span>(<span class="string">"/users/&#123;userId&#125;"</span>)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>DELETE</strong> ：从服务器删除特定的资源。举个例子：DELETE /users/12（删除编号为 12 的学生）</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 等价于@RequestMapping(value="/users/&#123;userId&#125;",method=RequestMethod.DELETE)</span></span><br><span class="line"><span class="meta">@DeleteMapping</span>(<span class="string">"/users/&#123;userId&#125;"</span>)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>PATCH</strong> ：更新服务器上的资源（客户端提供更改的属性，可以看做作是部分更新），使用的比较少，这里就不举例子了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//一般实际项目中，我们都是 PUT 不够用了之后才用 PATCH 请求去更新数据。</span></span><br><span class="line"><span class="meta">@PatchMapping</span>(<span class="string">"/profile"</span>)</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ul>
+<h4 id="2-3-前后端传值相关"><a href="#2-3-前后端传值相关" class="headerlink" title="2.3 前后端传值相关"></a>2.3 前后端传值相关</h4><ol>
+<li><p><strong>@PathVariable</strong> <strong>和</strong> <strong>@RequestParam</strong></p>
+<p>@<strong>PathVariable</strong>用于获取路径参数，@<strong>RequestParam</strong>用于获取查询参数。</p>
+<p>具体见示例如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@GetMapping</span>(<span class="string">"/user/&#123;userId&#125;/name"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">getUserName</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">         @PathVariable(<span class="string">"userId"</span>)</span> Long userId,</span></span><br><span class="line"><span class="function">         @<span class="title">RequestParam</span><span class="params">(value = <span class="string">"employeeId"</span>, required = <span class="keyword">false</span>)</span> Long employeeId ) </span>&#123;</span><br><span class="line">...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ol>
+<ol start="2">
+<li><p><strong>@RequestBody</strong></p>
+<p>作用在形参列表上，读取 Request 请求（可能是 POST,PUT,DELETE,GET 请求）的 body 部分并且<strong>Content-Type 为 application/json</strong> 格式的数据，接收到数据之后会自动将数据绑定到 Java 对象上去。系统会使用<strong>HttpMessageConverter</strong>或者自定义的<strong>HttpMessageConverter</strong>将请求的 body 中的 json 字符串转换为 java 对象。</p>
+<p>简单来说就是 将 前台的 传来的 <strong>json</strong> 字符串 自动转成 对象。</p>
+<p>可与 @<strong>ResponseBody</strong> 同时记忆</p>
+</li>
+</ol>
+<h5 id="知识点：ajax-中-DataType-和-ContentType-的区别"><a href="#知识点：ajax-中-DataType-和-ContentType-的区别" class="headerlink" title="知识点：ajax 中 DataType 和 ContentType 的区别"></a>知识点：ajax 中 DataType 和 ContentType 的区别</h5><ul>
+<li><strong>contentType</strong>   告诉服务器，我要发什么类型的数据，对于后台接口来说就是请求参数</li>
+<li><strong>dataType</strong>  告诉服务器，我要想什么类型的数据，对于后台接口来说就是请求返回值</li>
+</ul>
+<h4 id="2-4-参数校验相关注解"><a href="#2-4-参数校验相关注解" class="headerlink" title="2.4 参数校验相关注解"></a>2.4 参数校验相关注解</h4><p><strong>JSR(Java Specification Requests）</strong> 是一套 JavaBean 参数校验的标准，它定义了很多常用的校验注解，我们可以直接将这些注解加在我们 JavaBean 的属性上面，这样就可以在需要校验的时候进行校验了，校验的时候我们实际用的是 <strong>Hibernate Validator</strong> 框架。</p>
+<table>
+<thead>
+<tr>
+<th><strong>Hibernate Validator</strong></th>
+<th>JSR标准</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Hibernate Validator 4.x</td>
+<td>Bean Validation 1.0（JSR 303）</td>
+</tr>
+<tr>
+<td>Hibernate Validator 5.x</td>
+<td>Bean Validation 1.1（JSR 349）</td>
+</tr>
+<tr>
+<td>Hibernate Validator 6.x</td>
+<td>Bean Validation 2.0（JSR 380）</td>
+</tr>
+</tbody></table>
+<p>而SpringBoot 项目的 spring-boot-starter-web 依赖中已经有 hibernate-validator 包，不需要引用相关依赖。</p>
+<p><strong>所有的注解，推荐使用 JSR 注解，即</strong> <strong>javax.validation.constraints</strong>，而不是<strong>org.hibernate.validator.constraints</strong></p>
+<table>
+<thead>
+<tr>
+<th>注解</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>@AssertTrue</td>
+<td>用于boolean字段，该字段只能为true</td>
+</tr>
+<tr>
+<td>@AssertFalse</td>
+<td>该字段的值只能为false</td>
+</tr>
+<tr>
+<td>@CreditCardNumber</td>
+<td>对信用卡号进行一个大致的验证</td>
+</tr>
+<tr>
+<td>@DecimalMax</td>
+<td>只能小于或等于该值</td>
+</tr>
+<tr>
+<td>@DecimalMin</td>
+<td>只能大于或等于该值</td>
+</tr>
+<tr>
+<td>@Digits(integer=,fraction=)</td>
+<td>检查是否是一种数字的整数、分数,小数位数的数字</td>
+</tr>
+<tr>
+<td>@Email</td>
+<td>检查是否是一个有效的email地址</td>
+</tr>
+<tr>
+<td>@Future</td>
+<td>检查该字段的日期是否是属于将来的日期</td>
+</tr>
+<tr>
+<td>@Length(min=,max=)</td>
+<td>检查所属的字段的长度是否在min和max之间,只能用于字符串</td>
+</tr>
+<tr>
+<td>@Max</td>
+<td>该字段的值只能小于或等于该值</td>
+</tr>
+<tr>
+<td>@Min</td>
+<td>该字段的值只能大于或等于该值</td>
+</tr>
+<tr>
+<td>@NotNull</td>
+<td>不能为null</td>
+</tr>
+<tr>
+<td>@NotBlank</td>
+<td>不能为空，检查时会将空格忽略</td>
+</tr>
+<tr>
+<td>@NotEmpty</td>
+<td>不能为空，这里的空是指空字符串</td>
+</tr>
+<tr>
+<td>@Null</td>
+<td>检查该字段为空</td>
+</tr>
+<tr>
+<td>@Past</td>
+<td>检查该字段的日期是在过去</td>
+</tr>
+<tr>
+<td>@Pattern(regex=,flag=)</td>
+<td>被注释的元素必须符合指定的正则表达式</td>
+</tr>
+<tr>
+<td>@Range(min=,max=,message=)</td>
+<td>被注释的元素必须在合适的范围内</td>
+</tr>
+<tr>
+<td>@Size(min=, max=)</td>
+<td>检查该字段的size是否在min和max之间，可以是字符串、数组、集合、Map等</td>
+</tr>
+<tr>
+<td>@URL(protocol=,host,port)</td>
+<td>检查是否是一个有效的URL，如果提供了protocol，host等，则该URL还需满足提供的条件</td>
+</tr>
+<tr>
+<td>@Valid</td>
+<td>该注解主要用于字段为一个包含其他对象的集合或map或数组的字段，或该字段直接为一个其他对象的引用，这样在检查当前对象的同时也会检查该字段所引用的对象</td>
+</tr>
+</tbody></table>
+<p>示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.springboot.dto;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.hibernate.validator.constraints.NotEmpty;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> javax.validation.constraints.NotNull;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Description</span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Author</span>: charleyZZZZ</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Date</span>: 2020/5/9 17:15</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Version</span> 1.0</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Person</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@NotEmpty</span>(message = <span class="string">"姓名不能为空！"</span>)</span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@NotNull</span>(message = <span class="string">"年龄不能为空！"</span>)</span><br><span class="line">    <span class="keyword">private</span> String age;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"Person&#123;"</span> +</span><br><span class="line">                <span class="string">"name='"</span> + name + <span class="string">'\''</span> +</span><br><span class="line">                <span class="string">", age='"</span> + age + <span class="string">'\''</span> +</span><br><span class="line">                <span class="string">'&#125;'</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getAge</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> age;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setAge</span><span class="params">(String age)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.age = age;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>Controller</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@PostMapping</span>(<span class="string">"/person"</span>)</span><br><span class="line">   <span class="meta">@ResponseBody</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> ResponseEntity&lt;Person&gt; <span class="title">getPerson</span><span class="params">(@RequestBody @Valid Person person)</span> </span>&#123;</span><br><span class="line">       <span class="keyword">return</span> ResponseEntity.ok().body(person);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>在需要验证的参数上加上了@Valid注解，如果验证失败，它将抛出MethodArgumentNotValidException，同时配合ExceptionHandler,捕捉异常，封装统一出错返回信息给前端。</strong></p>
+<p>对于请求参数不是对象类型的，可直接在 请求参数上添加校验注解，</p>
+<p><strong>但是在类上一定要加上</strong> <strong>Validated</strong> <strong>注解了，这个参数可以告诉 Spring 去校验方法参数</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.springboot;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Description</span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Author</span>: charleyZZZZ</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Date</span>: 2020/4/27 17:13</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Version</span> 1.0</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@RequestMapping</span>(<span class="string">"test"</span>)</span><br><span class="line"><span class="meta">@Controller</span></span><br><span class="line"><span class="meta">@Validated</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MockController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping</span>(<span class="string">"/person/&#123;id&#125;"</span>)</span><br><span class="line">    <span class="meta">@ResponseBody</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> ResponseEntity&lt;Integer&gt; <span class="title">getPersonByID</span><span class="params">(@Valid @PathVariable(<span class="string">"id"</span>)</span> @<span class="title">Max</span><span class="params">(value = <span class="number">5</span>,message = <span class="string">"超过 id 的范围了"</span>)</span> Integer id) </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> ResponseEntity.ok().body(id);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="2-5-全局Controller异常相关注解"><a href="#2-5-全局Controller异常相关注解" class="headerlink" title="2.5 全局Controller异常相关注解"></a>2.5 全局Controller异常相关注解</h4><h5 id="ExceptionHandler"><a href="#ExceptionHandler" class="headerlink" title="@ExceptionHandler"></a><strong>@ExceptionHandler</strong></h5><p>单独使用<strong>@ExceptionHandler</strong>时一般写在控制器的内部，在控制器的某个方法上加上<strong>@ExceptionHandler</strong>注解。</p>
+<p>在<strong>ExceptionController</strong>内部如果抛出了指定<strong>XXXXException</strong>异常，就会被这个控制器内部的<strong>handleError</strong>捕捉到。然后进行处理。</p>
+<p>但是这样就很麻烦，需要在每个控制器上添加这样一个方法。</p>
+<p>通常的做法是 项目添加<strong>BaseController</strong>，在其他控制器继承<strong>BaseController</strong>，此外 <strong>BaseController</strong> 还可以封装控制器通用方法，常量等</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BaseController</span> <span class="keyword">implements</span> <span class="title">IBaseConstants</span> </span>&#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger LOGGER = LoggerFactory.getLogger(BaseController<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 分页常量</span></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">static</span> <span class="keyword">final</span> String DEFAULT_PAGE = <span class="string">"1"</span>;</span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">static</span> <span class="keyword">final</span> String DEFAULT_PAGE_SIZE = <span class="string">"10"</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String JSP_500 = <span class="string">"500"</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String ERROR_MESSAGE = <span class="string">"errorMsg"</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@ExceptionHandler</span>(Exception<span class="class">.<span class="keyword">class</span>)</span></span><br><span class="line"><span class="class">    <span class="title">public</span> <span class="title">Object</span> <span class="title">exceptionHandler</span>(<span class="title">Exception</span> <span class="title">exception</span>, <span class="title">HttpServletRequest</span> <span class="title">request</span>) </span>&#123;</span><br><span class="line">        LOGGER.error(exception.getMessage(), exception);</span><br><span class="line">        Throwable rootCause = <span class="keyword">this</span>.getRootCause(exception);</span><br><span class="line">        IBaseException baseException;</span><br><span class="line">        <span class="comment">// 这里判断是否是 ajax 请求，来判断是返回json ，还是 modelAndView视图</span></span><br><span class="line">        <span class="keyword">if</span> (!<span class="keyword">this</span>.isAjaxRequest(request) &amp;&amp; !<span class="keyword">this</span>.isApiRequest(request) &amp;&amp; !ServletFileUpload.isMultipartContent(request)) &#123;</span><br><span class="line">            ModelAndView modelAndView = <span class="keyword">new</span> ModelAndView(JSP_500);</span><br><span class="line">            <span class="keyword">if</span> (rootCause <span class="keyword">instanceof</span> IBaseException) &#123;</span><br><span class="line">                modelAndView.addObject(ERROR_MESSAGE, exception.getMessage());</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> modelAndView;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            BaseResponseDTO baseResponseDTO = <span class="keyword">new</span> BaseResponseDTO(<span class="keyword">false</span>);</span><br><span class="line">            baseResponseDTO.setMessage(exception.getMessage());</span><br><span class="line">            <span class="keyword">if</span> (rootCause <span class="keyword">instanceof</span> IBaseException) &#123;</span><br><span class="line">                baseException = (IBaseException) rootCause;</span><br><span class="line">                baseResponseDTO.setCode(baseException.getCode());</span><br><span class="line">                baseResponseDTO.setSuccess(<span class="keyword">false</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> baseResponseDTO;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h5 id="ControllerAdvice"><a href="#ControllerAdvice" class="headerlink" title="@ControllerAdvice"></a>@ControllerAdvice</h5><p>@ExceptionHandler + @ControllerAdvice</p>
+<p>Spring 3.2版本中添加了 新的注解 <strong>@ControllerAdvice</strong> 支持全局的异常处理，这样就可以单独用一个类处理异常了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@ControllerAdvice</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ExceptionController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@ExceptionHandler</span>(&#123;ExceptionException<span class="class">.<span class="keyword">class</span>&#125;)</span></span><br><span class="line"><span class="class">    <span class="title">public</span> <span class="title">String</span> <span class="title">handleError</span>(<span class="title">Exception</span> <span class="title">e</span>)</span>&#123;</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">        <span class="comment">// 处理异常</span></span><br><span class="line">        <span class="keyword">return</span> e.getMessage();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@ExceptionHandler</span>(Exception<span class="class">.<span class="keyword">class</span>)</span></span><br><span class="line"><span class="class">    <span class="title">public</span> <span class="title">ResponseEntity</span>&lt;<span class="title">Object</span>&gt; <span class="title">handleAllException</span>(<span class="title">Exception</span> <span class="title">e</span>)</span>&#123;</span><br><span class="line">        <span class="comment">// 处理异常</span></span><br><span class="line">        <span class="comment">// do something</span></span><br><span class="line">        <span class="keyword">return</span> ResponseEntity.ok(...); </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>补充：</strong></p>
+<p>​    全局异常捕捉还有一种方式，即实现 <strong>HandlerExceptionResolver</strong> 接口，要求实现其 <strong>resolveException</strong></p>
+<p>方法，返回<strong>ModelAndView</strong>对象，要想返回 <strong>Json</strong> 对象，需要定制化，例如 直接在response 中回写，或者 用<strong>MappingJackson2JsonView</strong> 对象，但是 不推荐这样使用。</p>
+<h3 id="3-配置文件相关"><a href="#3-配置文件相关" class="headerlink" title="3. 配置文件相关"></a>3. 配置文件相关</h3><h5 id="Value"><a href="#Value" class="headerlink" title="@Value"></a><strong>@Value</strong></h5><p>读取简单配置</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Value</span>(<span class="string">"$&#123;server.port&#125;"</span>)</span><br><span class="line">String serverPort;</span><br></pre></td></tr></table></figure>
+
+
+
+<h5 id="ConfigurationProperties"><a href="#ConfigurationProperties" class="headerlink" title="@ConfigurationProperties"></a><strong>@ConfigurationProperties</strong></h5><p>读取配置信息，并且配合 <strong>@Configuration</strong> 或者 <strong>@Component</strong> 注解注册到上下文</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@ConfigurationProperties</span>(prefix = <span class="string">"spring.demo"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyConfigurationProperties</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> age;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getAge</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> age;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setAge</span><span class="params">(<span class="keyword">int</span> age)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.age = age;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h5 id="EnableConfigurationProperties"><a href="#EnableConfigurationProperties" class="headerlink" title="@EnableConfigurationProperties"></a>@EnableConfigurationProperties</h5><p>如果未添加 <strong>@Configuration</strong> 或者 <strong>@Component</strong> 注解 ，可以 在使用的地方 添加<strong>@EnableConfigurationProperties</strong> 注解指定配置类将其注入到 上下文中</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="meta">@EnabledDemoAutoConfiguration</span></span><br><span class="line"><span class="meta">@EnableConfigurationProperties</span>(MyConfigurationProperties<span class="class">.<span class="keyword">class</span>)</span></span><br><span class="line"><span class="class"><span class="title">public</span> <span class="title">class</span> <span class="title">SpringBootLogging02Application</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">private</span> MyConfigurationProperties configurationProperties;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">SpringBootLogging02Application</span><span class="params">(MyConfigurationProperties configurationProperties)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">this</span>.configurationProperties = configurationProperties;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">		SpringApplication.run(SpringBootLogging02Application<span class="class">.<span class="keyword">class</span>, <span class="title">args</span>)</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h5 id="PropertySource"><a href="#PropertySource" class="headerlink" title="@PropertySource"></a><strong>@PropertySource</strong></h5><p><strong>读取指定 properties 文件</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@PropertySource</span>(<span class="string">"classpath:myself.properties"</span>)</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">myselfConfig</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Value</span>(<span class="string">"$&#123;server.port&#125;"</span>)</span><br><span class="line">    <span class="keyword">private</span> String port;</span><br><span class="line"></span><br><span class="line">    </span><br><span class="line">  ......</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="4-JPA相关"><a href="#4-JPA相关" class="headerlink" title="4. JPA相关"></a>4. JPA相关</h3><table>
+<thead>
+<tr>
+<th><strong>注解</strong></th>
+<th><strong>含义</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>@<strong>Entity</strong></td>
+<td>声明一个类对应一个数据库实体。</td>
+</tr>
+<tr>
+<td>@<strong>Table</strong></td>
+<td>设置表名</td>
+</tr>
+<tr>
+<td>@<strong>Id</strong></td>
+<td>声明主键</td>
+</tr>
+<tr>
+<td>@<strong>GeneratedValue</strong></td>
+<td><strong>JPA</strong> 使用枚举定义了 4 中常见的主键生成策略：<strong>TABLE</strong>（特定表格存储），<strong>SEQUENCE</strong>（序列），<strong>IDENTITY</strong>（自增长），<strong>AUTO</strong>（交给持久化引擎决定，他会在以上三种选一个，默认使用这个）</td>
+</tr>
+<tr>
+<td>@<strong>GenericGenerator</strong></td>
+<td>声明一个主键策略，然后@<strong>GeneratedValue</strong>使用这个策略</td>
+</tr>
+<tr>
+<td>@<strong>Column</strong></td>
+<td>声明字段</td>
+</tr>
+<tr>
+<td>@<strong>Transient</strong></td>
+<td>声明指定不持久化字段</td>
+</tr>
+<tr>
+<td>@<strong>Lob</strong></td>
+<td>声明某个字段为大字段</td>
+</tr>
+<tr>
+<td>@<strong>Basic</strong>(fetch = FetchType.EAGER)</td>
+<td>指定 <strong>Lob</strong> 类型数据的获取策略， <strong>FetchType.EAGER</strong> 表示非延迟 加载，而 <strong>FetchType. LAZY</strong> 表示延迟加载</td>
+</tr>
+<tr>
+<td>@<strong>Enumerated</strong></td>
+<td>声明使用枚举类型的字段</td>
+</tr>
+<tr>
+<td>@<strong>CreatedBy</strong></td>
+<td>声明审计字段  创建者</td>
+</tr>
+<tr>
+<td>@<strong>LastModifiedBy</strong></td>
+<td>声明审计字段  上次修改者</td>
+</tr>
+<tr>
+<td>@<strong>CreatedDate</strong></td>
+<td>声明审计字段  上次修改时间</td>
+</tr>
+<tr>
+<td>@<strong>LastModifiedDate</strong></td>
+<td>声明审计字段  最后修改时间</td>
+</tr>
+<tr>
+<td>@<strong>EnableJpaAuditing</strong></td>
+<td>开启JPA审计功能，一般放启动类上</td>
+</tr>
+<tr>
+<td>@<strong>EntityListeners</strong>(AuditingEntityListener.class)</td>
+<td>设置实体类监听器，指定审计相关监听器</td>
+</tr>
+<tr>
+<td>@<strong>OneToOne</strong></td>
+<td>声明关联关系：一对一</td>
+</tr>
+<tr>
+<td>@<strong>OneToMany</strong></td>
+<td>声明关联关系：一对多</td>
+</tr>
+<tr>
+<td>@<strong>ManyToOne</strong></td>
+<td>声明关联关系：多对一</td>
+</tr>
+<tr>
+<td>@<strong>ManyToMany</strong></td>
+<td>声明关联关系：多对多</td>
+</tr>
+</tbody></table>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Entity</span></span><br><span class="line"><span class="meta">@Table</span>(name = <span class="string">"sys_user"</span>)</span><br><span class="line"><span class="meta">@ApiModel</span>(<span class="string">"用户表"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SysUser</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Id</span></span><br><span class="line">    <span class="meta">@GeneratedValue</span>(strategy = GenerationType.IDENTITY)</span><br><span class="line">    <span class="keyword">private</span> Long id;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Column</span></span><br><span class="line">    <span class="keyword">private</span> String username;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Column</span></span><br><span class="line">    <span class="keyword">private</span> String password;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Column</span></span><br><span class="line">    <span class="meta">@Enumerated</span>(EnumType.STRING)</span><br><span class="line">    <span class="keyword">private</span> String gender;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@CreatedDate</span></span><br><span class="line">    <span class="meta">@Column</span>(updatable = <span class="keyword">false</span>)</span><br><span class="line">    <span class="keyword">private</span> Instant createdAt;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@LastModifiedDate</span></span><br><span class="line">    <span class="keyword">private</span> Instant updatedAt;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@CreatedBy</span></span><br><span class="line">    <span class="meta">@Column</span>(updatable = <span class="keyword">false</span>)</span><br><span class="line">    <span class="keyword">private</span> String createdBy;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@LastModifiedBy</span></span><br><span class="line">    <span class="keyword">private</span> String updatedBy;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 暂存字段，不持久化</span></span><br><span class="line">    <span class="meta">@Transient</span></span><br><span class="line">    <span class="keyword">private</span> String depatmentName;</span><br><span class="line">   </span><br><span class="line">    .......</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="5-JSON处理相关"><a href="#5-JSON处理相关" class="headerlink" title="5. JSON处理相关"></a>5. JSON处理相关</h3><h4 id="5-1-Json过滤"><a href="#5-1-Json过滤" class="headerlink" title="5.1 Json过滤"></a>5.1 Json过滤</h4><h5 id="JsonIgnoreProperties"><a href="#JsonIgnoreProperties" class="headerlink" title="@JsonIgnoreProperties"></a><strong>@JsonIgnoreProperties</strong></h5><p>作用在类上用于过滤掉特定字段不返回或者不解析。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@JsonIgnoreProperties</span>(&#123;<span class="string">"userRoles"</span>&#125;)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SysUser</span> <span class="keyword">extends</span> <span class="title">BaseDTO</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 用户名</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@NotNull</span></span><br><span class="line">    <span class="keyword">private</span> String username;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 密码</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@NotNull</span></span><br><span class="line">    <span class="keyword">private</span> String password;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 用户角色关系</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> List&lt;UserRole&gt; userRoles;</span><br><span class="line">    </span><br><span class="line">    ......</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h5 id="JsonIgnore"><a href="#JsonIgnore" class="headerlink" title="@JsonIgnore"></a><strong>@JsonIgnore</strong></h5><p>用于类的<strong>属性</strong>上，作用和上面的*<em>@JsonIgnoreProperties *</em>一样</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@JsonIgnoreProperties</span>(&#123;<span class="string">"userRoles"</span>&#125;)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SysUser</span> <span class="keyword">extends</span> <span class="title">BaseDTO</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@NotNull</span></span><br><span class="line">    <span class="keyword">private</span> String username;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@NotNull</span></span><br><span class="line">    <span class="keyword">private</span> String password;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@JsonIgnore</span></span><br><span class="line">    <span class="keyword">private</span> List&lt;UserRole&gt; userRoles;</span><br><span class="line">    </span><br><span class="line">    ......</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="5-2-格式化Json数据"><a href="#5-2-格式化Json数据" class="headerlink" title="5.2 格式化Json数据"></a>5.2 格式化Json数据</h4><h5 id="JsonFormat"><a href="#JsonFormat" class="headerlink" title="@JsonFormat"></a><strong>@JsonFormat</strong></h5><p>一般用来格式化 json 数据</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@JsonFormat</span>(pattern=<span class="string">"yyyy-MM-dd HH:mm:ss"</span>,timezone=<span class="string">"GMT+8"</span>)</span><br><span class="line"><span class="keyword">private</span> Date endTime;</span><br></pre></td></tr></table></figure>
+
+
+
+<h5 id="JsonUnwrapped"><a href="#JsonUnwrapped" class="headerlink" title="@JsonUnwrapped"></a>@<strong>JsonUnwrapped</strong></h5><p>Json数据扁平化处理</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Country</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Country</span><span class="params">(String name, Province province)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">        <span class="keyword">this</span>.province = province;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 国家名称</span></span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 省会</span></span><br><span class="line">    <span class="meta">@JsonUnwrapped</span></span><br><span class="line">    <span class="keyword">private</span> Province province;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Province <span class="title">getProvince</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> province;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setProvince</span><span class="params">(Province province)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.province = province;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Province</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Province</span><span class="params">(String capital)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.capital = capital;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 省会</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> String capital;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getCapital</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> capital;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setCapital</span><span class="params">(String capital)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.capital = capital;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="JsonInclude"><a href="#JsonInclude" class="headerlink" title="@JsonInclude"></a>@JsonInclude</h5><p>指定字段的序列化条件</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@JsonInclude</span>(JsonInclude.Include.NON_NULL)</span><br><span class="line"><span class="keyword">private</span> String code;</span><br><span class="line"><span class="meta">@JsonInclude</span>(JsonInclude.Include.NON_NULL)</span><br><span class="line"><span class="keyword">private</span> String message;</span><br></pre></td></tr></table></figure>
+
+<p><strong>JsonJsonInclude.Include.ALWAYS</strong> 默认策略，任何情况下都序列化该字段，和不写这个注解是一样的效果。<br><strong>JsonJsonInclude.Include.NON_NULL</strong> 最常用，即如果加该注解的字段为null,那么就不序列化这个字段了。<br><strong>JsonJsonInclude.Include.NON_ABSENT</strong> 包含NON_NULL，即为null的时候不序列化</p>
+<p><strong>JsonJsonInclude.Include.NON_EMPTY</strong>  属性包含NON_NULL，NON_ABSENT之后还包含如果字段为空也不序列化。这个也比较常用<br><strong>JsonJsonInclude.Include.NON_DEFAULT</strong>如果字段是默认值的话就不序列化。</p>
+<h5 id="JsonProperty"><a href="#JsonProperty" class="headerlink" title="@JsonProperty"></a><strong>@JsonProperty</strong></h5><p>此注解用于属性上，作用是把该属性的名称序列化为另外一个名称，</p>
+<p>例如如把positionCode属性序列化为postCode</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@JsonProperty</span>(value=<span class="string">"postCode"</span>)</span><br><span class="line"><span class="keyword">private</span> String positionCode;</span><br><span class="line"></span><br><span class="line"><span class="meta">@JsonProperty</span>(value=<span class="string">"postName"</span>)</span><br><span class="line"><span class="keyword">private</span> String positionName;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h3 id="6-SpringBoot常用注解"><a href="#6-SpringBoot常用注解" class="headerlink" title="6. SpringBoot常用注解"></a>6. SpringBoot常用注解</h3><h4 id="SpringBootApplication"><a href="#SpringBootApplication" class="headerlink" title="@SpringBootApplication"></a>@SpringBootApplication</h4><p>该注解是在创建SpringBoot项目后自动添加在主类上的，在项目启动时生效</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Target</span>(ElementType.TYPE)</span><br><span class="line"><span class="meta">@Retention</span>(RetentionPolicy.RUNTIME)</span><br><span class="line"><span class="meta">@Documented</span></span><br><span class="line"><span class="meta">@Inherited</span></span><br><span class="line"><span class="meta">@SpringBootConfiguration</span></span><br><span class="line"><span class="meta">@EnableAutoConfiguration</span></span><br><span class="line"><span class="meta">@ComponentScan</span>(excludeFilters = &#123;</span><br><span class="line">		<span class="meta">@Filter</span>(type = FilterType.CUSTOM, classes = TypeExcludeFilter<span class="class">.<span class="keyword">class</span>),</span></span><br><span class="line"><span class="class">		@<span class="title">Filter</span>(<span class="title">type</span> </span>= FilterType.CUSTOM, classes = AutoConfigurationExcludeFilter<span class="class">.<span class="keyword">class</span>) &#125;)</span></span><br><span class="line"><span class="class"><span class="title">public</span> @<span class="title">interface</span> <span class="title">SpringBootApplication</span> </span>&#123;</span><br><span class="line">    ....</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@Target</span>(ElementType.TYPE)</span><br><span class="line"><span class="meta">@Retention</span>(RetentionPolicy.RUNTIME)</span><br><span class="line"><span class="meta">@Documented</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> SpringBootConfiguration &#123;</span><br><span class="line">	</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>由代码可知，该注解其实是由 <strong>@Configuration</strong>  、 <strong>@EnableAutoConfiguration</strong> 和 <strong>@ComponentScan</strong> 三个注解组成，这三个注解的含义是：</p>
+<ul>
+<li>@<strong>EnableAutoConfiguration</strong>：启用 <strong>SpringBoot</strong> 的自动配置机制</li>
+<li>@<strong>ComponentScan</strong>： 扫描被 <strong>@Component (@Service,@Controller,@Repository)</strong> 注解的 <strong>bean</strong>，注解默认会扫描该类所在的包下所有的类。</li>
+<li>@<strong>Configuration</strong>：允许在 <strong>Spring</strong> 上下文中注册额外的 <strong>bean</strong> 或导入其他配置类</li>
+</ul>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spring/" rel="tag">Spring</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%B3%A8%E8%A7%A3/" rel="tag">注解</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+  
+  
+
+</article>
+    
     <article id="post-SpringBoot-SpringBoot学习之日志管理" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 

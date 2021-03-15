@@ -616,7 +616,7 @@
 <li>当主线程有慢任务需要异步处理时。就会向对应的任务队列提交任务。提交任务时，首先申请内存空间，构建 BIO 任务。然后对队列锁进行加锁，在队列尾部追加新的 BIO 任务，最后尝试唤醒正在等待任务的 BIO 线程。</li>
 <li>BIO 线程启动时或持续处理完所有任务，发现任务队列为空后，就会阻塞，并等待新任务的到来。当主线程有新任务后，主线程会提交任务，并唤醒 BIO 线程。BIO 线程随后开始轮询获取新任务，并进行处理。当处理完所有 BIO 任务后，则再次进入阻塞，等待下一轮唤醒。</li>
 </ul>
-<h4 id="Redis-多线程"><a href="#Redis-多线程" class="headerlink" title="Redis 多线程"></a>Redis 多线程</h4><p>Redis 自问世以来，广受好评，应用广泛。但相比， Memcached 单实例压测 TPS 可以高达百万，线上可以稳定跑 20<del>40 万而言，Redis 的单实例压测 TPS 不过 10</del>12 万，线上一般最高也就 2~4 万，<strong>仍相差一个数量级</strong>。</p>
+<h4 id="Redis-多线程"><a href="#Redis-多线程" class="headerlink" title="Redis 多线程"></a>Redis 多线程</h4><p>Redis 自问世以来，广受好评，应用广泛。但相比， Memcached 单实例压测 TPS 可以高达百万，线上可以稳定跑 20-40 万而言，Redis 的单实例压测 TPS 不过 10-12 万，线上一般最高也就 2-4 万，<strong>仍相差一个数量级</strong>。</p>
 <p>Redis 慢的<strong>主要原因是单进程单线程模型。</strong>虽然一些重量级操作也进行了分拆，如 RDB 的构建在子进程中进行，文件关闭、文件缓冲同步，以及大 key 清理都放在 BIO 线程异步处理，但还远远不够。</p>
 <p>虽然可以通过<strong>多部署几个 Redis 实例来达到类似多线程的效果</strong>。但多实例部署则<strong>带来了运维复杂的问题</strong>，而且单机多实例部署，会相互影响，进一步增大运维的复杂度。</p>
 <p>因此，Redis 即将在 6.0 版本引入多线程模型。Redis 的多线程模型，分为主线程和 IO 线程。</p>
@@ -695,6 +695,15 @@
   
   
   <nav class="article-nav">
+    
+      <a href="/2021/03/15/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            消息队列
+          
+        </div>
+      </a>
     
     
       <a href="/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%BA%8C%EF%BC%89-Memcached/" class="article-nav-link">

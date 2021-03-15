@@ -6170,7 +6170,7 @@
 <li>当主线程有慢任务需要异步处理时。就会向对应的任务队列提交任务。提交任务时，首先申请内存空间，构建 BIO 任务。然后对队列锁进行加锁，在队列尾部追加新的 BIO 任务，最后尝试唤醒正在等待任务的 BIO 线程。</li>
 <li>BIO 线程启动时或持续处理完所有任务，发现任务队列为空后，就会阻塞，并等待新任务的到来。当主线程有新任务后，主线程会提交任务，并唤醒 BIO 线程。BIO 线程随后开始轮询获取新任务，并进行处理。当处理完所有 BIO 任务后，则再次进入阻塞，等待下一轮唤醒。</li>
 </ul>
-<h4 id="Redis-多线程"><a href="#Redis-多线程" class="headerlink" title="Redis 多线程"></a>Redis 多线程</h4><p>Redis 自问世以来，广受好评，应用广泛。但相比， Memcached 单实例压测 TPS 可以高达百万，线上可以稳定跑 20<del>40 万而言，Redis 的单实例压测 TPS 不过 10</del>12 万，线上一般最高也就 2~4 万，<strong>仍相差一个数量级</strong>。</p>
+<h4 id="Redis-多线程"><a href="#Redis-多线程" class="headerlink" title="Redis 多线程"></a>Redis 多线程</h4><p>Redis 自问世以来，广受好评，应用广泛。但相比， Memcached 单实例压测 TPS 可以高达百万，线上可以稳定跑 20-40 万而言，Redis 的单实例压测 TPS 不过 10-12 万，线上一般最高也就 2-4 万，<strong>仍相差一个数量级</strong>。</p>
 <p>Redis 慢的<strong>主要原因是单进程单线程模型。</strong>虽然一些重量级操作也进行了分拆，如 RDB 的构建在子进程中进行，文件关闭、文件缓冲同步，以及大 key 清理都放在 BIO 线程异步处理，但还远远不够。</p>
 <p>虽然可以通过<strong>多部署几个 Redis 实例来达到类似多线程的效果</strong>。但多实例部署则<strong>带来了运维复杂的问题</strong>，而且单机多实例部署，会相互影响，进一步增大运维的复杂度。</p>
 <p>因此，Redis 即将在 6.0 版本引入多线程模型。Redis 的多线程模型，分为主线程和 IO 线程。</p>
@@ -6186,6 +6186,926 @@
         <tag>面试复习</tag>
         <tag>缓存</tag>
         <tag>Redis</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>消息队列</title>
+    <url>/2021/03/15/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/</url>
+    <content><![CDATA[<h1 id="消息队列"><a href="#消息队列" class="headerlink" title="消息队列"></a>消息队列</h1><ul>
+<li>JMS（Java消息服务规范）：特点、消息模型、消费方式、编程模型</li>
+<li>使用场景：应用解耦合、服务通信、异步任务、削峰填谷、消息广播</li>
+<li>消息协议：JMS、AMQP</li>
+<li>常用队列：RabbitMQ、ActiveMQ、RocketMQ、Kafka（优劣对比）</li>
+</ul>
+<h2 id="Java-消息服务接口（JMS）"><a href="#Java-消息服务接口（JMS）" class="headerlink" title="Java 消息服务接口（JMS）"></a>Java 消息服务接口（JMS）</h2><blockquote>
+<p><strong>JMS</strong> 即 <strong>Java消息服务（Java Message Service）应用程序接口</strong>，是一个<a href="https://baike.baidu.com/item/Java平台" target="_blank" rel="noopener">Java平台</a>中关于面向<a href="https://baike.baidu.com/item/消息中间件/5899771" target="_blank" rel="noopener">消息中间件</a>（MOM）的<a href="https://baike.baidu.com/item/API/10154" target="_blank" rel="noopener">API</a>，用于在两个应用程序之间，或<a href="https://baike.baidu.com/item/分布式系统/4905336" target="_blank" rel="noopener">分布式系统</a>中发送消息，进行<a href="https://baike.baidu.com/item/异步通信/2273903" target="_blank" rel="noopener">异步通信</a>。Java消息服务是一个与具体平台无关的API，绝大多数MOM提供商都对JMS提供支持。</p>
+<p>《百度百科》</p>
+</blockquote>
+<p><strong>JMS *<em>只是 *</em>Java EE</strong> 中定义的一组标准 <strong>API</strong>，它自身并不是一个消息服务系统，它是消息传送服务的一个<strong>抽象</strong>，也就是说它定义了消息传送的接口而并没有具体实现。</p>
+<p>JMS其实就是一个<code>Java</code>业界的<code>标准规范</code>而已，提供了一些编程接口给第三方去实现。包括消息产生、发送、读取、接收等。像<code>ActiveMQ</code>、<code>RocketMQ</code>之类的框架都是针对这个标准去实现的。</p>
+<h3 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h3><ul>
+<li><strong>异步</strong>：规范（标准）指出：消息的发送应该是异步的、非阻塞的。也就是说消息的发送者发送完消息后就直接返回了，不需要等待接收者返回后才能返回，发送者和接收者可以说是互不影响，减轻或消除系统瓶颈，实现系统之间去除耦合，提高系统的整体可伸缩性和灵活性。</li>
+<li><strong>可靠</strong>：JMS保证消息只会递送一次。</li>
+</ul>
+<h3 id="消息模型"><a href="#消息模型" class="headerlink" title="消息模型"></a>消息模型</h3><ul>
+<li><strong>Point-to-Point(P2P)（点对点）</strong></li>
+<li><strong>Publish/Subscribe(Pub/Sub) （发布/订阅模式）</strong></li>
+</ul>
+<h4 id="Point-to-Point-P2P"><a href="#Point-to-Point-P2P" class="headerlink" title="Point-to-Point(P2P)"></a>Point-to-Point(P2P)</h4><p><img src="/2021/03/15/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/message_queue_01.png" alt="点对点消息模型"></p>
+<p>在<strong>P2P通信模式</strong>中，应用程序由消息队列，发送方，接收方组成。每个消息都被发送到一个特定的队列，接收者从队列中获取消息。队列保留着消息，直到他们被消费或超时。</p>
+<ul>
+<li>每个消息只有一个消费者；</li>
+<li>发送者和接收者之间在时间上没有依赖性，也就是说当发送者发送了消息之后，不管接收者有没有正在运行，它不会影响到消息被发送到队列；</li>
+<li>发送方不管是否在发送消息，接收方都可以从消息队列中去读消息；</li>
+<li>接收方在接收完消息之后，需要向消息队列应答成功。</li>
+</ul>
+<h4 id="Publish-Subscribe-Pub-Sub"><a href="#Publish-Subscribe-Pub-Sub" class="headerlink" title="Publish/Subscribe(Pub/Sub)"></a>Publish/Subscribe(Pub/Sub)</h4><img src="/2021/03/15/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/message_queue_02.png" alt="订阅发布模型" style="zoom:115%;">
+
+
+
+<p>在<strong>发布/订阅消息模型</strong>中，发布者发布一个消息，该消息通过<strong>topic</strong>传递给所有的客户端。</p>
+<p>该模式下，发布者与订阅者都是匿名的，即发布者与订阅者都不知道对方是谁。并且可以动态的发布与订阅<strong>Topic</strong>。<strong>Topic</strong>主要用于保存和传递消息，且会一直保存消息直到消息被传递给客户端。</p>
+<ul>
+<li>一个消息可以传递个多个订阅者；</li>
+<li>发布者与订阅者具有时间约束，针对某个主题（<strong>Topic</strong>）的订阅者，它必须创建一个订阅者之后，才能消费发布者的消息，而且为了消费消息，订阅者必须保持运行的状态。</li>
+<li>为了缓和这样严格的时间相关性，<strong>JMS</strong>允许订阅者创建一个可持久化的订阅。这样，即使订阅者没有被激活（运行），它也能接收到发布者的消息。</li>
+</ul>
+<h3 id="消息的消费方式"><a href="#消息的消费方式" class="headerlink" title="消息的消费方式"></a>消息的消费方式</h3><ul>
+<li><strong>同步</strong>：消费者通过调用<code>receive</code>方法显式地从<code>Destination</code>中获取消息。该<code>receive</code>方法在消息到达之前会一直阻塞，或者如果消息没有在指定的时间限制内到达，则可以超时。</li>
+<li><strong>异步</strong>：使用异步方式接收消息的话，消息订阅者需注册一个消息监听者，类似于事件监听器，只要消息到达，JMS服务提供者会通过调用监听器的<code>onMessage()</code>递送消息</li>
+</ul>
+<h3 id="JMS编程模型"><a href="#JMS编程模型" class="headerlink" title="JMS编程模型"></a>JMS编程模型</h3><p><strong>ConnectionFactory</strong></p>
+<p>创建 Connection对象的工厂，针对两种不同的jms消息模型，分别有QueueConnectionFactory和TopicConnectionFactory两种。可以通过JNDI来查找ConnectionFactory对象。</p>
+<p><strong>Destination</strong></p>
+<p>Destination的意思是消息生产者的消息发送目标或者说消息消费者的消息来源。对于消息生产者来说，它的Destination是某个队列（Queue）或某个主题（Topic）;对于消息消费者来说，它的Destination也是某个队列或主题（即消息来源）。</p>
+<p>所以，Destination实际上就是两种类型的对象：Queue、Topic可以通过JNDI来查找Destination。</p>
+<p><strong>Connection</strong></p>
+<p>Connection表示在客户端和JMS系统之间建立的链接（对TCP/IP socket的包装）。Connection可以产生一个或多个Session。跟ConnectionFactory一样，Connection也有两种类型：QueueConnection和TopicConnection。</p>
+<p><strong>Session</strong></p>
+<p>Session是我们操作消息的接口。可以通过session创建生产者、消费者、消息等。Session提供了事务的功能。当我们需要使用session发送/接收多个消息时，可以将这些发送/接收动作放到一个事务中。同样，也分QueueSession和TopicSession。</p>
+<p><strong>消息的生产者</strong></p>
+<p>消息生产者由Session创建，并用于将消息发送到Destination。同样，消息生产者分两种类型：QueueSender和TopicPublisher。可以调用消息生产者的方法（send或publish方法）发送消息。</p>
+<p><strong>消息消费者</strong></p>
+<p>消息消费者由Session创建，用于接收被发送到Destination的消息。两种类型：QueueReceiver和TopicSubscriber。可分别通过session的createReceiver(Queue)或createSubscriber(Topic)来创建。当然，也可以session的creatDurableSubscriber方法来创建持久化的订阅者。</p>
+<p><strong>MessageListener</strong></p>
+<p>消息监听器。如果注册了消息监听器，一旦消息到达，将自动调用监听器的onMessage方法。EJB中的MDB（Message-Driven Bean）就是一种MessageListener。</p>
+<h2 id="消息中间件"><a href="#消息中间件" class="headerlink" title="消息中间件"></a>消息中间件</h2><p>消息队列中间件是分布式系统中重要的组件，主要解决<strong>应用解耦，异步消息，流量削锋</strong>等问题，实现高性能，高可用，可伸缩和最终一致性架构。目前使用较多的消息队列有ActiveMQ，RabbitMQ，RocketMQ，Kafka等。</p>
+<h3 id="RabbitMQ"><a href="#RabbitMQ" class="headerlink" title="RabbitMQ"></a>RabbitMQ</h3><p>RabbitMQ于2007年发布，是一个在<strong>AMQP</strong>(高级消息队列协议)基础上完成的，可复用的企业消息系统，是当前最主流的消息中间件之一。</p>
+<h4 id="主要特性"><a href="#主要特性" class="headerlink" title="主要特性"></a>主要特性</h4><ol>
+<li>可靠性：提供了多种技术可以让你在性能和可靠性之间进行权衡。这些技术包括持久性机制、投递确认、发布者证实和高可用性机制；</li>
+<li>灵活的路由：消息在到达队列前是通过交换机进行路由的。RabbitMQ为典型的路由逻辑提供了多种内置交换机类型。如果你有更复杂的路由需求，可以将这些交换机组合起来使用，你甚至可以实现自己的交换机类型，并且当做RabbitMQ的插件来使用；</li>
+<li>消息集群：在相同局域网中的多个RabbitMQ服务器可以聚合在一起，作为一个独立的逻辑代理来使用；</li>
+<li>队列高可用：队列可以在集群中的机器上进行镜像，以确保在硬件问题下还保证消息安全；</li>
+<li>支持多种协议：支持多种消息队列协议；</li>
+<li>支持多种语言：用Erlang语言编写，支持只要是你能想到的所有编程语言；</li>
+<li>管理界面：RabbitMQ有一个易用的用户界面，使得用户可以监控和管理消息Broker的许多方面；</li>
+<li>跟踪机制：如果消息异常，RabbitMQ 提供消息跟踪机制，使用者可以找出发生了什么；</li>
+<li>插件机制：提供了许多插件，来从多方面进行扩展，也可以编写自己的插件。</li>
+</ol>
+<h5 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h5><ol>
+<li>由于Erlang语言的特性，消息队列性能较好，支持高并发；</li>
+<li>健壮、稳定、易用、跨平台、支持多种语言、文档齐全；</li>
+<li>有消息确认机制和持久化机制，可靠性高；</li>
+<li>高度可定制的路由；</li>
+<li>管理界面较丰富，在互联网公司也有较大规模的应用，社区活跃度高。</li>
+</ol>
+<h5 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h5><ol>
+<li>尽管结合 Erlang 语言本身的并发优势，性能较好，但是不利于做二次开发和维护；</li>
+<li>实现了代理架构，意味着消息在发送到客户端之前可以在中央节点上排队。此特性使得RabbitMQ易于使用和部署，但是使得其运行速度较慢，因为中央节点 增加了延迟，消息封装后也比较大；需要学习比较复杂的接口和协议，学习和维护成本较高。</li>
+</ol>
+<h3 id="ActiveMQ"><a href="#ActiveMQ" class="headerlink" title="ActiveMQ"></a>ActiveMQ</h3><p>ActiveMQ是由Apache出品，ActiveMQ是一个完全支持JMS1.1和J2EE 1.4规范的JMS Provider实现。它非常快速，支持多种语言的客户端和协议，而且可以非常容易的嵌入到企业的应用环境中，并有许多高级功能。</p>
+<h4 id="主要特性-1"><a href="#主要特性-1" class="headerlink" title="主要特性"></a>主要特性</h4><ol>
+<li>服从JMS规范：JMS 规范提供了良好的标准和保证，包括：同步 或 异步 的消息分发，一次和仅一次的消息分发，消息接收和订阅等等。遵从JMS规范的好处在于，不论使用什么JMS实现提供者，这些基础特性都是可用的；</li>
+<li>连接灵活性：ActiveMQ提供了广泛的连接协议，支持的协议有：HTTP/S，IP多播，SSL，TCP，UDP等等。对众多协议的支持让ActiveMQ拥有了很好的灵活性；</li>
+<li>支持的协议种类多：OpenWire、STOMP、REST、XMPP、AMQP；</li>
+<li>持久化插件和安全插件：ActiveMQ提供了多种持久化选择。而且，ActiveMQ的安全性也可以完全依据用户需求进行自定义鉴权和授权；</li>
+<li>支持的客户端语言种类多：除了Java之外，还有：C/C++，.NET，Perl，PHP，Python，Ruby；</li>
+<li>代理集群：多个ActiveMQ代理可以组成一个集群来提供服务；</li>
+<li>异常简单的管理：ActiveMQ是以开发者思维被设计的。所以，它并不需要专门的管理员，因为它提供了简单又使用的管理特性。有很多中方法可以监控ActiveMQ不同层面的数据，包括使用在JConsole或者在ActiveMQ的WebConsole中使用JMX。通过处理JMX的告警消息，通过使用命令行脚本，甚至可以通过监控各种类型的日志。</li>
+</ol>
+<h5 id="优点-1"><a href="#优点-1" class="headerlink" title="优点"></a>优点</h5><ol>
+<li>跨平台(JAVA编写与平台无关，ActiveMQ几乎可以运行在任何的JVM上)；</li>
+<li>可以用JDBC：可以将数据持久化到数据库。虽然使用JDBC会降低ActiveMQ的性能，但是数据库一直都是开发人员最熟悉的存储介质；</li>
+<li>支持JMS规范：支持JMS规范提供的统一接口;</li>
+<li>支持自动重连和错误重试机制；</li>
+<li>有安全机制：支持基于shiro，jaas等多种安全配置机制，可以对Queue/Topic进行认证和授权；</li>
+<li>监控完善：拥有完善的监控，包括WebConsole，JMX，Shell命令行，Jolokia的RESTful API；</li>
+<li>界面友善：提供的WebConsole可以满足大部分情况，还有很多第三方的组件可以使用，比如hawtio；</li>
+</ol>
+<h5 id="缺点-1"><a href="#缺点-1" class="headerlink" title="缺点"></a>缺点</h5><ol>
+<li>社区活跃度不及RabbitMQ高；</li>
+<li>根据其他用户反馈，会出莫名其妙的问题，会丢失消息；</li>
+<li>目前重心放到activemq6.0产品Apollo，对5.x的维护较少；</li>
+<li>不适合用于上千个队列的应用场景；</li>
+</ol>
+<h3 id="RocketMQ"><a href="#RocketMQ" class="headerlink" title="RocketMQ"></a>RocketMQ</h3><p>RocketMQ出自阿里的开源产品，用Java语言实现，在设计时参考了Kafka，并做出了自己的一些改进，消息可靠性上比Kafka更好。RocketMQ在阿里内部被广泛应用在订单，交易，充值，流计算，消息推送，日志流式处理，binglog分发等场景。</p>
+<h4 id="主要特性-2"><a href="#主要特性-2" class="headerlink" title="主要特性"></a>主要特性</h4><ol>
+<li>基于 队列模型：具有高性能、高可靠、高实时、分布式等特点；</li>
+<li>Producer、Consumer、队列都支持分布式；</li>
+<li>Producer向一些队列轮流发送消息，队列集合称为Topic。Consumer如果做广播消费，则一个Consumer实例消费这个Topic对应的所有队列；如果做集群消费，则多个Consumer 实例平均消费这个Topic对应的队列集合；</li>
+<li>能够保证严格的消息顺序；</li>
+<li>提供丰富的消息拉取模式；</li>
+<li>高效的订阅者水平扩展能力；</li>
+<li>实时的消息订阅机制；</li>
+<li>亿级消息堆积 能力；</li>
+<li>较少的外部依赖。</li>
+</ol>
+<h5 id="优点-2"><a href="#优点-2" class="headerlink" title="优点"></a>优点</h5><ol>
+<li>单机支持1万以上持久化队列；</li>
+<li>RocketMQ的所有消息都是持久化的，先写入系统PAGECACHE，然后刷盘，可以保证内存与磁盘都有一份数据，而访问时，直接从内存读取。</li>
+<li>模型简单，接口易用（JMS的接口很多场合并不太实用）；</li>
+<li>性能非常好，可以允许大量堆积消息在Broker中；</li>
+<li>支持多种消费模式，包括集群消费、广播消费等；</li>
+<li>各个环节分布式扩展设计，支持主从和高可用；</li>
+<li>开发度较活跃，版本更新很快。</li>
+</ol>
+<h5 id="缺点-2"><a href="#缺点-2" class="headerlink" title="缺点"></a>缺点</h5><ol>
+<li>支持的 客户端语言不多，目前是Java及C++，其中C++还不成熟；</li>
+<li>RocketMQ社区关注度及成熟度也不及前两者；</li>
+<li>没有Web管理界面，提供了一个 CLI (命令行界面) 管理工具带来查询、管理和诊断各种问题；</li>
+<li>没有在MQ核心里实现JMS等接口；</li>
+</ol>
+<h3 id="Kafka"><a href="#Kafka" class="headerlink" title="Kafka"></a>Kafka</h3><p>Apache Kafka是一个分布式消息发布订阅系统。它最初由LinkedIn公司基于独特的设计实现为一个分布式的日志提交系统(a distributed commit log)，之后成为Apache项目的一部分。Kafka性能高效、可扩展良好并且可持久化。它的分区特性，可复制和可容错都是其不错的特性。</p>
+<h4 id="主要特性-3"><a href="#主要特性-3" class="headerlink" title="主要特性"></a>主要特性</h4><ol>
+<li>快速持久化：可以在O(1)的系统开销下进行消息持久化；</li>
+<li>高吞吐：在一台普通的服务器上既可以达到10W/s的吞吐速率；</li>
+<li>完全的分布式系统：Broker、Producer和Consumer都原生自动支持分布式，自动实现负载均衡；</li>
+<li>支持同步和异步复制两种高可用机制；</li>
+<li>支持数据批量发送和拉取；</li>
+<li>零拷贝技术(zero-copy)：减少IO操作步骤，提高系统吞吐量；</li>
+<li>数据迁移、扩容对用户透明；</li>
+<li>无需停机即可扩展机器；</li>
+<li>其他特性：丰富的消息拉取模型、高效订阅者水平扩展、实时的消息订阅、亿级的消息堆积能力、定期删除机制；</li>
+</ol>
+<h5 id="优点-3"><a href="#优点-3" class="headerlink" title="优点"></a>优点</h5><ol>
+<li>客户端语言丰富：支持Java、.Net、PHP、Ruby、Python、Go等多种语言；</li>
+<li>高性能：单机写入TPS约在100万条/秒，消息大小10个字节；</li>
+<li>提供完全分布式架构，并有replica机制，拥有较高的可用性和可靠性，理论上支持消息无限堆积；</li>
+<li>支持批量操作；</li>
+<li>消费者采用Pull方式获取消息。消息有序，通过控制能够保证所有消息被消费且仅被消费一次；</li>
+<li>有优秀的第三方KafkaWeb管理界面Kafka-Manager；</li>
+<li>在日志领域比较成熟，被多家公司和多个开源项目使用。</li>
+</ol>
+<h5 id="缺点-3"><a href="#缺点-3" class="headerlink" title="缺点"></a>缺点</h5><ol>
+<li>Kafka单机超过64个队列/分区时，Load时会发生明显的飙高现象。队列越多，负载越高，发送消息响应时间变长；</li>
+<li>使用短轮询方式，实时性取决于轮询间隔时间；</li>
+<li>消费失败不支持重试；</li>
+<li>支持消息顺序，但是一台代理宕机后，就会产生消息乱序；</li>
+<li>社区更新较慢。</li>
+</ol>
+<p><img src="/2021/03/15/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/message_queue_03.png" alt="消息中间件对比图"></p>
+<blockquote>
+<p>笔记来源：</p>
+<p><a href="https://www.cnblogs.com/jaycekon/p/6220200.html" target="_blank" rel="noopener">https://www.cnblogs.com/jaycekon/p/6220200.html</a></p>
+<p><a href="https://my.oschina.net/blogByRzc/blog/3012251" target="_blank" rel="noopener">https://my.oschina.net/blogByRzc/blog/3012251</a></p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>技术学习</category>
+      </categories>
+      <tags>
+        <tag>面试复习</tag>
+        <tag>消息队列</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>详解Mysql（二）</title>
+    <url>/2021/03/15/%E8%AF%A6%E8%A7%A3Mysql%EF%BC%88%E4%BA%8C%EF%BC%89/</url>
+    <content><![CDATA[<h1 id="详解Mysql（二）"><a href="#详解Mysql（二）" class="headerlink" title="详解Mysql（二）"></a>详解Mysql（二）</h1><ul>
+<li>单库性能优化：硬件优化、Mysql参数优化、Mysql复制原理、经典架构及场景</li>
+<li>Mysql高可用</li>
+<li>Mysql高扩展</li>
+</ul>
+<h2 id="单库性能优化"><a href="#单库性能优化" class="headerlink" title="单库性能优化"></a>单库性能优化</h2><p>单库性能优化主要从以下几个方面入手：</p>
+<ul>
+<li>数据库服务器硬件优化</li>
+<li>MYSQL 参数优化</li>
+<li>MYSQL 复制</li>
+<li>经典架构及应用场景</li>
+</ul>
+<h3 id="服务器硬件优化"><a href="#服务器硬件优化" class="headerlink" title="服务器硬件优化"></a>服务器硬件优化</h3><h4 id="CPU"><a href="#CPU" class="headerlink" title="CPU"></a><strong>CPU</strong></h4><p>MySQL 5.6 版本后多核支持加强，可以支持到 128 核甚至更多。每个连接对应一个线程，每个并发 Query 只能使用一个核，所以要想提升 SQL 执行效率，单个 SQL 执行尽可能快。在考虑 CPU 的时候，我们应该优先选择高主频 CPU 来加速单条 SQL 语句的执行效率。</p>
+<p>MySQL 引入了 <strong>Thread Pool</strong> 功能来提升性能。，线程处理的最小单位是 statement（SQL 语句），一个线程可以处理多个连接的请求。这样，在保证充分利用硬件资源情况下（合理设置线程池大小），可以避免瞬间连接数暴增导致的服务器抖动。</p>
+<p><strong>优化点：</strong></p>
+<ul>
+<li>系统配置选择 Performance Per Watt Optimized（DAPC），发挥最大功耗性能，而不是节能模式（高运算节点禁用），节能模式在低高频性能转换时易出现Bug。</li>
+<li>CPU优先选择高主频以提高运算能力；其次选择核数多，可以多线程并发处理和多实例部署。</li>
+<li>关闭 C1E（增强型空闲电源管理状态转换）和 C states，DB 服务器不需要节能和省电运行，默认是开启状态，DB 服务器建议关闭以提高 CPU 效率。</li>
+<li>数据库服务器选择高主频多核数 CPU 类型，同时开启最大性能和关闭 CPU CIE 和 C States。 高频加速 SQL 执行，多核解决并发。</li>
+</ul>
+<h4 id="内存"><a href="#内存" class="headerlink" title="内存"></a><strong>内存</strong></h4><p>对于数据库服务器而言优先选择大内存，同时开启最大性能并关闭NUMA。</p>
+<h4 id="磁盘"><a href="#磁盘" class="headerlink" title="磁盘"></a><strong>磁盘</strong></h4><ul>
+<li>RAID 策略选择： Sata SSD、PCIe SSD 无需 RAID，机械硬盘优先选择 RAID10，其次是 RAID5。</li>
+<li>RAID CACHE &amp; BBU 选择：购置阵列卡同时配备 CACHE 及 BBU 模块，可提升机械盘 IOPS，定期检查或监控 CACHE 及 BBU 模块的健康状况，确保意外时不至于丢失数据。</li>
+<li>磁盘类型选择：优先选择 SSD 或 PCIe SSD，机械盘使用高速硬盘。</li>
+<li>读写策略选择：有阵列卡时设置阵列写策略为 WB 或 Force WB with no battery，严禁 WT。同时关闭陈列预读策略，只用作写缓存。</li>
+</ul>
+<h3 id="MYSQL-参数优化"><a href="#MYSQL-参数优化" class="headerlink" title="MYSQL 参数优化"></a>MYSQL 参数优化</h3><p>分为：</p>
+<ul>
+<li>系统全局内存参数（<strong>SGA</strong>）</li>
+<li>线程全局内存参数（<strong>PGA</strong>）</li>
+</ul>
+<h4 id="系统全局内存参数（SGA）"><a href="#系统全局内存参数（SGA）" class="headerlink" title="系统全局内存参数（SGA）"></a><strong>系统全局内存参数（SGA）</strong></h4><ul>
+<li>innodb_buffer_pool_size ，用于缓存行数据、索引数据，以及事务锁和自适应哈希等。 单机多实例的情况内存建议按实际数据热点数据量的30%规划，单机单实例（独享实例）的情况建议是分配50%～80%。</li>
+<li>innodb_buffer_pool_instances，用于提升性能。</li>
+<li>innodb_additional_mem_pool_size，用于缓存所有数据字典。</li>
+<li>innodb_log_buffer_size ，InnoDB Redo日志缓冲，提高Redo日志写入效率。</li>
+<li>key_buffer_size，MyISAM 表索引高速缓冲，提高 MyISAM 表索引读写效率。</li>
+<li>query_cache_size，查询缓存，缓存相同SQL查询结果，提高查询结果返回效率，建议禁用。</li>
+<li>table_cache &amp;&amp; table_definiton_cache，表空间文件描述符缓存和表定义文件描述符缓存，提供数据表打开效率。</li>
+</ul>
+<h4 id="线程全局内存参数（PGA）"><a href="#线程全局内存参数（PGA）" class="headerlink" title="线程全局内存参数（PGA）"></a><strong>线程全局内存参数（PGA）</strong></h4><p><img src="/2021/03/15/%E8%AF%A6%E8%A7%A3Mysql%EF%BC%88%E4%BA%8C%EF%BC%89/mysql_11.png" alt="PGA参数"></p>
+<h4 id="Log-参数"><a href="#Log-参数" class="headerlink" title="Log 参数"></a><strong>Log 参数</strong></h4><ul>
+<li><p>第一个是控制 Redo Log 刷盘策略的 <strong>innodb_flush_log_at_trx_commit</strong>，它有三个取值策略：</p>
+<ul>
+<li>当取值为 0 ，表示事务提交时，MySQL 不会去处理日志缓存区（Log Buffer）的内容，也不会去处理日志文件的刷盘操作，由 MySQL 的后台 Master 线程每隔 1s 将缓存区的文件刷新到日志文件中。</li>
+<li>当取值为 1 ，表示事务提交时，会将日志缓冲区的日志写入文件中，同时会刷新到磁盘中，保证数据库事务完全不会丢失。这种设置影响数据库性能。</li>
+<li>当取值为 2，表示事务提交时，会将日志缓存区日志写入到文件中，但是不会刷新到磁盘中。由 MySQL 的后台 Master 线程每隔 1s 将系统缓存的日志文件刷新到磁盘中。</li>
+</ul>
+</li>
+<li><p>第二个参数是控制 Binlog 刷盘策略的 <strong>sync_binlog</strong>，其取值分为 0、1、N（N&gt;1）三类：</p>
+<ul>
+<li>当取值为 0 时，事务提交时，MySQL 将 Binlog 信息写入 Binlog 文件（OS Cache）中，但是 MySQL不控制 Binlog 的刷磁盘操作，由文件系统自己控制其缓存的刷新。这是最危险的，一旦操作系统宕机，在 Binlog cache 中的所有 Binlog 都会丢失。如果只是数据库宕机，而操作系统未宕机，那么数据库所生成的 Binlog 都不会丢失。</li>
+<li>当取值为 1 时，每一个事务提交时，MySQL 都会把 Binlog 刷新到磁盘中。这样，数据库安全性最高，但是性能损耗也是最大的。如果这样设置的话，在数据库或操作系统宕机的情况下，二进制日志中缺少的任何事务也只能处于准备阶段，那么导致服务器自动恢复时，会回滚这些事务，保证无数据丢失。虽然 Binlog 是顺序 IO，但是多个事务同时提交，同样会对 MySQL 和 IO 的性能带来很大影响，不过 MySQL 可以通过 Group Commit 来缓解这种压力。</li>
+<li>当取值为 N 时，表示每 N 次事务提交，MySQL 调用文件系统的刷新操作将缓存刷新到磁盘中。如果数据库或操作系统在这个时候宕机，数据库可能会丢失一些事务。</li>
+</ul>
+</li>
+<li><p>innodb_flush_log_at_timeout：每隔 N 秒写入并刷新日志，默认为 1 即每秒 flush一次,可选 [1-2700]。该参数值允许增加 flush 之间的间隔以减少刷新，避免影响二进制日志组提交的性能。</p>
+</li>
+<li><p>innodb_log_file_size：日志文件大小，建议设置1～2GB。</p>
+</li>
+<li><p>innodb_log_files_in_group：日志文件组个数。</p>
+</li>
+</ul>
+<h4 id="其他参数"><a href="#其他参数" class="headerlink" title="其他参数"></a>其他参数</h4><p><img src="/2021/03/15/%E8%AF%A6%E8%A7%A3Mysql%EF%BC%88%E4%BA%8C%EF%BC%89/mysql_12.png" alt="Mysql参数"></p>
+<p><img src="/2021/03/15/%E8%AF%A6%E8%A7%A3Mysql%EF%BC%88%E4%BA%8C%EF%BC%89/mysql_13.png" alt="Mysql参数"></p>
+<h3 id="MYSQL复制"><a href="#MYSQL复制" class="headerlink" title="MYSQL复制"></a>MYSQL复制</h3><h4 id="分类"><a href="#分类" class="headerlink" title="分类"></a>分类</h4><ul>
+<li>异步复制<ul>
+<li>主从异步复制</li>
+<li>半同步复制</li>
+</ul>
+</li>
+<li>同步复制<ul>
+<li>Galera Cluster</li>
+<li>MySQL Group Replication</li>
+</ul>
+</li>
+</ul>
+<h4 id="异步复制"><a href="#异步复制" class="headerlink" title="异步复制"></a>异步复制</h4><h5 id="主从异步复制"><a href="#主从异步复制" class="headerlink" title="主从异步复制"></a>主从异步复制</h5><p><img src="/2021/03/15/%E8%AF%A6%E8%A7%A3Mysql%EF%BC%88%E4%BA%8C%EF%BC%89/mysql_14.png" alt="MYSQL复制原理图"></p>
+<p>涉及三个 Thread</p>
+<ul>
+<li>Master 的 Binlog Dump Thred</li>
+<li>Slave 的 I/O Thread </li>
+<li>Slave 的 SQL Thread。</li>
+</ul>
+<p>数据同步过程：</p>
+<ul>
+<li>Master 服务器上对数据库的变更操作记录在 Binlog 中。</li>
+<li>Master 的 Binlog Dump Thread 接到写入请求后读取 Binlog 推送给 Slave I/O Thread。</li>
+<li>Slave I/O Thread 将读取的 Binlog 写入到本地 relay log 文件。</li>
+<li>Slave SQL thread 检测到 relay log 的变更请求，解析 relay log 并在从库上进行应用。</li>
+</ul>
+<p>以上整个复制过程都是异步操作，所以主从复制俗称<strong>异步复制</strong>，存在数据延迟。</p>
+<h5 id="半同步复制（after-commit）"><a href="#半同步复制（after-commit）" class="headerlink" title="半同步复制（after commit）"></a>半同步复制（after commit）</h5><p>考虑到一个场景，主库正常写入数据并提交事务 T1，但是 Slave1 和 Slave2 由于某种原因（例如网络原因）一直无法接受到 Binlog Dump Thread Event 的推送请求，如果这时候 Master Crash，Slave 提升为 Master 后导致事务 T1 数据丢失。为了提升数据安全，MySQL 让 Master 在某一个时间点等待 Slave 节点的 ACK 消息后才进行事务提交，这就是<strong>半同步复制</strong>的基础。</p>
+<p>MySQL 事务写入碰到主从复制时的完整过程：</p>
+<ol>
+<li>InnoDB Redo File Write (Prepare Write)；</li>
+<li>Binlog File Flush &amp; Sync to Binlog File；</li>
+<li>InnoDB Redo File Commit（Commit Write）；</li>
+<li>Send Binlog to Slave。</li>
+</ol>
+<p>当 Master 不需要关注 Slave 是否接受到 Binlog Event 时，即为传统的主从复制。</p>
+<p>当 Master 需要在第三步等待 Slave 返回 ACK 时，即为 <strong>半同步复制 after-commit</strong>。</p>
+<p>当 Master 需要在第二步等待 Slave 返回 ACK 时，即为 <strong>增强半同步 after-sync</strong>。</p>
+<p><strong>MySQL Master 将事务写入 Binlog（sync_binlog=1）并推送给 Slave 后主库将事务提交到存储引擎（此时未返回客户端但是其他会话可以访问到事务提交信息），Slave  I/O Thread 将读取的 Binlog 写入到本地 relay log 文件（sync_relay=1）后向 Master 返回 ACK 消息，当主库 Master 等到 Slave 返回的 ACK 消息后 Master 将事务提交成功的结果返回给客户端。</strong></p>
+<h5 id="增强半同步-after-sync"><a href="#增强半同步-after-sync" class="headerlink" title="增强半同步 after-sync"></a>增强半同步 after-sync</h5><p>为了提升数据的安全性，MySQL 5.7 引入了<strong>增强半同步 after_sync（无损复制）</strong>，并将其设置为默认的半同步方式来解决数据丢失的问题。</p>
+<p><strong>after-sync 是将 Master 等待 ACK 消息放到了 Binlog File Flush &amp; Sync to Binlog File 之后，Engine Commit 之前，这样就可以保证数据不会丢失，因为 Slave 接受到event 并写入自身 relay log。</strong></p>
+<h4 id="同步复制（准同步）"><a href="#同步复制（准同步）" class="headerlink" title="同步复制（准同步）"></a>同步复制（准同步）</h4><h5 id="Galera-Cluster"><a href="#Galera-Cluster" class="headerlink" title="Galera Cluster"></a><strong>Galera Cluster</strong></h5><ul>
+<li><strong>Multi-Master 多主架构</strong>：通常由三个实例组成的一个集群，三个节点均可以提供读写.</li>
+<li><strong>Share-Nothing 架构：</strong>客户端可以读写访问集群任意一个节点，集群节点间组成了 Group communication。这可以用来保证集群节点数据的强一致性，这种架构是 Share-Nothing，不共享数据、多副本的高冗余架构，拥有多点写入、同步复制、无复制延迟、并法复制、随意切换、节点自动配置、健康检查等功能。     </li>
+</ul>
+<p>Galera Cluster是一个强一致性集群，当集群节点有数据写入时，Group communication 会向组内所有成员广播写集（初步可简单理解为写入的Binlog），所有节点验证通过之后写节点开始提交，其他节点执行写集应用和提交，当出现数据冲突时则写节点执行回滚，其他节点丢弃该写集。</p>
+<h5 id="MySQL-Group-Replication"><a href="#MySQL-Group-Replication" class="headerlink" title="MySQL Group Replication"></a><strong>MySQL Group Replication</strong></h5><p>MySQL 在 5.7 版本参考 Galera Cluster 的技术实现推出了 MySQL Group Replication（简称 <strong>MGR</strong>）。</p>
+<p>MGR 同样是一个<strong>支持多点写入的多主复制架构</strong>，它<strong>基于原生 MySQL 主从复制的基础上</strong>构建组通信层，由 Group Replication 提供一组原子消息并且按照全局顺序进行消息传递，集群任何节点均可写入，但所有写入事务只有在获得<strong>复制组认证</strong>通过（多数派协议 Paxos）后才能进行提交。例如由若干个节点共同组成一个复制组，一个事务的提交必须经过组内大多数节点（N / 2 + 1）决议并通过，才能得以提交。</p>
+<h4 id="使用场景"><a href="#使用场景" class="headerlink" title="使用场景"></a>使用场景</h4><ul>
+<li><strong>主从复制</strong>：通常适合于轻量级程序、高可用要求不高的业务场景。这类架构中应用程序直连访问 Master 和 Slave 进行读写分离，当 Master 出现故障时由于无法自动切换导致服务受损。因此通常会基于此架构加上 VIP/DNS + Keepalived 及双主复制来做一个简单的高可用切换。</li>
+<li><strong>双主复制</strong>：通常为其中一个 Master 提供线上服务，另一个 Master 作为 Standby 供高可用切换，Master 下游挂载 Slave 承担读请求。</li>
+<li><strong>树形复制</strong>：这类架构通常适用于数据访问策略分层，例如 MySQL Master 和 MySQL Slave 参与线上业务访问及高可用切换，MySQL Statistic 节点提供离线查询、报表慢查和非线上业务访问。</li>
+</ul>
+<h3 id="海量数据架构设计"><a href="#海量数据架构设计" class="headerlink" title="海量数据架构设计"></a>海量数据架构设计</h3><h4 id="指标"><a href="#指标" class="headerlink" title="指标"></a>指标</h4><ul>
+<li><strong>响应时间</strong>：系统对请求做出响应的时间，一般取平均响应时间。</li>
+<li><strong>吞吐量</strong>：单位时间内处理的请求数量。</li>
+<li><strong>QPS</strong>：每秒处理的查询次数。</li>
+<li><strong>TPS</strong>：每秒处理的事务数。</li>
+<li><strong>并发用户数</strong>：同时承载正常使用系统功能的用户数量。</li>
+</ul>
+<p><strong>基本方法：</strong></p>
+<ul>
+<li>垂直扩展</li>
+<li>水平扩展</li>
+<li>分布式</li>
+</ul>
+<h4 id="垂直扩展-Scale-Up"><a href="#垂直扩展-Scale-Up" class="headerlink" title="垂直扩展 Scale-Up"></a>垂直扩展 Scale-Up</h4><p>纵向扩展：也叫垂直扩展，扩展一个点的能力以支撑更多的请求。</p>
+<p>主要分为一下4个方向：</p>
+<ul>
+<li>增强单机硬件性能：CPU、内存、硬盘、网络等</li>
+<li>提升单机架构性能：例如增加缓存、增加队列</li>
+<li>无锁数据结构：例如业务解耦</li>
+<li>分区：分区是指按照一定的规则，把数据库中的一个表分解成多个更小的、更容易管理的部分，分区有利于管理非常大的表。<ul>
+<li>分区可以把数据打散存储到不同的文件系统上，和单个磁盘或者文件系统相比，可以存储更多的数据。</li>
+<li>优化查询。where 子句包含分区条件时，可以只扫描对应分区，缩小了查询范围。</li>
+<li>同时在涉及 count() 和 sum() 等聚合函数时，可以在多个分区上并行处理。</li>
+<li>对于已经过期或不需要的数据，可以通过删除分区快速删除。跨多个磁盘来分散数据查询，以获得更大的查询吞吐量。</li>
+</ul>
+</li>
+</ul>
+<p>关于分区的问题：</p>
+<ul>
+<li>一个表最多只能有 1024 个分区，MySQL 5.6 之后支持 8192 个分区。</li>
+<li>如果分区字段中有主键或者唯一索引列，那么所有主键列和唯一索引列都必须包含进来，如果表中有主键或唯一索引，那么分区键必须是主键或唯一索引。</li>
+<li>MySQL 分区适用于一个表的所有数据和索引，不能只对表数据分区而不对索引分区，也不能只对一个表的部分数据进行分区。</li>
+<li>无论使用何种分区类型，不能使用主键/唯一键之外的其他字段进行分区。</li>
+<li>分区表中无法使用外键约束。</li>
+<li>MySQL 数据库支持的分区类型为水平分区，并不支持垂直分区，因此，MySQL 数据库的分区中索引是局部分区索引，一个分区中既存放了数据又存放了索引，而全局分区是指数据库放在各个分区中，但是所有的数据的索引放在另外一个对象中。</li>
+<li>目前 MySQL 不支持对空间类型和临时表类型进行分区。不支持全文索引。</li>
+</ul>
+<h4 id="水平扩展-Scale-Out"><a href="#水平扩展-Scale-Out" class="headerlink" title="水平扩展 Scale-Out"></a>水平扩展 Scale-Out</h4><p>横向扩展：也叫水平扩展，用更多的节点支撑更大量的请求，达到线性扩充系统的能力。</p>
+<ul>
+<li><p>主从复制。通过主从复制来扩展从库，从而提升读性能。</p>
+</li>
+<li><p>分库分表。这个又可以称之为 “ 数据分片（Sharding）”</p>
+</li>
+<li><p>数据库中间件。例如：使用中间件来达到读写分离的目的。</p>
+</li>
+<li><p>集群。例如：使用 PXC 或者 MGR 集群来弥补单机性能的不足。</p>
+</li>
+</ul>
+<h4 id="分布式"><a href="#分布式" class="headerlink" title="分布式"></a>分布式</h4><p>分布式关系型数据库发展到今天，主要分为两个阵营：</p>
+<ul>
+<li>基于分布式事务的数据库，以 Google Cloud Spanner 和 PingCAP 的 TiDB 为代表。</li>
+<li>基于分布式存储的数据库，以 AWS 的 Aurora 和极数云舟的 ArkDB 为代表。</li>
+</ul>
+<h4 id="常用数据库架构方案对比"><a href="#常用数据库架构方案对比" class="headerlink" title="常用数据库架构方案对比"></a>常用数据库架构方案对比</h4><p><img src="/2021/03/15/%E8%AF%A6%E8%A7%A3Mysql%EF%BC%88%E4%BA%8C%EF%BC%89/mysql_15.png" alt="常用数据库架构方案对比"></p>
+<blockquote>
+<p>笔记来源：</p>
+<p>周彦伟 老师的 《高性能Mysql实战》课程</p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>技术学习</category>
+      </categories>
+      <tags>
+        <tag>面试复习</tag>
+        <tag>Mysql</tag>
+        <tag>数据库</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>详解Mysql（一）</title>
+    <url>/2021/03/15/%E8%AF%A6%E8%A7%A3Mysql%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<h1 id="详解Mysql（一）"><a href="#详解Mysql（一）" class="headerlink" title="详解Mysql（一）"></a>详解Mysql（一）</h1><h3 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h3><h4 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h4><p>Mysql 是一个优秀的开源关系型数据库，目前已成为一线互联网公司通用数据库。</p>
+<p><img src="/2021/03/15/%E8%AF%A6%E8%A7%A3Mysql%EF%BC%88%E4%B8%80%EF%BC%89/mysql_01.png" alt="Mysql演变图"></p>
+<p>MySQL 从最初的 1.0、3.1 到后来的 5.0，发生了各种各样的变化。被 Oracle 收购后，MySQL 的版本其实主要有几个分支，除了需要付费的 MySQL 企业版本，还有很多 MySQL 社区版本。</p>
+<p>目前主流分支已经更新到8.0 的 MySQL 官方版本。</p>
+<p>Percona Server 是 MySQL 的技术支持公司 Percona 推出的非常流行的开源分支版本，其在官方版本的基础上做了一些补丁和优化，同时推出了一些工具。</p>
+<p>MariaDB 也是 Mysql的一个分支。</p>
+<p>本课学习版本为 mysql 5.7</p>
+<h4 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h4><ul>
+<li>体积小、速度快，可以在不占用太多资源的情况下提供数据库服务；</li>
+<li>开源免费，工具生态完善，用起来没有经济门槛；</li>
+<li>简单易用，维护成本低，用起来没有技术门槛；</li>
+<li>兼容性好，支持多种操作系统，用起来没有平台门槛；</li>
+<li>提供多种 API 接口；支持多种开发语言，用起来没有编程语言门槛；</li>
+<li>社区及用户活跃，用起来没有技术支持门槛；</li>
+<li>MySQL 支持事务、MVCC、4 种隔离级别等，同时易扩展、集群、高可用等也可以满足一般需求。</li>
+</ul>
+<h3 id="体系结构与存储引擎"><a href="#体系结构与存储引擎" class="headerlink" title="体系结构与存储引擎"></a>体系结构与存储引擎</h3><h4 id="体系结构"><a href="#体系结构" class="headerlink" title="体系结构"></a>体系结构</h4><img src="/2021/03/15/%E8%AF%A6%E8%A7%A3Mysql%EF%BC%88%E4%B8%80%EF%BC%89/mysql_02.png" alt="Mysql体系结构" style="zoom:57%;">
+
+<p><strong>MySQL</strong> 体系结构由 <strong>Client Connectors 层</strong>、<strong>MySQL Server 层</strong>及<strong>存储引擎层</strong>、<strong>物理存储层</strong>四个部分组成。</p>
+<ul>
+<li><p><strong>Client Connectors层</strong></p>
+<p>负责处理客户端的连接请求，与客户端创建连接。目前 MySQL 几乎支持所有的连接类型，例如常见的 JDBC、Python、Go 等。</p>
+</li>
+<li><p><strong>MySQL Server 层</strong></p>
+<p><strong>MySQL Server</strong> 层主要包括 <strong>Connection Pool、Service &amp; utilities、SQL interface、Parser解析器、Optimizer 查询优化器、Caches 缓存等模块</strong>。</p>
+<ul>
+<li><strong>Connection Pool</strong>：负责处理和存储数据库与客户端创建的连接，一个线程负责管理一个连接。Connection Pool 包括了用户认证模块，就是用户登录身份的认证和鉴权及安全管理，也就是用户执行操作权限校验。</li>
+<li><strong>Service &amp; utilities</strong>：是管理服务&amp;工具集，包括备份恢复、安全管理、集群管理服务和工具。</li>
+<li><strong>SQL interface</strong>：负责接收客户端发送的各种 SQL 语句，比如 DML、DDL 和存储过程等。</li>
+<li><strong>Parser 解析器</strong>：对 SQL 语句进行语法解析生成解析树。</li>
+<li><strong>Optimizer 查询优化器</strong>：根据解析树生成执行计划，并选择合适的索引，然后按照执行计划执行 SQL 语言并与各个存储引擎交互。</li>
+<li><strong>Caches 缓存</strong>：包括各个存储引擎的缓存部分，比如：InnoDB 存储的 Buffer Pool、MyISAM 存储引擎的 key buffer 等，Caches 中也会缓存一些权限，也包括一些 Session 级别的缓存。</li>
+</ul>
+</li>
+<li><p><strong>存储引擎层</strong></p>
+<p>存储引擎包括 <strong>MyISAM</strong>、<strong>InnoDB</strong>，以及支持归档的 Archive 和内存的 Memory 等。MySQL是<strong>插件式的存储引擎</strong>，只要正确定义与 MySQL Server 交互的接口，任何引擎都可以访问MySQL。</p>
+</li>
+<li><p><strong>物理层存储层</strong></p>
+<p>文件的物理存储层，包括二进制日志、数据文件、错误日志、慢查询日志、全日志、redo/undo 日志等。</p>
+</li>
+</ul>
+<h4 id="查询交互过程"><a href="#查询交互过程" class="headerlink" title="查询交互过程"></a>查询交互过程</h4><p>我们用一条 SQL SELECT 语句的执行轨迹来说明客户端与 MySQL 的交互过程</p>
+<img src="/2021/03/15/%E8%AF%A6%E8%A7%A3Mysql%EF%BC%88%E4%B8%80%EF%BC%89/mysql_03.png" alt="Mysql交互过程" style="zoom:67%;">
+
+<p>① 通过客户端/服务器通信协议与 MySQL <strong>建立连接</strong>。</p>
+<p>② <strong>查询缓存</strong>，这是 MySQL 的一个可优化查询的地方，如果开启了 Query Cache 且在查询缓存过程中查询到完全相同的 SQL 语句，则将查询结果直接返回给客户端；如果没有开启Query Cache 或者没有查询到完全相同的 SQL 语句则会由解析器进行语法语义解析，并生成解析树。</p>
+<p>③ 预处理器<strong>生成新的解析树</strong>。</p>
+<p>④ 查询优化器<strong>生成执行计划</strong>。</p>
+<p>⑤ 查询执行引擎执行 SQL 语句，此时查询执行引擎会根据 SQL 语句中表的存储引擎类型，以及对应的 API 接口与底层存储引擎缓存或者物理文件的交互情况，<strong>得到查询结果</strong>，由MySQL Server 过滤后将查询结果缓存并返回给客户端。若开启了 Query Cache，这时也会将SQL 语句和结果完整地保存到 Query Cache 中，以后若有相同的 SQL 语句执行则直接返回结果。</p>
+<h4 id="存储引擎"><a href="#存储引擎" class="headerlink" title="存储引擎"></a>存储引擎</h4><p>存储引擎是 MySQL 中具体与文件打交道的子系统，它是根据 MySQL AB 公司提供的<strong>文件访问层抽象接口定制的一种文件访问机制</strong>，这种机制就叫作<strong>存储引擎</strong>。</p>
+<p>前面说到Mysql 是插件式的存储引擎，只要正确定义与 MySQL Server 交互的接口，任何引擎都可以访问MySQL。所以Mysql支持很多种存储引擎，常用的为 MyISAM、支持事务的 InnoDB、内存类型的 Memory、归档类型的 Archive、列式存储的 Infobright，以及一些新兴的存储引擎等。</p>
+<p><strong>在 MySQL 5.6 版本之前，默认的存储引擎都是 MyISAM，但 5.6 版本以后默认的存储引擎就是 InnoDB 了。</strong></p>
+<p>我们主要<strong>对比</strong> 这俩种存储引擎的功能。</p>
+<img src="/2021/03/15/%E8%AF%A6%E8%A7%A3Mysql%EF%BC%88%E4%B8%80%EF%BC%89/mysql_05.png" alt="InnoDB和MyISAM对比" style="zoom:67%;">
+
+<blockquote>
+<p>图片来自网络</p>
+</blockquote>
+<ul>
+<li>InnoDB 支持 ACID 的事务 4 个特性，而 MyISAM 不支持；</li>
+<li>InnoDB 支持 4 种事务隔离级别，默认是可重复读 Repeatable Read 的，MyISAM 不支持；</li>
+<li>InnoDB 支持 crash 安全恢复，MyISAM 不支持；InnoDB 支持外键，MyISAM 不支持；</li>
+<li>InnoDB 支持行级别的锁粒度，MyISAM 不支持，只支持表级别的锁粒度；</li>
+<li>InnoDB 支持 MVCC，MyISAM 不支持；</li>
+<li>InnoDB 表最大还可以支持 64TB，支持聚簇索引、支持压缩数据存储，支持数据加密，支持查询/索引/数据高速缓存，支持自适应hash索引、空间索引，支持热备份和恢复等</li>
+</ul>
+<p><strong>如何选择？</strong></p>
+<p>需要事务操作，选InnoDB；</p>
+<p>如果表中绝大多数都只是读查询，可以考虑 MyISAM，如果有读，写也挺频繁，请使用InnoDB。</p>
+<p>MyISAM适合：(1) 做很多count 的计算；(2) 插入不频繁，查询非常频繁；(3) 没有事务。</p>
+<p>InnoDB适合：(1) 可靠性要求比较高，或者要求事务；(2) 表更新和查询都相当的频繁，并且行锁定的机会比较大的情况。</p>
+<h3 id="知识点扫盲"><a href="#知识点扫盲" class="headerlink" title="知识点扫盲"></a>知识点扫盲</h3><h4 id="范式与反范式"><a href="#范式与反范式" class="headerlink" title="范式与反范式"></a>范式与反范式</h4><p><strong>范式</strong>是关系数据库理论的基础，也是我们在设计数据库结构过程中所要遵循的规则和指导方法。数据库的设计范式是数据库设计所需要满足的规范。只有理解数据库的设计范式，才能设计出高效率、优雅的数据库。</p>
+<p>目前关系数据库有<strong>六种范式</strong>：<strong>第一范式（1NF）、第二范式（2NF）、第三范式（3NF）、巴斯-科德范式（BCNF）、第四范式（4NF）和第五范式（5NF，还又称完美范式）</strong>。</p>
+<p>满足最低要求的叫第一范式，简称 1NF。在第一范式基础上进一步满足一些要求的为第二范式，简称 2NF。其余依此类推。各种<strong>范式呈递次规范</strong>，越高的范式数据库冗余越小。通常所用到的只是前三个范式，即：第一范式（1NF），第二范式（2NF），第三范式（3NF）。</p>
+<p><strong>第一范式</strong></p>
+<p>第一范式无重复的列，表中的每一列都是拆分的基本数据项，即<strong>列不能够再拆分成其他几列</strong>，强调的是列的原子性.。</p>
+<p><strong>第二范式</strong></p>
+<p>第二范式属性完全依赖于主键，首先要满足它符合 1NF，另外还需要包含两部分内容：</p>
+<ul>
+<li>表必须有一个主键；</li>
+<li>没有包含在主键中的列必须完全依赖于主键，而不能只依赖于主键的一部分。</li>
+</ul>
+<p><strong>第三范式</strong></p>
+<p>第三范式属性不传递依赖于其他非主属性，首先需要满足 2NF，另外非主键列必须直接依赖于主键，不能存在传递依赖。即不能存在：非主键列 A 依赖于非主键列 B，非主键列 B 依赖于主键的情况。</p>
+<p>第二范式：非主键列是否依赖主键（包括一列通过某一列间接依赖主键），要是有依赖关系就是第二范式；</p>
+<p>第三范式：非主键列是否直接依赖主键，不能是那种通过传递关系的依赖。要是符合这种依赖关系就是第三范式。</p>
+<p><strong>优缺点</strong></p>
+<p>优点：</p>
+<ul>
+<li>避免数据冗余，减少维护数据完整性的麻烦；</li>
+<li>减少数据库的空间；数据变更速度快。</li>
+</ul>
+<p>缺点：</p>
+<p>按照范式的规范设计的表，等级越高的范式设计出来的表数量越多。获取数据时，表关联过多，性能较差。表的数量越多，查询所需要的时间越多。也就是说所用的范式越高，对数据操作的性能越低。</p>
+<p><strong>反范式</strong></p>
+<p>范式是普适的规则，满足大多数的业务场景的需求。对于一些特殊的业务场景，范式设计的表，无法满足性能的需求。此时，就需要根据业务场景，在范式的基础之上进行灵活设计，也就是<strong>反范式设计</strong>。</p>
+<p>反范式设计主要从三方面考虑：<strong>业务场景；相应时间；字段冗余</strong>。</p>
+<p>反范式设计就是用空间来换取时间，提高业务场景的响应时间，减少多表关联。</p>
+<h4 id="WAL"><a href="#WAL" class="headerlink" title="WAL"></a>WAL</h4><p><strong>ARIES 三原则</strong>，是指 <strong>Write Ahead Logging</strong>（WAL）。</p>
+<ul>
+<li><p>先写日志后写磁盘，日志成功写入后事务就不会丢失，后续由 checkpoint 机制来保证磁盘物理文件与 Redo 日志达到一致性；</p>
+</li>
+<li><p>利用 Redo 记录变更后的数据，即 Redo 记录事务数据变更后的值；</p>
+</li>
+<li><p>利用 Undo 记录变更前的数据，即 Undo 记录事务数据变更前的值，用于回滚和其他事务多版本读。</p>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mysql &gt;show engine innodb status\G;</span><br></pre></td></tr></table></figure>
+
+<p>该命令的结果里面有详细的 InnoDB 运行态信息，分段记录的，包括内存、线程、信号、锁、事务等，出现问题时从中能分析出具体原因和解决方案。</p>
+<h4 id="★-单版本控制-锁"><a href="#★-单版本控制-锁" class="headerlink" title="★     单版本控制 - 锁"></a>★     单版本控制 - 锁</h4><p><strong>锁</strong>用独占的方式来保证在只有一个版本的情况下事务之间相互隔离，所以锁可以理解为单版本控制。</p>
+<p>在 MySQL 事务中，锁的实现与隔离级别有关系，在 RR（Repeatable Read）隔离级别下，MySQL 为<strong>了解决幻读的问题，以牺牲并行度为代价，通过 Gap 锁（间隙锁）来防止数据的写入</strong>，而这种锁，因为其并行度不够，冲突很多，经常会引起死锁。现在流行的 Row 模式可以避免很多冲突甚至死锁问题，所以推荐默认使用 Row + RC（Read Committed）模式的隔离级别，可以很大程度上提高数据库的读写并行度。</p>
+<p><strong>共享锁与排他锁</strong></p>
+<ul>
+<li>共享锁（读锁）：其他事务可以读，但不能写。</li>
+<li>排他锁（写锁） ：其他事务不能读取，也不能写。</li>
+</ul>
+<p><strong>粒度锁</strong></p>
+<ul>
+<li><p>表级锁：开销小，加锁快；不会出现死锁；锁定粒度大，发生锁冲突的概率最高，并发度最低。</p>
+<ul>
+<li><p>这些存储引擎通过总是一次性同时获取所有需要的锁以及总是按相同的顺序获取表锁来避免死锁。</p>
+</li>
+<li><p>表级锁更适合于以查询为主，并发用户少，只有少量按索引条件更新数据的应用，如Web 应用</p>
+</li>
+</ul>
+</li>
+<li><p>行级锁：开销大，加锁慢；会出现死锁；锁定粒度最小，发生锁冲突的概率最低，并发度也最高。</p>
+<ul>
+<li>最大程度的支持并发，同时也带来了最大的锁开销。</li>
+<li>在 InnoDB 中，除单个 SQL 组成的事务外，锁是逐步获得的，这就决定了在 InnoDB 中发生死锁是可能的。</li>
+<li>行级锁只在存储引擎层实现，而Mysql服务器层没有实现。 行级锁更适合于有大量按索引条件并发更新少量不同数据，同时又有并发查询的应用，如一些在线事务处理（OLTP）系统。</li>
+</ul>
+</li>
+<li><p>页面锁：开销和加锁时间界于表锁和行锁之间；会出现死锁；锁定粒度界于表锁和行锁之间，并发度一般。</p>
+</li>
+</ul>
+<p><strong>Mysql 中锁粒度对比</strong></p>
+<ul>
+<li><p>MyISAM 和 MEMORY 存储引擎采用的是<strong>表级锁</strong>（table-level locking）；</p>
+</li>
+<li><p>BDB 存储引擎采用的是<strong>页面锁</strong>（page-level locking），但也支持表级锁；</p>
+</li>
+<li><p>InnoDB 存储引擎既支持<strong>行级锁</strong>（row-level locking），也支持表级锁，但默认情况下是采用行级锁。</p>
+</li>
+</ul>
+<p><strong>默认情况下，表锁和行锁都是自动获得的</strong>， 不需要额外的命令。</p>
+<p>但是在有的情况下， 用户需要明确地进行锁表或者进行事务的控制， 以便确保整个事务的完整性，这样就需要使用事务控制和锁定语句来完成。</p>
+<p><strong>InnoDB 引擎中的锁实现</strong></p>
+<p>InnoDB 实现了以下两种类型的<strong>行锁</strong>：</p>
+<ul>
+<li><strong>共享锁</strong>（S）：允许一个事务去读一行，阻止其他事务获得相同数据集的排他锁。</li>
+<li><strong>排他锁</strong>（X）：允许获得排他锁的事务更新数据，阻止其他事务取得相同数据集的共享读锁和排他写锁。</li>
+</ul>
+<p>为了允许<strong>行锁和表锁共存</strong>，实现多粒度锁机制，InnoDB 还有两种内部使用的意向锁（Intention Locks），这两种意向锁都是<strong>表锁</strong>：</p>
+<ul>
+<li><strong>意向共享锁</strong>（IS）：事务打算给数据行加行共享锁，事务在给一个数据行加共享锁前必须先取得该表的 IS 锁。</li>
+<li><strong>意向排他锁</strong>（IX）：事务打算给数据行加行排他锁，事务在给一个数据行加排他锁前必须先取得该表的 IX 锁。</li>
+</ul>
+<p><strong>InnoDB加锁方法：</strong></p>
+<ul>
+<li><p><strong>意向锁</strong>是 InnoDB 自动加的， 不需用户干预。</p>
+</li>
+<li><p>对于 UPDATE、 DELETE 和 INSERT 语句， InnoDB会自动给涉及数据集加<strong>排他锁</strong>（X)；</p>
+</li>
+<li><p>对于普通 SELECT 语句，InnoDB 不会加任何锁；事务可以通过以下语句显式给记录集加共享锁或排他锁：</p>
+</li>
+<li><ul>
+<li>共享锁（S）：SELECT * FROM table_name WHERE … <strong>LOCK IN SHARE MODE</strong>。 其他 session 仍然可以查询记录，并也可以对该记录加 share mode 的共享锁。但是如果当前事务需要对该记录进行更新操作，则很有可能造成死锁。</li>
+<li>排他锁（X)：SELECT * FROM table_name WHERE … <strong>FOR UPDATE</strong>。其他 session 可以查询该记录，但是不能对该记录加共享锁或排他锁，而是等待获得锁</li>
+</ul>
+</li>
+</ul>
+<p><strong>InnoDB 行锁实现方式：</strong></p>
+<ul>
+<li>InnoDB 行锁是通过给索引上的索引项加锁来实现的，这一点 MySQL 与 Oracle 不同，后者是通过在数据块中对相应数据行加锁来实现的。InnoDB 这种行锁实现特点意味着：只有通过索引条件检索数据，InnoDB 才使用行级锁，否则，InnoDB 将使用表锁！</li>
+<li>不论是使用主键索引、唯一索引或普通索引，InnoDB 都会使用行锁来对数据加锁。</li>
+<li>只有执行计划真正使用了索引，才能使用行锁：即便在条件中使用了索引字段，但是否使用索引来检索数据是由 MySQL 通过判断不同执行计划的代价来决定的，如果 MySQL 认为全表扫描效率更高，比如对一些很小的表，它就不会使用索引，这种情况下 InnoDB 将使用表锁，而不是行锁。</li>
+<li>由于 MySQL 的行锁是针对索引加的锁，不是针对记录加的锁，所以虽然多个session是访问不同行的记录， 但是如果是使用相同的索引键， 是会出现锁冲突的（后使用这些索引的session需要等待先使用索引的session释放锁后，才能获取锁）。</li>
+</ul>
+<p><strong>死锁（Deadlock Free）</strong></p>
+<ul>
+<li><p><strong>死锁产生：</strong></p>
+</li>
+<li><ul>
+<li>死锁是指两个或多个事务在同一资源上相互占用，并请求锁定对方占用的资源，从而导致恶性循环。</li>
+<li>当事务试图以不同的顺序锁定资源时，就可能产生死锁。多个事务同时锁定同一个资源时也可能会产生死锁。</li>
+<li>锁的行为和顺序和存储引擎相关。以同样的顺序执行语句，有些存储引擎会产生死锁有些不会——死锁有双重原因：真正的数据冲突；存储引擎的实现方式。</li>
+</ul>
+</li>
+<li><p><strong>检测死锁：</strong>数据库系统实现了各种死锁检测和死锁超时的机制。InnoDB存储引擎能检测到死锁的循环依赖并立即返回一个错误。</p>
+</li>
+<li><p><strong>死锁恢复：</strong>死锁发生以后，只有部分或完全回滚其中一个事务，才能打破死锁，InnoDB目前处理死锁的方法是，将持有最少行级排他锁的事务进行回滚。所以事务型应用程序在设计时必须考虑如何处理死锁，多数情况下只需要重新执行因死锁回滚的事务即可。</p>
+</li>
+<li><p><strong>外部锁的死锁检测：</strong>发生死锁后，InnoDB 一般都能自动检测到，并使一个事务释放锁并回退，另一个事务获得锁，继续完成事务。但在涉及外部锁，或涉及表锁的情况下，InnoDB 并不能完全自动检测到死锁， 这需要通过设置锁等待超时参数 <strong>innodb_lock_wait_timeout</strong> 来解决</p>
+</li>
+<li><p><strong>死锁影响性能：</strong>死锁会影响性能而不是会产生严重错误，因为InnoDB会自动检测死锁状况并回滚其中一个受影响的事务。在高并发系统上，当许多线程等待同一个锁时，死锁检测可能导致速度变慢。 有时当发生死锁时，禁用死锁检测（使用innodb_deadlock_detect配置选项）可能会更有效，这时可以依赖innodb_lock_wait_timeout设置进行事务回滚。</p>
+</li>
+</ul>
+<p><strong>优化锁性能的建议</strong></p>
+<ul>
+<li>尽量使用较低的隔离级别；</li>
+<li>精心设计索引， 并尽量使用索引访问数据， 使加锁更精确， 从而减少锁冲突的机会</li>
+<li>选择合理的事务大小，小事务发生锁冲突的几率也更小</li>
+<li>给记录集显示加锁时，最好一次性请求足够级别的锁。比如要修改数据的话，最好直接申请排他锁，而不是先申请共享锁，修改时再请求排他锁，这样容易产生死锁</li>
+<li>不同的程序访问一组表时，应尽量约定以相同的顺序访问各表，对一个表而言，尽可能以固定的顺序存取表中的行。这样可以大大减少死锁的机会</li>
+<li>尽量用相等条件访问数据，这样可以避免间隙锁对并发插入的影响。</li>
+<li>不要申请超过实际需要的锁级别。</li>
+<li>除非必须，查询时不要显示加锁。 MySQL的MVCC可以实现事务中的查询不用加锁，优化事务性能；MVCC只在COMMITTED READ（读提交）和REPEATABLE READ（可重复读）两种隔离级别下工作。</li>
+<li>对于一些特定的事务，可以使用表锁来提高处理速度或减少死锁的可能。</li>
+</ul>
+<p><strong>乐观锁、悲观锁</strong></p>
+<ul>
+<li><p><strong>乐观锁(Optimistic Lock)</strong>：假设不会发生并发冲突，只在提交操作时检查是否违反数据完整性。 乐观锁不能解决脏读的问题。</p>
+</li>
+<li><p><strong>悲观锁(Pessimistic Lock)</strong>：假定会发生并发冲突，屏蔽一切可能违反数据完整性的操作。</p>
+<p>传统的关系型数据库里边就用到了很多这种锁机制，比如行锁，表锁等，读锁，写锁等，都是在做操作之前先上锁。</p>
+</li>
+</ul>
+<h4 id="多版本控制-MVVC"><a href="#多版本控制-MVVC" class="headerlink" title="多版本控制 - MVVC"></a>多版本控制 - MVVC</h4><p><strong>MVCC (Multi-Version Concurrency Control)</strong>是一种基于多版本的<strong>并发控制协议</strong>，只有在<strong>InnoDB</strong>引擎下存在。MVCC是为了实现事务的隔离性，通过版本号，避免同一数据在不同事务间的竞争，你可以把它当成基于多版本号的一种乐观锁。MVCC最大的好处就是：<strong>读不加锁，读写不冲突</strong>。在读多写少的OLTP应用中，读写不冲突是非常重要的，极大的增加了系统的并发性能。</p>
+<p><strong>注意</strong>：MVCC 只在 <strong>读提交（RC，Read Committed）</strong> 和 <strong>可重复读（RR，Repeatable Read）</strong> 两种隔离级别下工作。</p>
+<p><strong>实现机制</strong></p>
+<p><strong>InnoDB</strong>在每行数据都增加两个隐藏字段，一个记录<strong>创建的版本号</strong>，一个记录<strong>删除的版本号</strong>。</p>
+<p>在多版本并发控制中，为了保证数据操作在多线程过程中，保证事务隔离的机制，降低锁竞争的压力，保证较高的并发量。在每开启一个事务时，会生成一个事务的版本号，被操作的数据会生成一条新的数据行（临时），但是在提交前对其他事务是不可见的，对于数据的更新（包括增删改）操作成功，会将这个版本号更新到数据的行中，事务提交成功，将新的版本号更新到此数据行中，这样保证了每个事务操作的数据，都是互不影响的，也不存在锁的问题。</p>
+<h4 id="事务"><a href="#事务" class="headerlink" title="事务"></a>事务</h4><p><strong>事务</strong>是指作为单个逻辑工作单元执行的一系列操作，这些操作要么全做，要么全不做，是一个不可分割的工作单元。</p>
+<p>一个逻辑工作单元要成为事务，在关系型数据库管理系统中，必须满足 4 个特性，即所谓的 <strong>ACID</strong>：</p>
+<ul>
+<li><strong>一致性</strong>：事务开始之前和事务结束之后，数据库的完整性限制未被破坏。</li>
+<li><strong>原子性</strong>：事务的所有操作，要么全部完成，要么全部不完成，不会结束在某个中间环节。</li>
+<li><strong>持久性</strong>：事务完成之后，事务所做的修改进行持久化保存，不会丢失。</li>
+<li><strong>隔离性</strong>：当多个事务并发访问数据库中的同一数据时，所表现出来的相互关系。</li>
+</ul>
+<p>ACID 及它们之间的关系如下图所示，比如 4 个特性中有 3 个与 WAL 有关系，都需要通过 Redo、Undo 日志来保证等。</p>
+<img src="/2021/03/15/%E8%AF%A6%E8%A7%A3Mysql%EF%BC%88%E4%B8%80%EF%BC%89/mysql_06.png" alt="ACID关系" style="zoom:75%;">
+
+<p><strong>原子性</strong></p>
+<p><strong>MySQL</strong> 是通过 <strong>WAL</strong>（Write Ahead Log）技术来实现。</p>
+<p>每一个写事务，都会修改 Buffer Pool，从而产生相应的 Redo 日志，这些日志信息会被记录到 ib_logfiles 文件中。因为 Redo 日志是遵循 Write Ahead Log 的方式写的，所以事务是顺序被记录的。</p>
+<p>任何 Buffer Pool 中的页被刷到磁盘之前，都会先写入到日志文件中。</p>
+<ul>
+<li>如果事务提交了，Buffer Pool 的脏页没有刷盘（刷到磁盘），如何保证改了的数据生效？可使用 Redo 日志恢复出来的数据。</li>
+<li>如果事务没有提交，且 Buffer Pool 的脏页被刷盘了，那这个本不应该存在的数据如何消失？需要通过 Undo 来实现，Undo 又是通过 Redo 来保证的，所以最终原子性的保证还是靠 Redo 的 WAL 机制实现的。</li>
+</ul>
+<p><strong>持久性</strong></p>
+<p>是指一个事务一旦提交，它对数据库中数据的改变就应该是永久性。</p>
+<p>通过原子性可以保证逻辑上的持久性，通过存储引擎的数据刷盘可以保证物理上的持久性。</p>
+<p><strong>隔离性</strong></p>
+<p>指的是一个事务的执行不能被其他事务干扰，即一个事务内部的操作及使用的数据对其他的并发事务是隔离的。</p>
+<p><strong>InnoDB</strong> 支持的隔离性有 4 种，隔离性从低到高分别为：<strong>读未提交、读提交、可重复读、可串行化</strong>。</p>
+<ul>
+<li><strong>读未提交</strong>（RU，Read Uncommitted）。它能读到一个事务的中间过程，违背了 ACID 特性，存在脏读的问题，所以基本不会用到，可以忽略。</li>
+<li><strong>读提交</strong>（RC，Read Committed）。它表示如果其他事务已经提交，那么我们就可以看到，这也是一种最普遍适用的级别。但由于一些历史原因，可能 RC 在生产环境中用的并不多。</li>
+<li><strong>可重复读</strong>（RR，Repeatable Read），是目前被使用得最多的一种级别。其特点是有 Gap 锁、目前还是默认的级别、在这种级别下会经常发生死锁、低并发等问题。</li>
+<li><strong>可串行化</strong>，这种实现方式，其实已经并不是多版本了，又回到了单版本的状态，因为它所有的实现都是通过锁来实现的。</li>
+</ul>
+<p><strong>一致性</strong></p>
+<ul>
+<li><strong>约束一致性</strong>：创建表结构时所指定的外键、Check（Mysql不支持）、唯一索引等约束。</li>
+<li><strong>数据一致性</strong>：由原子性、持久性、隔离性共同保证。</li>
+</ul>
+<h4 id="并发事务问题及解决方案"><a href="#并发事务问题及解决方案" class="headerlink" title="并发事务问题及解决方案"></a><strong>并发事务问题及解决方案</strong></h4><p>前面说过通过<strong>单版本控制-锁</strong>以及<strong>多版本控制-MVVC</strong>实现并发事务，同时并发事务处理也会带来一些问题，如：<strong>脏读、不可重复读、幻读。</strong></p>
+<ul>
+<li><strong>脏读</strong>一个事务正在对一条记录做修改，在这个事务完成并提交前，这条记录的数据就处于不一致状态；这时，另一个事务也来读取同一条记录，如果不加控制，第二个事务读取了这些“脏”数据，并据此做进一步的处理，就会产生未提交的数据依赖关系。这种现象被形象的叫作”脏读”（Dirty Reads）。</li>
+<li><strong>不可重复读</strong>一个事务在读取某些数据后的某个时间，再次读取以前读过的数据，却发现其读出的数据已经发生了改变、或某些记录已经被删除了！这种现象就叫作“ 不可重复读”（Non-Repeatable Reads）。</li>
+<li><strong>幻读</strong>一个事务按相同的查询条件重新读取以前检索过的数据，却发现其他事务插入了满足其查询条件的新数据，这种现象就称为“幻读”（Phantom Reads）。</li>
+</ul>
+<p>MySQL 数据库是通过<strong>事务隔离级别</strong>来解决上述问题的：</p>
+<img src="/2021/03/15/%E8%AF%A6%E8%A7%A3Mysql%EF%BC%88%E4%B8%80%EF%BC%89/mysql_07.png" alt="事务隔离级别解决并发事务问题" style="zoom:67%;">
+
+
+
+<h3 id="设计规范"><a href="#设计规范" class="headerlink" title="设计规范"></a>设计规范</h3><p><strong>基本使用原则：</strong></p>
+<ul>
+<li>MySQL 数据库只用于数据的存储，不进行数据的复杂计算，不承载业务逻辑，确保存储和计算分离；</li>
+<li>查询数据时，尽量单表查询，减少跨库查询和多表关联；</li>
+<li>杜绝大事务、大 SQL、大批量、大字段等一系列性能杀手。<ul>
+<li>大事务，运行步骤较多，涉及的表和字段较多，容易造成资源的争抢，甚至形成死锁。一旦事务回滚，会导致资源占用时间过长。</li>
+<li>大 SQL，复杂的 SQL 意味着过多的表的关联，MySQL 数据库处理关联超过 3 张表以上的 SQL 时，占用资源多，性能低下。</li>
+<li>大批量，意味着多条 SQL 一次性执行完成，必须确保进行充分的测试，并且在业务低峰时段或者非业务时段执行。大字段，blob、text 等大字段，尽量少用。必须要用时，尽量与主业务表分离，减少对这类字段的检索和更新。</li>
+</ul>
+</li>
+</ul>
+<p><strong>基础规范：</strong></p>
+<ul>
+<li>必须指定默认存储引擎为 InnoDB，并且禁用 MyISAM 存储引擎。</li>
+<li>默认字符集 <code>UTF8mb4</code>，以前版本的 UTF8 是 <code>UTF8mb3</code>，未包含个别特殊字符，新版本的 UTF8mb4 包含所有字符，官方强烈建议使用此字符集。</li>
+<li>关闭区分大小写功能。设置<code>lower_case_tables_name=1</code>，即可关闭区分大小写功能，即大写字母 T 和小写字母 t 一样。</li>
+<li>存储过程、触发器、视图、event。为了存储计算分离，这类功能尽量在程序中实现。这些功能非常不完整，调试、排错、监控都非常困难，相关数据字典也不完善，存在潜在的风险。一般在生产数据库中，禁止使用。</li>
+<li>lob、text、enum、set。这些字段类型，在 MySQL 数据库的检索性能不高，很难使用索引进行优化。如果必须使用这些功能，一般采取特殊的结构设计，或者与程序结合使用其他的字段类型替代。比如：set 可以使用整型（0，1，2，3）、注释功能和程序的检查功能集合替代。</li>
+</ul>
+<p><strong>命名规范：</strong></p>
+<ul>
+<li>命名时的字符取值范围为：<code>a~z</code>，<code>0~9</code>和<code>_（下画线）</code></li>
+<li>所有表名小写，不允许驼峰式命名；</li>
+<li>允许使用 <code>-（横线）</code>和 <code>（空格）</code>；不允许使用其他特殊字符作为名称，减少潜在风险。</li>
+<li>数据库库名的命名规则必须遵循“见名知意”的原则，即库名规则为<code>数据库类型代码 + 项目简称 + 识别代码 + 序号</code>。只有一个数据库，则不加序号，否则末尾增加序号；生产库不加识别代码，否则需要增加识别代码 DEV 或 TEST；如果只作历史库，则只需要<code>项目简称 + H + 序号</code>；</li>
+<li>单表仅使用 <code>a~z、_</code>；分表名称为<code>表名_编号</code>；</li>
+<li>业务表名代表用途、内容：子系统简称_业务含义_后缀。常见业务表类型有：临时表，<code>tmp</code>；备份表，<code>bak</code>；字典表，<code>dic</code>；日志表，<code>log</code>。</li>
+<li>字段名精确，遵循“见名知意”的原则，格式：<code>名称_后缀</code>。避免普遍简单、有歧义的名称。用户表中，用户名的字段为 UserName 比 Name 更好。布尔型的字段，以助动词<code>（has/is）</code>开头。用户是否有留言 hasmessage，用户是否通过检查 ischecked 等。</li>
+<li>常见后缀：流水号/无意义主键，后缀为 id，比如 task_id；时间，后缀为 time，insert_time。程序账号与数据库名称保持一致。如果所有的程序账号都是 root@‘%’，密码也一样，很容易错连到其他的数据库，造成误操作。</li>
+<li>索引命名格式：主要为了区分哪些对象是索引：<code>前缀_表名（或缩写）_字段名（或缩写）</code>；主键必须使用前缀<code>pk_</code>；UNIQUE 约束必须使用前缀<code>uk_</code>；普通索引必须使用前缀<code>idx_</code>。</li>
+<li>创建表时显示指定<code>字符集、存储引擎、注释信息</code>等。  不同系统之间，统一规范；不同表之间的相同字段或者关联字段，字段类型/命名要保持一致；库表字符集和前端程序、中间件必须保持一致的 <code>UTF8mb4</code>。</li>
+<li>InnoDB表的注意事项：<ul>
+<li>主键列，UNSIGNED 整数，使用 auto_increment；禁止手动更新 auto_increment，可以删除。</li>
+<li>必须添加 comment 注释。</li>
+<li>必须显示指定的 engine。</li>
+<li>表必备三字段：id、 xxx_create、 xxx_modified。id 为主键，类型为 unsigned bigint 等数字类型；xxx_create、xxx_modified 的类型均为 datetime 类型，分别记录该条数据的创建时间、修改时间。</li>
+</ul>
+</li>
+</ul>
+<p><strong>不同类型表设计规范：</strong></p>
+<ul>
+<li>备份表，表名必须添加 bak 和日期，主要用于系统版本上线时，存储原始数据，上线完成后，必须及时删除。</li>
+<li>临时表，用于存储中间业务数据，定期优化，及时降低表碎片。</li>
+<li>日志类表，首先考虑不入库，保存成文件，其次如果入库，明确其生命周期，保留业务需求的数据，定期清理。</li>
+<li>大字段表，把主键字段和大字段，单独拆分成表，并且保持与主表主键同步，尽量减少大字段的检索和更新。</li>
+<li>大表，根据业务需求，从垂直和水平两个维度进行拆分。<ul>
+<li>垂直拆分：按列关联度。</li>
+<li>水平拆分：按照时间、地域、范围等；冷热数据（历史数据归档）。</li>
+</ul>
+</li>
+</ul>
+<p><strong>字段设计要求：</strong></p>
+<ul>
+<li>根据业务场景需求，选择合适的类型，最短的长度；确保字段的宽度足够用，但也不要过宽。</li>
+<li>尽量所有字段必须为 NOT NULL，空值则指定 default 值，空值难以优化，查询效率低。</li>
+<li>表字段数少而精，尽量不加冗余列。</li>
+<li>单实例表个数必须控制在 2000 个以内。</li>
+<li>单表分表个数必须控制在 1024 个以内。</li>
+<li>单表字段数上限控制在 20~50 个。</li>
+<li>禁用 ENUM、SET 类型。兼容性不好，性能差。解决方案：使用 TINYINT，在 COMMENT 信息中标明被枚举的含义。<code>is_disable</code> TINYINT UNSIGNED DEFAULT ‘0’ COMMENT ‘0:启用 1:禁用 2:异常’。</li>
+</ul>
+<h3 id="索引"><a href="#索引" class="headerlink" title="索引"></a>索引</h3><p>数据库索引是一种数据结构，它以额外的写入和存储空间为代价来提高数据库表上数据检索操作的速度。</p>
+<p>MySQL 官方对索引（Index）的定义是存储引擎用于快速查找记录的一种数据结构。</p>
+<p>索引是物理数据页，数据库页大小（Page Size）决定了一个页可以存储多少个索引行，以及需要多少页来存储指定大小的索引。</p>
+<p>索引可以加快检索速度，但同时也降低索引列插入、删除、更新的速度，索引维护需要代价。索引涉及的理论知识有<strong>二分查找法、哈希表及 B+Tree</strong>。</p>
+<p><strong>二分查找法</strong></p>
+<p>二分查找法也叫作<strong>折半查找法</strong>，它是在有序数组中查找指定数据的搜索算法。</p>
+<ul>
+<li>优点：等值查询、范围查询性能优秀</li>
+<li>缺点：更新数据、新增数据、删除数据维护成本高</li>
+</ul>
+<p>哈希表 和 B+Tree 在《数据结构与算法》中已有介绍，这里不再赘述。</p>
+<h4 id="索引原理"><a href="#索引原理" class="headerlink" title="索引原理"></a>索引原理</h4><p>对于索引数据结构的选择其本质是贴合当前数据读写的硬件环境选择一个优秀的数据结构进行数据存储及遍历，在数据库中大部分索引都是通过 <strong>B+Tree</strong> 来实现的。当然也涉及其他数据结构，<strong>在 MySQL 中除了 B+Tree 索引外我们还需要关注下 Hash 索引。</strong></p>
+<h5 id="Hash索引"><a href="#Hash索引" class="headerlink" title="Hash索引"></a>Hash索引</h5><p><strong>哈希表是数据库中哈希索引的基础，是根据键值 &lt;key,value&gt; 存储数据的结构</strong>。简单说，哈希表是使用哈希函数将索引列计算到桶或槽的数组，实际存储是根据哈希函数将 key 换算成确定的存储位置，并将 value 存放到该数组位置上。访问时，只需要输入待查找的 key，即可通过哈希函数计算得出确定的存储位置并读取数据。</p>
+<p>例如：姓名作为 key，通过哈希函数对姓名字段数据进行计算，得到<strong>哈希码</strong>并存放到桶或槽的数组中，同时存放指向真实数据行的<strong>指针</strong>作为 value，形成哈希表。哈希索引只存储哈希值和行指针，不存储实际字段值，所以其结构紧凑，查询速度也非常快。</p>
+<p><strong>哈希索引的应用场景是只在对哈希索引列的等值查询才有效。</strong>包括 =、IN()、&lt;=&gt; （安全等于， select null &lt;=&gt; null 和 select null=null 是不一样的结果) ，不支持范围查询。</p>
+<p><strong>Hash碰撞</strong></p>
+<p><strong>Hash 碰撞</strong>是指不同索引列值计算出相同的哈希码。</p>
+<p>对于 Hash 碰撞通用的处理方法是使用链表，将 Hash 冲突碰撞的元素形成一个链表，发生冲突时在链表上进行二次遍历找到数据。这类似于<strong>HashMap</strong> 实现原理。</p>
+<p>在 MySQL 中主要有下列三种Hash索引：</p>
+<ul>
+<li>Memory 存储引擎原生支持的 Hash 索引</li>
+<li>InnoDB 自适应哈希索引。</li>
+<li>NDB 集群的哈希索引。</li>
+</ul>
+<p><strong>InnoDB 自适应哈希索引</strong></p>
+<p>InnoDB 自适应哈希索引是为了提升查询效率，InnoDB 存储引擎会监控表上各个索引页的查询，<strong>当 InnoDB 注意到某些索引值访问非常频繁时，会在内存中基于 B+Tree 索引再创建一个哈希索引，使得内存中的 B+Tree 索引具备哈希索引的功能，即能够快速定值访问频繁访问的索引页。</strong></p>
+<p><strong>为什么要为 B+Tree 索引页二次创建自适应哈希索引？</strong></p>
+<p>因为 B+Tree 索引的查询效率取决于 B+Tree 的高度，在数据库系统中通常 B+Tree 的高度为 3～4 层，所以访问数据需要做 3～4 次的查询。而 Hash 索引访问通常一次查找就能定位数据（无 Hash 碰撞的情况），其等值查询场景 Hash 索引的查询效率要优于 B+Tree。</p>
+<p>自适应哈希索引的建立使得 InnoDB 存储引擎能自动根据索引页访问的频率和模式自动地为某些热点页建立哈希索引来加速访问。 InnoDB 自适应哈希索引的功能，用户只能选择开启或关闭功能，无法进行人工干涉。</p>
+<h5 id="B-Tree-索引"><a href="#B-Tree-索引" class="headerlink" title="B+Tree 索引"></a><strong>B+Tree 索引</strong></h5><p>MySQL 数据库中讨论索引时，如果没有明确指定类型，则默认是指使用 B+Tree 数据结构进行存储，其说法等价于 B+Tree、B-Tree、BTREE（看到创建索引语句为 BTREE 也不要惊讶，等同于 B+Tree）。</p>
+<img src="/2021/03/15/%E8%AF%A6%E8%A7%A3Mysql%EF%BC%88%E4%B8%80%EF%BC%89/mysql_08.png" alt="B+Tree索引" style="zoom:67%;">
+
+<p>B+Tree 索引能够快速访问数据，就是因为存储引擎可以不再需要通过全表扫描来获取数据，而是从索引的根结点（通常在内存中）开始进行二分查找，根节点的槽中都存放了指向子节点的指针，存储引擎根据这些指针能够快速遍历数据。例如，通过页面号为 20 的根节点可以快速得知 Key&lt;10 的数据在 pageno 33 的页面，key在 [10,16) 范围的数据在 pageno 56 的页面。 叶子节点存放的 &lt;key+data&gt; ，对于真正要存放哪些数据还得取决于该 B+Tree 是<strong>聚簇索引（Clustered Index）</strong>还是<strong>辅助索引（Secondary Index）</strong>。</p>
+<h4 id="索引类型"><a href="#索引类型" class="headerlink" title="索引类型"></a>索引类型</h4><p><strong>在 MySQL 中，索引是在存储引擎层而非服务器层实现</strong>。</p>
+<p>在 MySQL 中不同存储引擎间支持的常见索引类型有：</p>
+<ul>
+<li>哈希索引（Memory/InnoDB adaptive Hash index/NDB）   —  InnoDB 支持</li>
+<li>B+Tree 索引（MyISAM/InnoDB）—  InnoDB 支持</li>
+<li>全文索引（MyISAM/InnoDB）—  InnoDB 支持</li>
+<li>空间索引（MyISAM R-Tree）</li>
+<li>分形树索引（TokuDB Fractal Tree Index）</li>
+</ul>
+<p>索引<strong>通常可以分为两大类</strong>：</p>
+<ul>
+<li><p><strong>主键索引（聚簇索引）</strong>：聚簇索引是一种数据存储方式，它表示表中的数据按照主键顺序存储，是索引组织表。InnoDB 的聚簇索引就是按照主键顺序构建 B+Tree，B+Tree 的叶子节点就是行记录，数据行和主键值紧凑地存储在一起。 这也意味着 InnoDB 的主键索引就是数据表本身，它按主键顺序存放了整张表的数据。</p>
+<p>对于没有指定主键的表，InnoDB 会自己<strong>选择合适字段为主键</strong>，顺序为：显式主键；第一个唯一索引（要求唯一索引所有列都非 NULL）；内置的 6 字节 ROWID。</p>
+</li>
+<li><p><strong>辅助索引（非聚簇索引）</strong>：也叫作二级索引，只是根据索引列构建 B+Tree，但在 B+Tree 的每一行都存了主键信息，加速回表操作。 聚簇索引占用的空间就是整个表数据量的大小，而二级索引会比聚簇索引小很多， 通常创建辅助索引就是为了提升查询效率。</p>
+</li>
+</ul>
+<p>根据索引<strong>列个数和功能描述不同</strong>索引也可以分为：</p>
+<ul>
+<li><strong>联合索引</strong>：联合索引是指在多个字段联合组建索引的。</li>
+<li><strong>覆盖索引</strong>：当通过索引即可查询到所有记录，不需要回表到聚簇索引时，这类索引也叫作覆盖索引。主键查询是天然的覆盖索引，联合索引可以是覆盖索引。通常在查看执行计划时， Extra 列为 Using index 则表示优化器使用了覆盖索引。</li>
+</ul>
+<p><strong>通常建议优先考虑使用覆盖索引，这是因为如果 SQL 需要查询辅助索引中不包含的数据列时，就需要先通过辅助索引查找到主键值，然后再回表通过主键查询到其他数据列（即回表查询），需要查询两次。而覆盖索引能从索引中直接获取查询需要的所有数据，从⽽避免回表进行二次查找，节省IO，效率较⾼。</strong></p>
+<h4 id="索引基础知识"><a href="#索引基础知识" class="headerlink" title="索引基础知识"></a>索引基础知识</h4><ul>
+<li><p><strong>谓词</strong>：谓词本身就是条件表达式，通俗讲就是过滤字段，例如：select * from user where user_name=’zhangsan’ and age = 18;  </p>
+<ul>
+<li>简单谓词：user_name 和 age。</li>
+<li>组合谓词：user_name and age</li>
+</ul>
+</li>
+<li><p><strong>过滤因子</strong>：过滤因子直接描述了谓词的选择性，表示满足谓词条件的记录行数所占比例，过滤因子越小意味着能过滤越多数据，你需要在这类谓词字段上创建索引。</p>
+<ul>
+<li><strong>简单谓词的过滤因子 = 谓词结果集的数量 / 表总行数</strong></li>
+<li><strong>组合谓词的过滤因子 = 谓词 1 的过滤因子 × 谓词 2 的过滤因子</strong> </li>
+</ul>
+</li>
+<li><p><strong>基数（Cardinality）</strong>：基数是<strong>某个键值去重后的行数</strong>， 索引列不重复记录数量的预估值，MySQL 优化器会依赖于它。</p>
+</li>
+<li><p><strong>选择率</strong>：<strong>= 基数 / 表总行数</strong>，选择率越接近 1 则越适合创建索引，例如主键和唯一键的选择率都是 1。</p>
+</li>
+<li><p><strong>回表</strong>：回表是指无法通过索引扫描访问所有数据，需要回到主表进行数据扫描并返回。</p>
+</li>
+<li><p><strong>Cardinality</strong>：Cardinality 能快速告知字段的选择性，高选择性字段有利于创建索引。优化器在选择执行计划时会依赖该信息，通常这类信息也叫作统计信息，数据库中对于统计信息的采集是在存储引擎层进行的。</p>
+<p>执行 <code>show index from table_name</code> 会看到 Cardinality，同时也会触发 MySQL 数据库对 Cardinaltiy 值的统计。</p>
+</li>
+</ul>
+<h4 id="索引使用细节"><a href="#索引使用细节" class="headerlink" title="索引使用细节"></a>索引使用细节</h4><ul>
+<li><p>创建索引后通过查看执行 SQL 语句的执行计划即可知道 SQL 语句是否走索引。执行计划重点关注跟索引相关的关键项，有 type、possible_keys、key、key_len、ref、Extra 等。</p>
+<img src="/2021/03/15/%E8%AF%A6%E8%A7%A3Mysql%EF%BC%88%E4%B8%80%EF%BC%89/mysql_09.png" alt="查看执行计划" style="zoom:67%;">
+
+<ul>
+<li><strong>possible_keys</strong> 表示查询可能使用的索引</li>
+<li><strong>key</strong>表示真正实际使用的索引</li>
+<li><strong>key_len</strong> 表示使用索引字段的长度</li>
+</ul>
+</li>
+<li><p>当索引选择联合索引时，通过<strong>计算 key_len 来了解有效索引长度对索引优化非常重要</strong>，key_len 表示得到结果集所使用的选择索引的长度[字节数]，不包括 order by。key_len 计算规则从两个方面考虑：</p>
+<ul>
+<li>索引字段的<strong>数据类型</strong>：根据索引字段的定义可以分为<strong>变长</strong>（比如 Varchar，除了是否为空的标记外，还需要有长度信息，需要占用 2 个字节）和<strong>定长</strong>（比如 char、int、datetime，需要有是否为空的标记，这个标记需要占用 1 个字节）两种数据类型；</li>
+<li>字段所使用的<strong>字符集</strong>：表所使用的字符集，不同的字符集计算的 key_len 不一样，例如，GBK 编码的是一个占用 2 个字节大小的字符，UTF8 编码的是一个占用 3 个字节大小的字符。</li>
+</ul>
+</li>
+</ul>
+<p>举例：</p>
+<ul>
+<li><strong>Varchr(10) 变长字段且允许 NULL</strong>：10*(Character Set：utf8=3，gbk=2，latin1=1) + 1（标记是否为 NULL 需要 1 个字节）+ 2（变长字段存储长度信息需要 2 个字节）。</li>
+<li><strong>Varchr(10) 变长字段且不允许 NULL</strong>：10*(Character Set：utf8=3，gbk=2，latin1=1) + 2（变长字段存储长度信息需要2个字节），非空不再需要占用字节来标记是否为空。</li>
+<li><strong>Char(10) 固定字段且允许 NULL</strong>：10*(Character Set：utf8=3，gbk=2，latin1=1) + 1（标记是否为 NULL 需要 1 个字节）。 *</li>
+<li><strong>Char(10) 固定字段且不允许 NULL</strong>：10*(Character Set：utf8=3，gbk=2，latin1=1)，非空不再需要占用字节来标记是否为空。</li>
+</ul>
+<p><strong>最左前缀匹配原则</strong></p>
+<p>通过 key_len 计算也帮助我们了解索引的最左前缀匹配原则。</p>
+<p>最左前缀匹配原则是指在使用 B+Tree 联合索引进行数据检索时，MySQL 优化器会读取谓词（过滤条件）并按照联合索引字段创建顺序一直向右匹配直到遇到范围查询或非等值查询后停止匹配，此字段之后的索引列不会被使用，这时计算 key_len 可以分析出联合索引实际使用了哪些索引列。</p>
+<h4 id="索引设计"><a href="#索引设计" class="headerlink" title="索引设计"></a>索引设计</h4><ul>
+<li><p>首先<strong>定位由于索引不合适或缺少索引而导致的慢查询</strong>。慢查询日志分析，抓出运行慢的 SQL 进行分析，也可以借助第三方工具例如 Arkcontrol 慢查询分析系统进行慢查询采集和分析。在分析慢查询时进行参数最差输入，同时，对 SQL 语句的谓词进行过滤因子、基数、选择率和 SQL 查询回表情况的分析。</p>
+</li>
+<li><p><strong>设计索引</strong>。创建索引规范：</p>
+<ul>
+<li>单张表的索引数量不超过 5 个，单个索引中的字段数不超过 5 个。</li>
+<li>表必需有主键，推荐使⽤ UNSIGNED 自增列作为主键。</li>
+<li>唯一键由 3 个以下字段组成，并且在字段都是整形时，可使用唯一键作为主键。</li>
+<li>禁止冗余索引、禁止重复索引，索引维护需要成本，新增索引时优先考虑基于现有索引进行 rebuild。</li>
+<li>联表查询时，JOIN 列的数据类型必须相同，并且要建⽴索引。</li>
+<li>不在低基数列上建⽴索引。</li>
+</ul>
+</li>
+<li><p>创建<strong>索引策略</strong>：</p>
+<ul>
+<li>优先为搜索列、排序列、分组列创建索引，必要时加入查询列创建覆盖索引；</li>
+<li>计算字段列基数和选择率，选择率越接近于 1 越适合创建索引；</li>
+<li>索引选用较小的数据类型（整型优于字符型），字符串可以考虑前缀索引；</li>
+<li>不要建立过多索引，优先基于现有索引调整顺序；</li>
+<li>参与比较的字段类型保持匹配并创建索引。例如“性别”。 在低基数列上创建的索引查询相比全表扫描不一定有性能优势，特别是当存在回表成本时。</li>
+<li>选择区分度（选择率）大的列建立索引。组合索引中，区分度（选择率）大的字段放在最前面。</li>
+<li>对过长的 Varchar 段建立索引。建议优先考虑前缀索引，或添加 CRC32 或 MD5 伪列并建⽴索引。 </li>
+<li>合理创建联合索引，(a,b,c) 相当于 (a) 、(a,b) 、(a,b,c)。 </li>
+<li>合理使用覆盖索引减少IO，避免排序。</li>
+</ul>
+</li>
+<li><p><strong>调优索引</strong></p>
+<p>分析执行计划；更新统计信息（Analyze Table）；Hint优化，方便调优（FORCE INDEX、USE INDEX、IGNORE INDEX、STRAIGHT_JOIN）；检查连接字段数据类型、字符集；避免使用类型转换；关注 optimizer_switch，重点关注索引优化特性 MRR（Multi-Range Read）和 ICP（Index Condition Pushdown）。</p>
+</li>
+</ul>
+<h3 id="查询优化"><a href="#查询优化" class="headerlink" title="查询优化"></a>查询优化</h3><p>首先需要了解查询优化器处理 SQL 的全过程。以 SELECT 的 SQL 的执行过程为例：</p>
+<img src="/2021/03/15/%E8%AF%A6%E8%A7%A3Mysql%EF%BC%88%E4%B8%80%EF%BC%89/mysql_10.png" alt="Mysql SQL执行过程" style="zoom:80%;">
+
+<ul>
+<li>客户端发送一条 SELECT 查询给服务器；</li>
+<li>服务器先检查查询缓存，如果命中缓存，则立刻返回存储在缓存中的结果。否则进入下一阶段；</li>
+<li>服务器进行 SQL 解析、预处理、再由查询优化器生成对应的执行计划；</li>
+<li>MySQL 根据优化器生成的执行计划，调用存储引擎的 API 来执行查询；</li>
+<li>将结果返回给客户端，同时也会放入查询缓存中。</li>
+</ul>
+<p><strong>MySQL</strong> 采用<strong>基于开销的优化器</strong>，以确定处理查询的最佳方式，也就是说<strong>执行查询之前，都会先选择一条自以为最优的方案。</strong></p>
+<h4 id="执行计划分析"><a href="#执行计划分析" class="headerlink" title="执行计划分析"></a><strong>执行计划分析</strong></h4><ul>
+<li><strong>查看 SQL 执行计划</strong>：<ul>
+<li>explain SQL；</li>
+<li>desc 表名；</li>
+<li>show create table 表名。</li>
+</ul>
+</li>
+<li><strong>通过 Profile 定位 QUERY 代价消耗</strong>：<ul>
+<li>set profiling=1；</li>
+<li>执行 SQL；</li>
+<li>show profiles; </li>
+<li>获取 Query_ID。</li>
+<li>show profile for query Query_ID; </li>
+<li>查看详细的 profile 信息。</li>
+</ul>
+</li>
+<li><strong>通过 Optimizer Trace 表查看 SQL 执行计划树</strong>：<ul>
+<li>set session optimizer_trace=’enabled=on’；</li>
+<li>执行 SQL；</li>
+<li>查询 information_schema.optimizer_trace 表，获取 SQL 查询计划树；</li>
+<li>set session optimizer_trace=‘enabled=off’；开启此项影响性能，记得用后关闭。</li>
+</ul>
+</li>
+</ul>
+<p><strong>MySQL</strong> 可以通过设置一些参数，将<strong>运行时间长或者非索引查找的 SQL 记录到慢查询文件</strong>中。可以分析慢查询文件中的 SQL，有针对性的进行优化。</p>
+<ul>
+<li>参数 slow_query_log，表示是否开启慢查询日志，ON 或者 1 表示开启，OFF 或者 0 表示关闭。</li>
+<li>参数 long_query_time，设置慢查询的阈值，MySQL 5.7 版本支持微秒级。</li>
+<li>参数 slow_query_log_file，慢查询文件的存放路径。</li>
+<li>参数 log_queries_not_using_indexes，表示是否将非索引查找的 SQL 也记录到慢查询文件中。</li>
+<li>参数 log_throttle_queries_not_using_indexes，表示每分钟记录到慢查询文件中未使用索引的 SQL 语句上限，0 表示没限制。</li>
+<li>参数 max_execution_time，用来控制 SELECT 语句的最大执行时间，单位毫秒，超过此值MySQL 自动 kill 掉该查询。</li>
+</ul>
+<p>分析慢查询常用的工具有：</p>
+<ul>
+<li>explain；</li>
+<li>Mysqldumpslow，官方慢查询分析工具；</li>
+<li><strong>pt-query-digest</strong>，Percona 公司开源的慢查询分析工具；</li>
+<li>vc-mysql-sniffer，第三方的慢查询抓取工具；</li>
+<li>pt-kill，Percona 公司开源的慢查询 kill 工具，常用于生产环境的过载保护。</li>
+</ul>
+<h4 id="SQL优化"><a href="#SQL优化" class="headerlink" title="SQL优化"></a>SQL优化</h4><p>考虑因素：</p>
+<ul>
+<li><strong>全表扫描还是索引扫描</strong>。对于小表来说，二者 IO 调用次数和返回时间相差不大；但对于大表，如果全表扫描，那么查询返回的时间就会很长，就需要使用索引扫描加快查询速度。但同时应该考虑索引数量不宜过多。</li>
+<li>如何创建索引，在哪些列上建立索引。</li>
+<li>创建索引以后，尽量不要过频修改。</li>
+<li>SQL 中关联列字段类型不一致或者传入的参数类型与字段类型不匹配的情况，这样就会导致无法使用索引；</li>
+<li>索引列上使用函数也不会涉及索引。</li>
+<li>全模糊匹配的查询无法使用索引。</li>
+<li>order by/group by 的 SQL 涉及排序，尽量在索引中包含排序字段，并让排序字段的排序顺序与索引列中的顺序相同，这样可以避免排序或减少排序次数。</li>
+<li>复杂查询还是简单查询。</li>
+</ul>
+<blockquote>
+<p>笔记来源：</p>
+<p>Mysql锁总结：<a href="https://zhuanlan.zhihu.com/p/29150809" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/29150809</a></p>
+<p>周彦伟 老师的 《高性能Mysql实战》课程</p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>技术学习</category>
+      </categories>
+      <tags>
+        <tag>面试复习</tag>
+        <tag>Mysql</tag>
+        <tag>数据库</tag>
       </tags>
   </entry>
 </search>
