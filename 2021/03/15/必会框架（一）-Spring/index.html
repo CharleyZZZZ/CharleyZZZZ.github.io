@@ -73,7 +73,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">13.4k</span>
+            <span class="post-count">13.8k</span>
         </span>
     </span>
 
@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">53 min</span>
+            <span class="post-count">55 min</span>
         </span>
     </span>
 </div>
@@ -367,7 +367,7 @@
 <ul>
 <li><strong>postProcessBeforeInstantiation</strong>： 自身方法，是最先执行的方法，它在目标对象实例化之前调用，该方法的返回值类型是Object，我们可以返回任何类型的值。由于这个时候目标对象还未实例化，所以这个返回值可以用来代替原本该生成的目标对象的实例(比如代理对象)。如果该方法的返回值代替原本该生成的目标对象，后续只有<strong>postProcessAfterInitialization</strong>方法会调用，其它方法不再调用；否则按照正常的流程走。</li>
 <li><strong>postProcessAfterInstantiation</strong>：在目标对象实例化之后调用，这个时候对象已经被实例化，但是该实例的属性还未被设置，都是null。因为它的返回值是决定要不要调用 <strong>postProcessPropertyValues</strong>方法的其中一个因素（因为还有一个因素是<strong><em>mbd.getDependencyCheck()</em></strong>）；如果该方法返回<strong>false</strong>,并且不需要<strong>check</strong>，那么<strong>postProcessPropertyValues</strong>就会被忽略不执行；如果返回<strong>true</strong>，<strong>postProcessPropertyValues</strong>就会被执行。</li>
-<li>对属性值进行修改，如果<strong>postProcessAfterInstantiation</strong>方法返回<strong>false</strong>，该方法可能不会被调用。可以在该方法内对属性值进行修改。</li>
+<li><strong>postProcessPropertyValues</strong>：对属性值进行修改，如果<strong>postProcessAfterInstantiation</strong>方法返回<strong>false</strong>，该方法可能不会被调用。可以在该方法内对属性值进行修改。</li>
 </ul>
 <p>示例：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line">**</span><br><span class="line"> * 自定义处理器</span><br><span class="line"> * <span class="meta">@author</span> dengp</span><br><span class="line"> *</span><br><span class="line"> */</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyInstantiationAwareBeanPostProcessor</span> <span class="keyword">implements</span> <span class="title">InstantiationAwareBeanPostProcessor</span></span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * BeanPostProcessor接口中的方法</span></span><br><span class="line"><span class="comment">     * 在Bean的自定义初始化方法之前执行</span></span><br><span class="line"><span class="comment">     * Bean对象已经存在了</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">postProcessBeforeInitialization</span><span class="params">(Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"》》》初始化前：postProcessBeforeInitialization"</span>);</span><br><span class="line">        <span class="keyword">return</span> bean;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * BeanPostProcessor接口中的方法</span></span><br><span class="line"><span class="comment">     * 在Bean的自定义初始化方法执行完成之后执行</span></span><br><span class="line"><span class="comment">     * Bean对象已经存在了</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">postProcessAfterInitialization</span><span class="params">(Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"》》》初始化后：postProcessAfterInitialization"</span>);</span><br><span class="line">        <span class="keyword">return</span> bean;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * InstantiationAwareBeanPostProcessor中自定义的方法</span></span><br><span class="line"><span class="comment">     * 在方法实例化之前执行  Bean对象还没有</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">postProcessBeforeInstantiation</span><span class="params">(Class&lt;?&gt; beanClass, String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"》》》实例化前：postProcessBeforeInstantiation"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * InstantiationAwareBeanPostProcessor中自定义的方法</span></span><br><span class="line"><span class="comment">     * 在方法实例化之后执行  Bean对象已经创建出来了</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">postProcessAfterInstantiation</span><span class="params">(Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"》》》实例化后：postProcessAfterInstantiation"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * InstantiationAwareBeanPostProcessor中自定义的方法</span></span><br><span class="line"><span class="comment">     * 可以用来修改Bean中属性的内容</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> PropertyValues <span class="title">postProcessPropertyValues</span><span class="params">(PropertyValues pvs, PropertyDescriptor[] pds, Object bean,</span></span></span><br><span class="line"><span class="function"><span class="params">                                                    String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"》》》设置属性：postProcessPropertyValues"</span>);</span><br><span class="line">        <span class="keyword">return</span> pvs;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -443,7 +443,7 @@
 <li>上下文关闭事件（<strong>ContextClosedEvent</strong>）：当<strong>ApplicationContext</strong>被关闭时触发该事件。容器被关闭时，其管理的所有单例<strong>Bean</strong>都被销毁。</li>
 <li>请求处理事件（<strong>RequestHandledEvent</strong>）：在<strong>Web</strong>应用中，当一个<strong>http</strong>请求（<strong>request</strong>）结束触发该事件。</li>
 </ul>
-<h4 id="依赖注入（DI）"><a href="#依赖注入（DI）" class="headerlink" title="依赖注入（DI）"></a>依赖注入（DI）</h4><p>将依赖关系的管理交给 <strong>Spring</strong> 维护，在当前类需要用到其他类的对象，由 *<em>Spring *</em> 为我们提供，只需要在配置文件中说明关系的维护。</p>
+<h4 id="依赖注入（DI）"><a href="#依赖注入（DI）" class="headerlink" title="依赖注入（DI）"></a>依赖注入（DI）</h4><p>将依赖关系的管理交给 <strong>Spring</strong> 维护，在当前类需要用到其他类的对象，由 <strong>Spring</strong> 为我们提供，只需要在配置文件中说明关系的维护。</p>
 <p><strong>能够注入的数据：</strong></p>
 <ul>
 <li>基本类型和 <strong>String</strong></li>
@@ -482,7 +482,7 @@
 </li>
 <li><p>用于注入数据：作用和XML配置文件中的bean标签中的<property>作用一样；</property></p>
 <ol>
-<li><p><strong>@Autowried</strong></p>
+<li><p><strong>@Autowried（byType）</strong></p>
 <p>作用：自动按<strong>类型</strong>注入，只要容器中由唯一的bean对象类型和要注入的变量类型匹配，就可以成功注入</p>
 <p>位置：可以为成员变量，也可以为方法</p>
 </li>
@@ -490,34 +490,34 @@
 <p>作用：再按照<strong>类型</strong>注入的基础之上再按照<strong>名称</strong>注入，它在给类成员注入时不能单独使用，和<strong>Autowired</strong>配合使用，但是给方法注入时可以。</p>
 <p>属性：value：用于指定注入bean的id</p>
 </li>
-<li><p><strong>@Resources</strong> </p>
+<li><p><strong>@Resources（byName）</strong> </p>
 <p>作用：属于<strong><em>JSR-250</em></strong>规范定义的注解，支持根据<strong>类型和名称</strong>进行对象注入，它可以独立使用</p>
 <p>属性：name:用于指定bean的id</p>
 <p> <strong>以上三种注入只能注入其他bean类型的数据，而基本类型和String类型无法使用上述注解实现</strong></p>
 </li>
 <li><p><strong>@Value</strong></p>
+<p>作用：用于注入基本类型和<strong>String</strong>类型数据</p>
+<p>属性：value：用于指定数据的值，它可以使用spring中的spEL(也就是spring的el表达式)</p>
+<p>SpEl的写法：${表达式}     </p>
 </li>
 </ol>
 </li>
 </ul>
-<p>​              作用：用于注入基本类型和<strong>String</strong>类型数据</p>
-<p>​              属性：value：用于指定数据的值，它可以使用spring中的spEL(也就是spring的el表达式)</p>
-<p>​              SpEl的写法：${表达式}     </p>
 <ul>
 <li><p>用于改变作用范围：作用和在<strong>bean</strong>标签中使用<strong>scope</strong>属性实现的功能一样的</p>
-<p><strong>Scope</strong> </p>
+<p><strong>@Scope</strong> </p>
 <p>作用：用于指定bean的作用范围</p>
 <p>属性：value:指定范围取值。常用的值：singleton(单例) prototype(多例）</p>
 </li>
 <li><p>和生命周期相关：作用和在bean标签中使用<strong>init-method</strong>和<strong>destroy-method</strong>的作用一样</p>
-<p><strong>PreDestroy</strong>：用于指定销毁，属于<strong><em>JSR-250</em></strong>规范定义的注解</p>
-<p><strong>PostConstruct</strong>：用于指定初始化，属于<strong><em>JSR-250</em></strong>规范定义的注解</p>
+<p><strong>@PreDestroy</strong>：用于指定销毁，属于<strong><em>JSR-250</em></strong>规范定义的注解</p>
+<p><strong>@PostConstruct</strong>：用于指定初始化，属于<strong><em>JSR-250</em></strong>规范定义的注解</p>
 </li>
 </ul>
 <h4 id="Spring-AOP"><a href="#Spring-AOP" class="headerlink" title="Spring AOP"></a>Spring AOP</h4><p><strong>AOP （Aspect Orient Programming）</strong>,直译过来就是 <strong>面向切面编程</strong>。<strong>AOP</strong> 是一种编程思想，是面向对象编程（<strong>OOP</strong>）的一种补充。</p>
 <p><strong>AOP</strong> 要达到的效果是，保证开发者不修改源代码的前提下，去为系统中的业务组件添加某种通用功能。</p>
 <ul>
-<li><strong>静态 AOP 实现</strong>： AOP 框架在编译阶段对程序源代码进行修改，生成了静态的 AOP 代理类（生成的 <em>.class 文件已经被改掉了，需要使用特定的编译器），比如 *</em>AspectJ**。</li>
+<li><strong>静态 AOP 实现</strong>： AOP 框架在编译阶段对程序源代码进行修改，生成了静态的 AOP 代理类（生成的 *.class 文件已经被改掉了，需要使用特定的编译器），比如<strong>AspectJ</strong>。</li>
 <li><strong>动态 AOP 实现</strong>： AOP 框架在运行阶段对动态生成代理对象（在内存中以 JDK 动态代理，或 CGlib 动态地生成 AOP 代理类），如 <strong>SpringAOP</strong>。</li>
 </ul>
 <p><strong>AOP 领域中的特性术语：</strong></p>
@@ -567,13 +567,116 @@
 
 
 
-<h4 id="Spring事务处理"><a href="#Spring事务处理" class="headerlink" title="Spring事务处理"></a>Spring事务处理</h4><p>前面关于<strong>事务</strong>的概念在<a href="http://blogsea.cn/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/" target="_blank" rel="noopener">分布式架构之事务管理</a>中提到过：</p>
-<ul>
-<li>事务的概念</li>
-<li>事务的四大特性</li>
-<li>事务的隔离级别</li>
+<h4 id="Spring-事务"><a href="#Spring-事务" class="headerlink" title="Spring 事务"></a>Spring 事务</h4><p><strong>Spring事务</strong>的本质其实就是<strong>数据库对事务的支持</strong>，没有数据库的事务支持，spring是无法提供事务功能的。对于纯JDBC操作数据库，想要用到事务，可以按照以下步骤进行：</p>
+<ol>
+<li><strong>获取连接</strong> Connection con = DriverManager.getConnection()</li>
+<li><strong>开启事务</strong>con.setAutoCommit(true/false);</li>
+<li><strong>执行CRUD</strong></li>
+<li><strong>提交事务/回滚事务</strong> con.commit() / con.rollback();</li>
+<li><strong>关闭连接</strong> conn.close();</li>
+</ol>
+<h5 id="分类"><a href="#分类" class="headerlink" title="分类"></a>分类</h5><ul>
+<li><strong>编程式事务</strong>：指在代码中手动的管理事务的提交、回滚等操作，代码侵入性比较强</li>
+<li><strong>声明式事务</strong>：基于AOP面向切面的，它将具体业务与事务处理部分解耦，代码侵入性很低，所以在实际开发中声明式事务用的比较多。声明式事务也有两种实现方式，是基于<strong>TX和AOP的xml配置文件</strong>方式，二种就是基于@<strong>Transactional</strong>注解了。</li>
 </ul>
-<p>此处不再赘述。</p>
+<p>这里举例 <strong>注解的方式</strong>配置事务。</p>
+<h5 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h5><p>1、定义事务管理器，传入 数据源对象</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span> </span><br><span class="line"><span class="function"><span class="keyword">public</span> PlatformTransactionManager <span class="title">transactionManager</span><span class="params">()</span> </span>&#123; </span><br><span class="line"></span><br><span class="line">	JpaTransactionManager transactionManager = <span class="keyword">new</span> JpaTransactionManager(); </span><br><span class="line">	transactionManager.setDataSource(dataSource()); </span><br><span class="line">	<span class="keyword">return</span> transactionManager; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>2、在对应需要事务的类或方法上添加注解 <strong><em>@Transactional</em></strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// @Transactional注解来自org.springframework.transaction.annotation包，而不是javax.transaction。</span></span><br><span class="line"><span class="meta">@Transactional</span> </span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">saveSomething</span><span class="params">(String name)</span> </span>&#123; </span><br><span class="line">    <span class="comment">//数据库操作 </span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h5 id="实现原理"><a href="#实现原理" class="headerlink" title="实现原理"></a><strong>实现原理</strong></h5><ul>
+<li>配置文件开启注解驱动，在相关的类和方法上通过注解<strong><em>@Transactional</em></strong>标识。类上添加<strong><em>@Transactional</em></strong>则代表该类的所有方法都有事务。</li>
+<li><strong>Spring</strong> 在启动的时候会去解析生成相关的bean，这时候会查看拥有相关注解的类和方法，并且为这些类和方法生成<strong>代理</strong>，并根据<strong><em>@Transaction</em></strong>的相关参数进行相关配置注入，这样就在代理中为我们把相关的事务处理掉了（开启正常提交事务，异常回滚事务）。</li>
+<li>真正的数据库层的事务提交和回滚是通过<strong>bin log和redo log</strong>实现的。</li>
+</ul>
+<h5 id="事务机制"><a href="#事务机制" class="headerlink" title="事务机制"></a>事务机制</h5><p><strong>Spring</strong>的事务机制是<strong>用统一的机制来处理不同数据访问技术的事务处理</strong>。<strong>Spring</strong>的事务机制提供了一个<strong><em>PlatformTransactionManager</em></strong>接口，不同的数据访问技术的事务使用不同的接口实现</p>
+<ul>
+<li><strong>JDBC</strong>：DataSourceTransactionManager</li>
+<li><strong>JPA</strong>：JpaTransactionManager</li>
+<li><strong>Hibernate</strong>：HibernateTransactionManager</li>
+<li><strong>JDO</strong>：JdoTransactionManager</li>
+<li><strong>分布式事务</strong>：JtaTransactionManager</li>
+</ul>
+<h5 id="Spring-事务隔离级别"><a href="#Spring-事务隔离级别" class="headerlink" title="Spring 事务隔离级别"></a>Spring 事务隔离级别</h5><p><a href="http://blogsea.cn/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/" target="_blank" rel="noopener">分布式事务</a>课程中，我们学习了<strong>数据库隔离级别</strong></p>
+<p><img src="/2021/03/15/%E5%BF%85%E4%BC%9A%E6%A1%86%E6%9E%B6%EF%BC%88%E4%B8%80%EF%BC%89-Spring/framework_09.png" alt="数据库隔离级别"></p>
+<p><strong>脏读</strong>：一事务对数据进行了增删改，但未提交，另一事务可以读取到未提交的数据。如果第一个事务这时候回滚了，那么第二个事务就读到了脏数据。</p>
+<p><strong>不可重复读</strong>：一个事务中发生了两次读操作，第一次读操作和第二次操作之间，另外一个事务对数据进行了修改，这时候两次读取的数据是不一致的。</p>
+<p><strong>幻读</strong>：第一个事务对一定范围的数据进行批量修改，第二个事务在这个范围增加一条数据，这时候第一个事务就会丢失对新增数据的修改。</p>
+<p>总结：</p>
+<ul>
+<li><p>隔离级别越高，越能保证数据的完整性和一致性，但是对并发性能的影响也越大。</p>
+</li>
+<li><p>大多数的数据库默认隔离级别为 <strong>Read Commited</strong>，比如 SqlServer、Oracle</p>
+</li>
+<li><p>少数数据库默认隔离级别为：<strong>Repeatable Read</strong> 比如： MySQL InnoDB</p>
+</li>
+</ul>
+<p><strong>Spring 中的事务隔离级别</strong></p>
+<p><img src="/2021/03/15/%E5%BF%85%E4%BC%9A%E6%A1%86%E6%9E%B6%EF%BC%88%E4%B8%80%EF%BC%89-Spring/framework_10.png" alt="Spring 事务隔离级别"></p>
+<h5 id="事务嵌套（传播机制）"><a href="#事务嵌套（传播机制）" class="headerlink" title="事务嵌套（传播机制）"></a>事务嵌套（传播机制）</h5><ul>
+<li><p><strong>PROPAGATION_REQUIRED</strong> (spring 默认)</p>
+<p>支持当前事务,如果有就加入当前事务中;如果当前方法没有事务,就新建一个事务;</p>
+</li>
+<li><p><strong>PROPAGATION_REQUIRES_NEW</strong></p>
+<p>新建事务,如果当前存在事务,就把当前事务挂起;如果当前方法没有事务,就新建事务;</p>
+<p>他与 <strong>PROPAGATION_REQUIRED</strong> 的事务区别在于事务的回滚程度了。</p>
+</li>
+<li><p><strong>PROPAGATION_NESTED</strong></p>
+<p>如果当前方法有事务,则在嵌套事务内执行;如果当前方法没有事务,则与required操作类似;</p>
+</li>
+<li><p><strong>PROPAGATION_MANATORY</strong></p>
+<p>支持当前事务,如果有就加入当前事务中;如果当前没有事务,就抛出异常;</p>
+</li>
+<li><p><strong>PROPAGATION_SUPPORTS</strong></p>
+<p>支持当前事务,如果有就加入当前事务中;如果当前方法没有事务,就以非事务的方式执行;</p>
+<p>这种时候，内部方法的事务性完全依赖于最外层的事务。</p>
+</li>
+<li><p><strong>PROPAGATION_NOT_SUPPORTED</strong></p>
+<p>以非事务方式执行,如果当前方法存在事务就挂起当前事务;如果当前方法不存在事务,就以非事务方式执行;</p>
+</li>
+<li><p><strong>PROPAGATION_NERVER</strong></p>
+<p>以非事务方式执行,如果当前方法存在事务就抛出异常;如果当前方法不存在事务,就以非事务方式执行;</p>
+</li>
+</ul>
+<h5 id="Transactional-失效原因"><a href="#Transactional-失效原因" class="headerlink" title="@Transactional 失效原因"></a>@Transactional 失效原因</h5><ul>
+<li><p><strong>@Transactional 做用于非public方法上</strong>。</p>
+<p>因为在<strong>Spring AOP</strong>代理时<strong>TransactionInterceptor</strong> （事务拦截器）在目标方法执行前后进行拦截，<strong>DynamicAdvisedInterceptor</strong>（CglibAopProxy 的内部类）的 <strong><em>intercept</em></strong> 方法或 <strong>JdkDynamicAopProxy</strong> 的 <strong><em>invoke</em></strong> 方法会间接调用 <strong>AbstractFallbackTransactionAttributeSource</strong>的 <strong><em>computeTransactionAttribute</em></strong>方法，获取<strong>Transactional</strong> 注解的事务配置信息。其中此方法会检查目标方法的修饰符是否为 <strong>public</strong>，<strong>不是 public则不会获取@Transactional 的属性配置信息</strong>。</p>
+</li>
+</ul>
+<ul>
+<li><p><strong>@Transactional 注解属性 rollbackFor 设置错误</strong>。</p>
+<p><strong>rollbackFor</strong> 可以指定能够触发事务回滚的异常类型。Spring默认抛出了<strong>未检查unchecked异常（继承自 RuntimeException 的异常）或者 Error才回滚事务</strong>。如果需要制定异常回滚，则需配置 rollbackFor ，</p>
+<p><strong>若在目标方法中抛出的异常是 rollbackFor 指定的异常的子类，事务同样会回滚。</strong></p>
+</li>
+</ul>
+<ul>
+<li><p><strong>同一个类中方法调用，导致@Transactional失效</strong>。</p>
+<p>这是由于使用Spring AOP代理造成的，因为只有当事务方法被当前类以外的代码调用时，才会由Spring生成的代理对象来管理。</p>
+<p>解决方法可以是，上层自定义 self() 方法，返回代理对象。调用本类方法时，使用 <strong><em>self().testB()</em></strong> 即可。</p>
+<p>具体实现方法为 ：</p>
+<ol>
+<li><p>自定义 接口  <strong>ProxySelf</strong>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">public interface ProxySelf&lt;T&gt; &#123;</span><br><span class="line">    default T self() &#123;</span><br><span class="line">        return AopContext.currentProxy();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>service 接口继承 ProxySelf ，泛型传入自身接口</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">IUserService</span> <span class="keyword">extends</span> <span class="title">ProxySelf</span>&lt;<span class="title">IUserService</span>&gt;</span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>service 实现类中调用 <strong><em>this.self().testB()</em></strong> 方法即可。</p>
+</li>
+</ol>
+</li>
+</ul>
+<ul>
+<li><p><strong>异常被你的 catch “吃了” 导致@Transactional失效</strong></p>
+</li>
+<li><p><strong>数据库引擎不支持事务</strong>：例如 Mysql 切换 MyISAM 引擎等</p>
+</li>
+</ul>
+<p><strong>更多事务扩展知识</strong>可在<a href="http://blogsea.cn/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/" target="_blank" rel="noopener">分布式架构之事务管理</a>中学习。</p>
 <h3 id="SpringMVC"><a href="#SpringMVC" class="headerlink" title="SpringMVC"></a>SpringMVC</h3><p>在早期 Java Web 的开发中，统一把显示层、控制层、数据层的操作全部交给 JSP 或者 JavaBean 来进行处理，我们称之为 <strong>Model1</strong></p>
 <p><strong>出现的弊端：</strong></p>
 <ul>
@@ -667,80 +770,7 @@
 <p><img src="/2021/03/15/%E5%BF%85%E4%BC%9A%E6%A1%86%E6%9E%B6%EF%BC%88%E4%B8%80%EF%BC%89-Spring/framework_08.png" alt="Filter 和 拦截器执行顺序"></p>
 </li>
 </ul>
-<h3 id="SpringData"><a href="#SpringData" class="headerlink" title="SpringData"></a>SpringData</h3><h4 id="JPA（待更新）"><a href="#JPA（待更新）" class="headerlink" title="JPA（待更新）"></a>JPA（待更新）</h4><h4 id="Spring-事务"><a href="#Spring-事务" class="headerlink" title="Spring 事务"></a>Spring 事务</h4><p><strong>Spring事务</strong>的本质其实就是<strong>数据库对事务的支持</strong>，没有数据库的事务支持，spring是无法提供事务功能的。对于纯JDBC操作数据库，想要用到事务，可以按照以下步骤进行：</p>
-<ol>
-<li><strong>获取连接</strong> Connection con = DriverManager.getConnection()</li>
-<li><strong>开启事务</strong>con.setAutoCommit(true/false);</li>
-<li><strong>执行CRUD</strong></li>
-<li><strong>提交事务/回滚事务</strong> con.commit() / con.rollback();</li>
-<li><strong>关闭连接</strong> conn.close();</li>
-</ol>
-<p>使用<strong>Spring</strong>的事务管理功能后，我们可以不再写步骤 2 和 4 的代码，而是由Spirng 自动完成。</p>
-<p><strong>Spring</strong> 事务管理有俩种方式，一种是 <strong>xml 配置</strong>，一种是<strong>注解</strong>方式，这里举例 <strong>注解的方式</strong>配置事务。</p>
-<h5 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h5><p>1、定义事务管理器，传入 数据源对象</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span> </span><br><span class="line"><span class="function"><span class="keyword">public</span> PlatformTransactionManager <span class="title">transactionManager</span><span class="params">()</span> </span>&#123; </span><br><span class="line"></span><br><span class="line">	JpaTransactionManager transactionManager = <span class="keyword">new</span> JpaTransactionManager(); </span><br><span class="line">	transactionManager.setDataSource(dataSource()); </span><br><span class="line">	<span class="keyword">return</span> transactionManager; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>2、在对应需要事务的类或方法上添加注解 <strong><em>@Transactional</em></strong></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// @Transactional注解来自org.springframework.transaction.annotation包，而不是javax.transaction。</span></span><br><span class="line"><span class="meta">@Transactional</span> </span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">saveSomething</span><span class="params">(String name)</span> </span>&#123; </span><br><span class="line">    <span class="comment">//数据库操作 </span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h5 id="实现原理"><a href="#实现原理" class="headerlink" title="实现原理"></a><strong>实现原理</strong></h5><ul>
-<li>配置文件开启注解驱动，在相关的类和方法上通过注解<strong><em>@Transactional</em></strong>标识。类上添加<strong><em>@Transactional</em></strong>则代表该类的所有方法都有事务。</li>
-<li><strong>Spring</strong> 在启动的时候会去解析生成相关的bean，这时候会查看拥有相关注解的类和方法，并且为这些类和方法生成<strong>代理</strong>，并根据<strong><em>@Transaction</em></strong>的相关参数进行相关配置注入，这样就在代理中为我们把相关的事务处理掉了（开启正常提交事务，异常回滚事务）。</li>
-<li>真正的数据库层的事务提交和回滚是通过</li>
-<li>或者<strong>redo log</strong>实现的。</li>
-</ul>
-<h5 id="事务机制"><a href="#事务机制" class="headerlink" title="事务机制"></a>事务机制</h5><p><strong>Spring</strong>的事务机制是<strong>用统一的机制来处理不同数据访问技术的事务处理</strong>。<strong>Spring</strong>的事务机制提供了一个<strong><em>PlatformTransactionManager</em></strong>接口，不同的数据访问技术的事务使用不同的接口实现</p>
-<ul>
-<li><strong>JDBC</strong>：DataSourceTransactionManager</li>
-<li><strong>JPA</strong>：JpaTransactionManager</li>
-<li><strong>Hibernate</strong>：HibernateTransactionManager</li>
-<li><strong>JDO</strong>：JdoTransactionManager</li>
-<li><strong>分布式事务</strong>：JtaTransactionManager</li>
-</ul>
-<h5 id="Spring-事务隔离级别"><a href="#Spring-事务隔离级别" class="headerlink" title="Spring 事务隔离级别"></a>Spring 事务隔离级别</h5><p><a href="http://blogsea.cn/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/" target="_blank" rel="noopener">分布式事务</a>课程中，我们学习了<strong>数据库隔离级别</strong></p>
-<p><img src="/2021/03/15/%E5%BF%85%E4%BC%9A%E6%A1%86%E6%9E%B6%EF%BC%88%E4%B8%80%EF%BC%89-Spring/framework_09.png" alt="数据库隔离级别"></p>
-<p><strong>脏读</strong>：一事务对数据进行了增删改，但未提交，另一事务可以读取到未提交的数据。如果第一个事务这时候回滚了，那么第二个事务就读到了脏数据。</p>
-<p><strong>不可重复读</strong>：一个事务中发生了两次读操作，第一次读操作和第二次操作之间，另外一个事务对数据进行了修改，这时候两次读取的数据是不一致的。</p>
-<p><strong>幻读</strong>：第一个事务对一定范围的数据进行批量修改，第二个事务在这个范围增加一条数据，这时候第一个事务就会丢失对新增数据的修改。</p>
-<p>总结：</p>
-<ul>
-<li><p>隔离级别越高，越能保证数据的完整性和一致性，但是对并发性能的影响也越大。</p>
-</li>
-<li><p>大多数的数据库默认隔离级别为 <strong>Read Commited</strong>，比如 SqlServer、Oracle</p>
-</li>
-<li><p>少数数据库默认隔离级别为：<strong>Repeatable Read</strong> 比如： MySQL InnoDB</p>
-</li>
-</ul>
-<p><strong>Spring 中的事务隔离级别</strong></p>
-<p><img src="/2021/03/15/%E5%BF%85%E4%BC%9A%E6%A1%86%E6%9E%B6%EF%BC%88%E4%B8%80%EF%BC%89-Spring/framework_10.png" alt="Spring 事务隔离级别"></p>
-<h5 id="事务嵌套（传播机制）"><a href="#事务嵌套（传播机制）" class="headerlink" title="事务嵌套（传播机制）"></a>事务嵌套（传播机制）</h5><ul>
-<li><p><strong>PROPAGATION_REQUIRED</strong> (spring 默认)</p>
-<p>支持当前事务,如果有就加入当前事务中;如果当前方法没有事务,就新建一个事务;</p>
-</li>
-<li><p><strong>PROPAGATION_REQUIRES_NEW</strong></p>
-<p>新建事务,如果当前存在事务,就把当前事务挂起;如果当前方法没有事务,就新建事务;</p>
-<p>他与 <strong>PROPAGATION_REQUIRED</strong> 的事务区别在于事务的回滚程度了。</p>
-</li>
-<li><p><strong>PROPAGATION_NESTED</strong></p>
-<p>如果当前方法有事务,则在嵌套事务内执行;如果当前方法没有事务,则与required操作类似;</p>
-</li>
-<li><p><strong>PROPAGATION_MANATORY</strong></p>
-<p>支持当前事务,如果有就加入当前事务中;如果当前没有事务,就抛出异常;</p>
-</li>
-<li><p><strong>PROPAGATION_SUPPORTS</strong></p>
-<p>支持当前事务,如果有就加入当前事务中;如果当前方法没有事务,就以非事务的方式执行;</p>
-<p>这种时候，内部方法的事务性完全依赖于最外层的事务。</p>
-</li>
-<li><p><strong>PROPAGATION_NOT_SUPPORTED</strong></p>
-<p>以非事务方式执行,如果当前方法存在事务就挂起当前事务;如果当前方法不存在事务,就以非事务方式执行;</p>
-</li>
-<li><p><strong>PROPAGATION_NERVER</strong></p>
-<p>以非事务方式执行,如果当前方法存在事务就抛出异常;如果当前方法不存在事务,就以非事务方式执行;</p>
-</li>
-</ul>
-<h3 id="SpringBoot"><a href="#SpringBoot" class="headerlink" title="SpringBoot"></a>SpringBoot</h3><p><a href="http://blogsea.cn/2020/04/28/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/" target="_blank" rel="noopener">SpringBoot学习之启动配置原理</a></p>
+<h3 id="SpringData"><a href="#SpringData" class="headerlink" title="SpringData"></a>SpringData</h3><h4 id="JPA（待更新）"><a href="#JPA（待更新）" class="headerlink" title="JPA（待更新）"></a>JPA（待更新）</h4><h3 id="SpringBoot"><a href="#SpringBoot" class="headerlink" title="SpringBoot"></a>SpringBoot</h3><p><a href="http://blogsea.cn/2020/04/28/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/" target="_blank" rel="noopener">SpringBoot学习之启动配置原理</a></p>
 <p><a href="http://blogsea.cn/2020/05/07/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/" target="_blank" rel="noopener">SpringBoot学习之自动配置原理</a></p>
 <p><a href="http://blogsea.cn/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/" target="_blank" rel="noopener">SpringBoot学习之日志管理</a></p>
 <p>另补充<strong>SpringBoot</strong>关键注解：</p>

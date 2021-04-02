@@ -73,7 +73,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">5.2k</span>
+            <span class="post-count">9.2k</span>
         </span>
     </span>
 
@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">18 min</span>
+            <span class="post-count">33 min</span>
         </span>
     </span>
 </div>
@@ -263,7 +263,154 @@
 <p>SLF4J加载不同提供商的日志实现类</p>
 <p>Dubbo中也大量使用SPI的方式实现框架的扩展</p>
 <p>此外，spring-boot 自动配置原理似乎也是借鉴SPI机制，详见 <a href="http://blogsea.cn/2020/05/07/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/" target="_blank" rel="noopener">SpringBoot学习之自动配置原理</a></p>
-<h3 id="GC垃圾回收器"><a href="#GC垃圾回收器" class="headerlink" title="GC垃圾回收器"></a>GC垃圾回收器</h3><h3 id="编译器优化"><a href="#编译器优化" class="headerlink" title="编译器优化"></a>编译器优化</h3><h3 id="性能调优"><a href="#性能调优" class="headerlink" title="性能调优"></a>性能调优</h3><blockquote>
+<h3 id="GC垃圾回收器"><a href="#GC垃圾回收器" class="headerlink" title="GC垃圾回收器"></a>GC垃圾回收器</h3><p>JVM中堆是一个巨大的对象池。在这个对象池中管理着数量巨大的对象实例。而池中对象的引用层次，有的是很深的。一个被频繁调用的接口，每秒生成对象的速度，也是非常可观的。对象之间的关系，形成了一张巨大的网。虽然 Java 一直在营造一种无限内存的氛围，但对象不能只增不减，所以需要<strong>垃圾回收</strong>（GC）。</p>
+<p>当我们的内存空间达到一定条件时，会自动触发。这个过程就叫作 <strong>GC</strong>，负责 GC 的组件，就叫作<strong>垃圾回收器</strong>。</p>
+<h4 id="判断哪些对象被回收"><a href="#判断哪些对象被回收" class="headerlink" title="判断哪些对象被回收"></a><strong>判断哪些对象被回收</strong></h4><p>由 GC Roots 向下追溯、搜索，会产生一个叫作 <strong>Reference Chain</strong> 的链条。<strong>当一个对象不能和任何一个 GC Root 产生关系时，就会垃圾回收。</strong></p>
+<ul>
+<li>GC Roots 是一组<strong>必须活跃的引用</strong>。大体分为：<ul>
+<li>活动线程相关的各种引用。</li>
+<li>类的静态变量的引用。</li>
+<li>JNI 引用。</li>
+</ul>
+</li>
+<li><strong>活跃的引用，而不是对象</strong>，对象是不能作为 GC Roots 的。</li>
+<li><strong>GC 过程是找出所有活对象，并把其余空间认定为“无用”；而不是找出所有死掉的对象，并回收它们占用的空间。</strong>所以，哪怕 JVM 的堆非常的大，基于 tracing 的 GC 方式，回收速度也会非常快。</li>
+</ul>
+<h4 id="引用级别"><a href="#引用级别" class="headerlink" title="引用级别"></a>引用级别</h4><p>能够找到 Reference Chain 的对象，就一定会存活么？不一定</p>
+<p>对象的引用级别分为：<strong>强引用、软引用、弱引用、虚引用</strong>等。不同的引用级别，回收条件也不一样。</p>
+<ul>
+<li><p><strong>强引用 Strong references</strong>：当内存空间不足，系统撑不住了，JVM 就会抛出 OutOfMemoryError 错误。<strong>即使程序会异常终止，这种对象也不会被回收。</strong></p>
+<p>这种引用属于最普通最强硬的一种存在，只有在和 GC Roots 断绝关系时，才会被消灭掉。</p>
+</li>
+<li><p><strong>软引用 Soft references</strong>：软引用用于维护一些可有可无的对象。在内存足够的时候，软引用对象不会被回收，<strong>只有在内存不足时，系统则会回收软引用对象</strong>，如果回收了软引用对象之后仍然没有足够的内存，才会抛出内存溢出异常。可以看到，这种特性非常适合用在缓存技术上。比如网页缓存、图片缓存等。Guava 的 CacheBuilder，就提供了软引用和弱引用的设置方式。</p>
+<p>软引用需要显式的声明，使用泛型来实现。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Object object = <span class="keyword">new</span> Object();</span><br><span class="line">SoftReference&lt;Object&gt; softRef = <span class="keyword">new</span> SoftReference(object);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>弱引用 Weak references</strong>：弱引用对象相比较软引用，要更加无用一些，它拥有更短的生命周期。当 JVM 进行垃圾回收时，<strong>无论内存是否充足，都会回收被弱引用关联的对象</strong>。它的应用场景和软引用类似，可以在一些对内存更加敏感的系统里采用。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Object object = <span class="keyword">new</span> Object();</span><br><span class="line">WeakReference&lt;Object&gt; softRef = <span class="keyword">new</span> WeakReference(object);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>虚引用 Phantom References</strong>：这是一种<strong>形同虚设的引用，</strong>在现实场景中用的不是很多。虚引用主要用来跟踪对象被垃圾回收的活动。</p>
+<p>当垃圾回收器准备回收一个对象时，如果发现它还有虚引用，就会在回收对象之前，把这个虚引用加入到与之关联的引用队列中。反之，程序如果发现某个虚引用已经被加入到引用队列，那么就可以在所引用的对象的内存被回收之前采取必要的行动。</p>
+</li>
+</ul>
+<h4 id="典型OOM场景"><a href="#典型OOM场景" class="headerlink" title="典型OOM场景"></a>典型OOM场景</h4><p>JVM 中，除了程序计数器，其他区域都有OOM溢出的可能。但是<strong>最常见的还是发生在堆上</strong>。</p>
+<p>常见OOM场景：</p>
+<ul>
+<li>内存的容量太小了，需要扩容，或者需要调整堆的空间。</li>
+<li>错误的引用方式，发生了内存泄漏。</li>
+<li>没有及时的切断与 GC Roots 的关系。比如线程池里的线程，在复用的情况下忘记清理 ThreadLocal 的内容。接口没有进行范围校验，外部传参超出范围。比如数据库查询时的每页条数等。</li>
+<li>对堆外内存无限制的使用。这种情况一旦发生更加严重，会造成操作系统内存耗尽。</li>
+</ul>
+<h4 id="垃圾回收"><a href="#垃圾回收" class="headerlink" title="垃圾回收"></a>垃圾回收</h4><p><strong>GC 的过程</strong>是先找到活跃的对象，然后把其他不活跃的对象判定为垃圾，然后删除。所以垃圾回收只与活跃的对象有关，和堆的大小无关。</p>
+<p>垃圾回收几个概念：</p>
+<ul>
+<li><strong>标记</strong>：垃圾回收的第一步，就是找出活跃的对象。根据 GC Roots 遍历所有的可达对象，这个过程，就叫作<strong>标记</strong>。</li>
+<li><strong>清除</strong>：清除阶段就是把未被标记的对象回收掉。</li>
+<li><strong>复制</strong>：经过清除后，剩下活跃对象分散分布，造成内存碎片。我们可以通过复制方式解决内存碎片：提供一个对等的内存空间，将存活的对象复制过去，然后清除原内存空间。</li>
+<li><strong>整理</strong>：其实不用分配一个对等的额外空间，也是可以完成内存的整理工作，就是移动所有存活的对象，且按照内存地址顺序依次排列，然后将末端内存地址以后的内存全部回收。</li>
+</ul>
+<p>回收算法：</p>
+<ul>
+<li><strong>复制算法（Copy）</strong>复制算法是所有算法里面效率最高的，缺点是会造成一定的空间浪费。</li>
+<li><strong>标记-清除（Mark-Sweep）</strong>效率一般，缺点是会造成内存碎片问题。</li>
+<li><strong>标记-整理（Mark-Compact）</strong>效率比前两者要差，但没有空间浪费，也消除了内存碎片问题。</li>
+</ul>
+<h4 id="分代"><a href="#分代" class="headerlink" title="分代"></a>分代</h4><p>JVM 是计算节点，而不是存储节点。最理想的情况，就是对象在用完之后，它的生命周期立马就结束了。而那些被频繁访问的资源，我们希望它能够常驻在内存里。<br>研究表明，大部分对象，可以分为两类：<strong>大部分对象的生命周期都很短；其他对象则很可能会存活很长时间。</strong></p>
+<p><strong>大部分死的快，其他的活的长。</strong>这个假设我们称之为<strong>弱代假设</strong>（weak generational hypothesis）。</p>
+<p>现在的垃圾回收器，都会<strong>在物理上或者逻辑上</strong>，把这两类对象进行区分。我们把死的快的对象所占的区域，叫作<strong>年轻代（Young generation）</strong>。把其他活的长的对象所占的区域，叫作<strong>老年代（Old generation）</strong>（老年代在有些地方也会叫作 Tenured Generation）。</p>
+<h5 id="年轻代"><a href="#年轻代" class="headerlink" title="年轻代"></a>年轻代</h5><p><strong>年轻代使用的垃圾回收算法是复制算法。</strong>因为年轻代发生 GC 后，只会有非常少的对象存活，复制这部分对象是非常高效的。</p>
+<p>年轻代分为：<strong>一个伊甸园空间（Eden ），两个幸存者空间（Survivor ）</strong>。内存<strong>比例为 8:1:1</strong>。（这个比例，是由参数 <strong>-XX:SurvivorRatio</strong> 进行配置的（默认为 8））</p>
+<ul>
+<li><p>在 Eden 区执行了第一次 GC 之后，存活的对象会被移动到其中一个 Survivor 分区（以下简称from）；</p>
+</li>
+<li><p>Eden 区再次 GC，这时会采用复制算法，将 Eden 和 from 区一起清理。存活的对象会被复制到 to 区（另一个Survivor 分区）；</p>
+</li>
+<li><p>接下来，只需要清空 from 区就可以了。</p>
+</li>
+</ul>
+<p>所以在这个过程中，<strong>总会有一个 Survivor 分区是空置的，所以只会造成 10% 的空间浪费。</strong></p>
+<h5 id="老年代"><a href="#老年代" class="headerlink" title="老年代"></a>老年代</h5><p><strong>老年代一般使用“标记-清除”、“标记-整理”算法</strong>，因为老年代的对象存活率一般是比较高的，空间又比较大，拷贝起来并不划算，还不如采取就地收集的方式。</p>
+<p>对象进入老年代的方式：</p>
+<ul>
+<li><strong>提升（Promotion）</strong>：每当发生一次 Minor GC（年轻代 GC），存活下来的对象年龄都会加 1。直到达到一定的阈值，就会把这些“老顽固”给提升到老年代。（阈值可以通过参数 <strong>‐XX:+MaxTenuringThreshold</strong> 进行配置，最大值是 15，因为它是用 4bit 存储的）</li>
+<li><strong>分配担保</strong>：Minor GC后，每次存活的对象，都会放入其中一个幸存区，这个区域默认的比例是 10%。但是我们无法保证每次存活的对象都小于 10%，当 Survivor 空间不够，就需要依赖其他内存（指老年代）进行分配担保。这个时候，对象也会直接在老年代上分配。</li>
+<li><strong>大对象直接在老年代分配</strong>：超出某个大小的对象将直接在老年代分配。</li>
+<li><strong>动态对象年龄判定</strong>：对于提升中，阈值不是一个固定值，而是有某个算法动态获得的age，大于或等于 age 的对象将会直接进入老年代。</li>
+</ul>
+<h5 id="卡片标记"><a href="#卡片标记" class="headerlink" title="卡片标记"></a>卡片标记</h5><p>对象的引用关系是一个巨大的网状。有的对象可能在 Eden 区，有的可能在老年代，那么这种<strong>跨代的引用</strong>是如何处理？由于 Minor GC 是单独发生的，如果一个老年代的对象引用了它，如何确保能够让年轻代的对象存活呢？</p>
+<p>对于是、否的判断，我们通常都会用 Bitmap（位图）和布隆过滤器来加快搜索的速度。</p>
+<p>JVM 也是用了类似的方法。老年代是被分成众多的卡页（card page）的（一般数量是 2 的次幂）。<br><strong>卡表（Card Table）</strong>就是用于标记卡页状态的一个集合，每个卡表项对应一个卡页。<br>如果年轻代有对象分配，而且老年代有对象指向这个新对象， 那么这个老年代对象所对应内存的卡页，就会标识为 dirty，卡表只需要非常小的存储空间就可以保留这些状态。垃圾回收时，就可以先读这个卡表，进行快速判断。</p>
+<h4 id="HotSpot-垃圾回收器"><a href="#HotSpot-垃圾回收器" class="headerlink" title="HotSpot 垃圾回收器"></a><strong>HotSpot 垃圾回收器</strong></h4><ul>
+<li><strong>年轻代垃圾回收器</strong><ul>
+<li><strong>Serial 垃圾收集器</strong>：处理 GC 的只有一条线程，并且在垃圾回收的过程中暂停一切用户线程。</li>
+<li><strong>ParNew 垃圾收集器</strong>：ParNew 是 Serial 的多线程版本。由多条 GC 线程并行地进行垃圾清理。清理过程依然要停止用户线程。</li>
+<li><strong>Parallel Scavenge 垃圾收集器</strong>：另一个多线程版本的垃圾回收器。它与 ParNew 的主要区别是：Parallel Scavenge：追求 CPU 吞吐量，能够在较短时间内完成指定任务，适合没有交互的后台计算。<strong>弱交互强计算</strong>。ParNew：追求降低用户停顿时间，适合交互式应用。强交互弱计算。</li>
+</ul>
+</li>
+<li><strong>老年代垃圾回收器</strong><ul>
+<li><strong>Serial Old 垃圾收集器</strong>：与年轻代的 Serial 垃圾收集器对应，都是单线程版本。年轻代的 Serial，使用复制算法。老年代的 Old Serial，使用标记-整理算法。</li>
+<li><strong>Parallel Old</strong>：Parallel Old 收集器是 Parallel Scavenge 的老年代版本，追求 CPU 吞吐量。</li>
+<li><strong>CMS 垃圾收集器</strong>：CMS（Concurrent Mark Sweep）收集器是以获取最短 GC 停顿时间为目标的收集器，它在垃圾收集时使得<strong>用户线程和 GC 线程能够并发执行</strong>，因此在垃圾收集过程中用户也不会感到明显的卡顿。</li>
+</ul>
+</li>
+</ul>
+<p>除了上面几个垃圾回收器，我们还有 G1、ZGC 等更加高级的垃圾回收器，它们都有专门的配置参数来使其生效。</p>
+<p>配置参数：</p>
+<ul>
+<li><strong>-XX:+UseSerialGC</strong> 年轻代和老年代都用串行收集器</li>
+<li><strong>-XX:+UseParNewGC</strong> 年轻代使用 ParNew，老年代使用 Serial Old</li>
+<li><strong>-XX:+UseParallelGC</strong> 年轻代使用 ParallerGC，老年代使用 Serial Old</li>
+<li><strong>-XX:+UseParallelOldGC</strong> 新生代和老年代都使用并行收集器</li>
+<li><strong>-XX:+UseConcMarkSweepGC</strong>，表示年轻代使用 ParNew，老年代的用 CMS</li>
+<li><strong>-XX:+UseG1GC</strong> 使用 G1垃圾回收器</li>
+<li><strong>-XX:+UseZGC</strong> 使用 ZGC 垃圾回收器</li>
+</ul>
+<p>Java7、8 的默认参数：-XX:+UseParallelGC。Java13 的默认参数：-XX:+UseG1GC。</p>
+<ul>
+<li><p><strong>java -XX:+PrintCommandLineFlags -version</strong>  ：查看详细参数</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">C:\Users\charleyZZZZ&gt;java <span class="literal">-XX</span>:+PrintCommandLineFlags <span class="literal">-version</span></span><br><span class="line"><span class="literal">-XX</span>:InitialHeapSize=<span class="number">131691328</span> <span class="literal">-XX</span>:MaxHeapSize=<span class="number">2107061248</span> <span class="literal">-XX</span>:+PrintCommandLineFlags <span class="literal">-XX</span>:+UseCompressedClassPointers <span class="literal">-XX</span>:+UseCompressedOops <span class="literal">-XX</span>:<span class="literal">-UseLargePagesIndividualAllocation</span> <span class="literal">-XX</span>:+UseParallelGC</span><br><span class="line">java version <span class="string">"1.8.0_65"</span></span><br><span class="line">Java(TM) SE Runtime Environment (build <span class="number">1.8</span>.<span class="number">0</span>_65<span class="literal">-b17</span>)</span><br><span class="line">Java HotSpot(TM) <span class="number">64</span><span class="literal">-Bit</span> Server VM (build <span class="number">25.65</span><span class="literal">-b01</span>, mixed mode)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>java -XX:+PrintGCDetails -version</strong> ：查看GC详情</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">C:\Users\charleyZZZZ&gt;java <span class="literal">-XX</span>:+PrintGCDetails <span class="literal">-version</span></span><br><span class="line">java version <span class="string">"1.8.0_65"</span></span><br><span class="line">Java(TM) SE Runtime Environment (build <span class="number">1.8</span>.<span class="number">0</span>_65<span class="literal">-b17</span>)</span><br><span class="line">Java HotSpot(TM) <span class="number">64</span><span class="literal">-Bit</span> Server VM (build <span class="number">25.65</span><span class="literal">-b01</span>, mixed mode)</span><br><span class="line">Heap</span><br><span class="line"> PSYoungGen      total <span class="number">37888</span>K, used <span class="number">3277</span>K [<span class="number">0</span><span class="type">x00000000d6200000</span>, <span class="number">0</span><span class="type">x00000000d8c00000</span>, <span class="number">0</span><span class="type">x0000000100000000</span>)</span><br><span class="line">  <span class="type">eden</span> <span class="type">space</span> <span class="number">32768</span><span class="type">K</span>, <span class="number">10</span>% <span class="type">used</span> [<span class="number">0</span><span class="type">x00000000d6200000</span>,<span class="number">0</span><span class="type">x00000000d65335f0</span>,<span class="number">0</span><span class="type">x00000000d8200000</span>)</span><br><span class="line">  <span class="type">from</span> <span class="type">space</span> <span class="number">5120</span><span class="type">K</span>, <span class="number">0</span>% <span class="type">used</span> [<span class="number">0</span><span class="type">x00000000d8700000</span>,<span class="number">0</span><span class="type">x00000000d8700000</span>,<span class="number">0</span><span class="type">x00000000d8c00000</span>)</span><br><span class="line">  <span class="type">to</span>   <span class="type">space</span> <span class="number">5120</span><span class="type">K</span>, <span class="number">0</span>% <span class="type">used</span> [<span class="number">0</span><span class="type">x00000000d8200000</span>,<span class="number">0</span><span class="type">x00000000d8200000</span>,<span class="number">0</span><span class="type">x00000000d8700000</span>)</span><br><span class="line"> <span class="type">ParOldGen</span>       <span class="type">total</span> <span class="number">86016</span><span class="type">K</span>, <span class="type">used</span> <span class="number">0</span><span class="type">K</span> [<span class="number">0</span><span class="type">x0000000082600000</span>, <span class="number">0</span><span class="type">x0000000087a00000</span>, <span class="number">0</span><span class="type">x00000000d6200000</span>)</span><br><span class="line">  <span class="type">object</span> <span class="type">space</span> <span class="number">86016</span><span class="type">K</span>, <span class="number">0</span>% <span class="type">used</span> [<span class="number">0</span><span class="type">x0000000082600000</span>,<span class="number">0</span><span class="type">x0000000082600000</span>,<span class="number">0</span><span class="type">x0000000087a00000</span>)</span><br><span class="line"> <span class="type">Metaspace</span>       <span class="type">used</span> <span class="number">2367</span><span class="type">K</span>, <span class="type">capacity</span> <span class="number">4480</span><span class="type">K</span>, <span class="type">committed</span> <span class="number">4480</span><span class="type">K</span>, <span class="type">reserved</span> <span class="number">1056768</span><span class="type">K</span></span><br><span class="line">  <span class="type">class</span> <span class="type">space</span>    <span class="type">used</span> <span class="number">259</span><span class="type">K</span>, <span class="type">capacity</span> <span class="number">384</span><span class="type">K</span>, <span class="type">committed</span> <span class="number">384</span><span class="type">K</span>, <span class="type">reserved</span> <span class="number">1048576</span><span class="type">K</span></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+</li>
+</ul>
+<h4 id="STW（Stop-the-world）"><a href="#STW（Stop-the-world）" class="headerlink" title="STW（Stop the world）"></a>STW（Stop the world）</h4><p>为了保证程序不会乱套，<strong>在垃圾回收的时候（不管是标记还是整理复制）,暂停用户的一切线程</strong>。也就是在这段时间，你是不能 new 对象的，只能等待。表现在 JVM 上就是短暂的卡顿，什么都干不了。这种现象，就叫作 Stop the world。简称 <strong>STW</strong>。</p>
+<p>标记阶段，大多数是要 STW 的。</p>
+<p>现在的垃圾回收器，都会尽量去减少这个过程。但即使是最先进的 ZGC，也会有短暂的 STW 过程。</p>
+<h4 id="垃圾回收器"><a href="#垃圾回收器" class="headerlink" title="垃圾回收器"></a>垃圾回收器</h4><h5 id="CMS"><a href="#CMS" class="headerlink" title="CMS"></a>CMS</h5><p>CMS 的全称是 Mostly Concurrent Mark and Sweep Garbage Collector（主要并发­标记­清除­垃圾收集器），它在年轻代使用<strong>复制</strong>算法，而对老年代使用<strong>标记-清除</strong>算法。年轻代使用 <strong>ParNew</strong>，老年代的用 <strong>CMS</strong>。CMS 的设计目标，是避免在老年代 GC 时出现长时间的卡顿（但它并不是一个老年代回收器）。</p>
+<ul>
+<li>CMS 主要优点是获得更少的停顿。</li>
+<li>CMS 使用的是 Sweep 而不是 Compact，所以它的主要问题是碎片化。解决方法：Full GC进行内存整理，但是该整理会造成较长时间的停顿。</li>
+</ul>
+<p>优缺点：</p>
+<p><strong>优势：</strong>低延迟，尤其对于大堆来说。大部分垃圾回收过程并发执行。<br><strong>劣势：</strong>内存碎片问题。Full GC 的整理阶段，会造成较长时间的停顿。需要预留空间，用来分配收集阶段产生的“浮动垃圾”。使用更多的 CPU 资源，在应用运行的同时进行堆扫描。</p>
+<p>CMS 是一种高度可配置的复杂算法，因此给 JDK 中的 GC 代码库带来了很多复杂性。由于 G1 和 ZGC 的产生，CMS 已经在被废弃的路上。</p>
+<h5 id="G1"><a href="#G1" class="headerlink" title="G1"></a>G1</h5><p>G1 的目标是用来干掉 CMS 的，它同样是一款软实时垃圾回收器。相比 CMS，G1 的使用更加人性化。</p>
+<p>G1 的全称是 Garbage­First GC。其他的回收器，都是对某个年代的整体收集，收集时间上自然不好控制。<strong>G1 把堆切成了很多份，把每一份当作一个小目标，部分上目标很容易达成。</strong></p>
+<p>所以 G1 只有<strong>逻辑上的 年轻代和老年代</strong>。</p>
+<p>G1 将堆内存 分为 一小份一小份区域，<strong>这一小份区域的大小是固定的，名字叫作小堆区（Region）</strong>。小堆区可以是 Eden 区，也可以是 Survivor 区，还可以是 Old 区。所以 G1 的年轻代和老年代的概念都是逻辑上的。</p>
+<p><strong>每一块 Region，大小都是一致的</strong>，它的数值是在 1M 到 32M 字节之间的一个 2 的幂值数。Region 的大小，可以通过参数进行设置：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="literal">-XX</span>:G1HeapRegionSize=&lt;N&gt;M</span><br></pre></td></tr></table></figure>
+
+<p><strong>大小超过 Region 50% 的对象</strong>，将会在 <strong>Humongous Region</strong> 区分配。</p>
+<p><strong>垃圾最多的小堆区，会被优先收集。</strong>这就是 G1 名字的由来。</p>
+<p><strong>G1 采用分而治之，部分收集的思想</strong>，尽力达到我们给它设定的停顿目标。</p>
+<h3 id="性能调优"><a href="#性能调优" class="headerlink" title="性能调优"></a>性能调优</h3><p>优先级：</p>
+<ul>
+<li>程序优化，效果通常非常大；</li>
+<li>扩容，如果金钱的成本比较小，采用扩容服务器资源；</li>
+<li>参数调优，在成本、吞吐量、延迟之间找一个平衡点。</li>
+</ul>
+<h4 id="OOM排查"><a href="#OOM排查" class="headerlink" title="OOM排查"></a>OOM排查</h4><ul>
+<li>隔离：把你的这台机器从请求列表里摘除，比如把 nginx 相关的权重设成零。在微服务中，也有相应的隔离机制。目的保证生产问题解决，第二保留现场。</li>
+<li>排查问题。</li>
+</ul>
+<blockquote>
 <p>笔记来源 ： 网络 和 李国老师的《深入浅出 JVM虚拟机》课程</p>
 </blockquote>
 

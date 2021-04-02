@@ -481,6 +481,7 @@
 <p>该命令的结果里面有详细的 InnoDB 运行态信息，分段记录的，包括内存、线程、信号、锁、事务等，出现问题时从中能分析出具体原因和解决方案。</p>
 <h4 id="★-单版本控制-锁"><a href="#★-单版本控制-锁" class="headerlink" title="★     单版本控制 - 锁"></a>★     单版本控制 - 锁</h4><p><strong>锁</strong>用独占的方式来保证在只有一个版本的情况下事务之间相互隔离，所以锁可以理解为单版本控制。</p>
 <p>在 MySQL 事务中，锁的实现与隔离级别有关系，在 RR（Repeatable Read）隔离级别下，MySQL 为<strong>了解决幻读的问题，以牺牲并行度为代价，通过 Gap 锁（间隙锁）来防止数据的写入</strong>，而这种锁，因为其并行度不够，冲突很多，经常会引起死锁。现在流行的 Row 模式可以避免很多冲突甚至死锁问题，所以推荐默认使用 Row + RC（Read Committed）模式的隔离级别，可以很大程度上提高数据库的读写并行度。</p>
+<p><strong>间隙锁</strong>，即对于不在区间范围内的数据也加锁，例如满足某一条数据的条数是100条，哪些满足条件，但是不存在的数据称为<strong>间隙</strong>，对其加锁叫<strong>间隙锁</strong>，用于防止事务区间内，其他事务插入数据，造成幻读。</p>
 <p><strong>共享锁与排他锁</strong></p>
 <ul>
 <li>共享锁（读锁）：其他事务可以读，但不能写。</li>
@@ -592,6 +593,11 @@
 <p><strong>注意</strong>：MVCC 只在 <strong>读提交（RC，Read Committed）</strong> 和 <strong>可重复读（RR，Repeatable Read）</strong> 两种隔离级别下工作。</p>
 <p><strong>实现机制</strong></p>
 <p><strong>InnoDB</strong>在每行数据都增加两个隐藏字段，一个记录<strong>创建的版本号</strong>，一个记录<strong>删除的版本号</strong>。</p>
+<p>简单来说,是通过在每行记录后面保存<strong>两个隐藏的列</strong>来实现的,这两个列，分别保存了这个行的创建时间，一个保存的是行的删除时间。这里存储的并不是实际的时间值,而是系统版本号(可以理解为事务的ID)，每开始一个新的事务，系统版本号就会自动递增，事务开始时刻的系统版本号会作为事务的ID.</p>
+<ul>
+<li>InnoDB只会查找版本早于当前事务版本的数据行(也就是,行的系统版本号小于或等于事务的系统版本号)，<strong>这样可以确保事务读取的行，要么是在事务开始前已经存在的，要么是事务自身插入或者修改过的.</strong></li>
+<li>行的删除版本要么未定义,要么大于当前事务版本号,<strong>这可以确保事务读取到的行，在事务开始之前未被删除.</strong></li>
+</ul>
 <p>在多版本并发控制中，为了保证数据操作在多线程过程中，保证事务隔离的机制，降低锁竞争的压力，保证较高的并发量。在每开启一个事务时，会生成一个事务的版本号，被操作的数据会生成一条新的数据行（临时），但是在提交前对其他事务是不可见的，对于数据的更新（包括增删改）操作成功，会将这个版本号更新到数据的行中，事务提交成功，将新的版本号更新到此数据行中，这样保证了每个事务操作的数据，都是互不影响的，也不存在锁的问题。</p>
 <h4 id="事务"><a href="#事务" class="headerlink" title="事务"></a>事务</h4><p><strong>事务</strong>是指作为单个逻辑工作单元执行的一系列操作，这些操作要么全做，要么全不做，是一个不可分割的工作单元。</p>
 <p>一个逻辑工作单元要成为事务，在关系型数据库管理系统中，必须满足 4 个特性，即所谓的 <strong>ACID</strong>：</p>
@@ -745,8 +751,8 @@
 </ul>
 <p>索引<strong>通常可以分为两大类</strong>：</p>
 <ul>
-<li><p><strong>主键索引（聚簇索引）</strong>：聚簇索引是一种数据存储方式，它表示表中的数据按照主键顺序存储，是索引组织表。InnoDB 的聚簇索引就是按照主键顺序构建 B+Tree，B+Tree 的叶子节点就是行记录，数据行和主键值紧凑地存储在一起。 这也意味着 InnoDB 的主键索引就是数据表本身，它按主键顺序存放了整张表的数据。</p>
-<p>对于没有指定主键的表，InnoDB 会自己<strong>选择合适字段为主键</strong>，顺序为：显式主键；第一个唯一索引（要求唯一索引所有列都非 NULL）；内置的 6 字节 ROWID。</p>
+<li><p><strong>主键索引（聚簇索引）</strong>：<strong>聚簇索引并不是一种单独的索引类型，而是一种数据存储方式</strong>，它表示表中的数据按照主键顺序存储，是索引组织表。InnoDB 的聚簇索引就是按照主键顺序构建 B+Tree，B+Tree 的叶子节点就是行记录，<strong>数据行和主键值紧凑地存储在一起。 这也意味着 InnoDB 的主键索引就是数据表本身，它按主键顺序存放了整张表的数据。</strong></p>
+<p>对于没有指定主键的表，InnoDB 会自己<strong>选择合适字段为主键</strong>，<strong>顺序为：显式主键，第一个唯一索引（要求唯一索引所有列都非 NULL）；内置的 6 字节 ROWID（隐藏列）。</strong></p>
 </li>
 <li><p><strong>辅助索引（非聚簇索引）</strong>：也叫作二级索引，只是根据索引列构建 B+Tree，但在 B+Tree 的每一行都存了主键信息，加速回表操作。 聚簇索引占用的空间就是整个表数据量的大小，而二级索引会比聚簇索引小很多， 通常创建辅助索引就是为了提升查询效率。</p>
 </li>
@@ -754,7 +760,7 @@
 <p>根据索引<strong>列个数和功能描述不同</strong>索引也可以分为：</p>
 <ul>
 <li><strong>联合索引</strong>：联合索引是指在多个字段联合组建索引的。</li>
-<li><strong>覆盖索引</strong>：当通过索引即可查询到所有记录，不需要回表到聚簇索引时，这类索引也叫作覆盖索引。主键查询是天然的覆盖索引，联合索引可以是覆盖索引。通常在查看执行计划时， Extra 列为 Using index 则表示优化器使用了覆盖索引。</li>
+<li><strong>覆盖索引</strong>：<strong>一个索引包含了所有需要查询的字段的值，就称为覆盖索引</strong>。当通过索引即可查询到所有记录，不需要回表到聚簇索引时，这类索引也叫作覆盖索引。主键查询是天然的覆盖索引，联合索引可以是覆盖索引。通常在查看执行计划时， Extra 列为 Using index 则表示优化器使用了覆盖索引。</li>
 </ul>
 <p><strong>通常建议优先考虑使用覆盖索引，这是因为如果 SQL 需要查询辅助索引中不包含的数据列时，就需要先通过辅助索引查找到主键值，然后再回表通过主键查询到其他数据列（即回表查询），需要查询两次。而覆盖索引能从索引中直接获取查询需要的所有数据，从⽽避免回表进行二次查找，节省IO，效率较⾼。</strong></p>
 <h4 id="索引基础知识"><a href="#索引基础知识" class="headerlink" title="索引基础知识"></a>索引基础知识</h4><ul>
@@ -986,7 +992,7 @@
 <p><strong>JMS</strong> 即 <strong>Java消息服务（Java Message Service）应用程序接口</strong>，是一个<a href="https://baike.baidu.com/item/Java平台" target="_blank" rel="noopener">Java平台</a>中关于面向<a href="https://baike.baidu.com/item/消息中间件/5899771" target="_blank" rel="noopener">消息中间件</a>（MOM）的<a href="https://baike.baidu.com/item/API/10154" target="_blank" rel="noopener">API</a>，用于在两个应用程序之间，或<a href="https://baike.baidu.com/item/分布式系统/4905336" target="_blank" rel="noopener">分布式系统</a>中发送消息，进行<a href="https://baike.baidu.com/item/异步通信/2273903" target="_blank" rel="noopener">异步通信</a>。Java消息服务是一个与具体平台无关的API，绝大多数MOM提供商都对JMS提供支持。</p>
 <p>《百度百科》</p>
 </blockquote>
-<p><strong>JMS *<em>只是 *</em>Java EE</strong> 中定义的一组标准 <strong>API</strong>，它自身并不是一个消息服务系统，它是消息传送服务的一个<strong>抽象</strong>，也就是说它定义了消息传送的接口而并没有具体实现。</p>
+<p><strong>JMS</strong>只是 <strong>Java EE</strong> 中定义的一组标准 <strong>API</strong>，它自身并不是一个消息服务系统，它是消息传送服务的一个<strong>抽象</strong>，也就是说它定义了消息传送的接口而并没有具体实现。</p>
 <p>JMS其实就是一个<code>Java</code>业界的<code>标准规范</code>而已，提供了一些编程接口给第三方去实现。包括消息产生、发送、读取、接收等。像<code>ActiveMQ</code>、<code>RocketMQ</code>之类的框架都是针对这个标准去实现的。</p>
 <h3 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h3><ul>
 <li><strong>异步</strong>：规范（标准）指出：消息的发送应该是异步的、非阻塞的。也就是说消息的发送者发送完消息后就直接返回了，不需要等待接收者返回后才能返回，发送者和接收者可以说是互不影响，减轻或消除系统瓶颈，实现系统之间去除耦合，提高系统的整体可伸缩性和灵活性。</li>
@@ -1565,7 +1571,7 @@
 <ul>
 <li><strong>取模哈希;</strong></li>
 <li><strong>一致性哈希</strong>;</li>
-<li><strong>区间分布哈希</strong>：实际是一种取模哈希的变种，取模哈希是哈希并取模计算后，按哈希值来分配存储节点，而区间哈希是在哈希计算后，将哈希划分为多个区间，然后将这些区间分配给存储节点。如哈希后分 1024 个哈希点，然后将 0<del>511 作为分片 1，将 512</del>1023 作为分片 2。</li>
+<li><strong>区间分布哈希</strong>：实际是一种取模哈希的变种，取模哈希是哈希并取模计算后，按哈希值来分配存储节点，而区间哈希是在哈希计算后，将哈希划分为多个区间，然后将这些区间分配给存储节点。如哈希后分 1024 个哈希点，然后将 0-511 作为分片 1，将 512-1023 作为分片 2。</li>
 </ul>
 <p><strong>问题：</strong>对于 Client 端分区，由于 Redis 集群有多个 master 分片，同时每个 master 下挂载多个 slave，每个 Redis 节点都有独立的 IP 和端口。如果 master 异常需要切换 master，或读压力过大需要扩展新的 slave，这些都会涉及集群存储节点的变更，需要 Client 端做连接切换。</p>
 <p><strong>解决方案</strong>：为了避免 Client 频繁变更 IP 列表，可以采用 DNS 的方式来管理集群的主从。对 Redis 集群的每个分片的主和从均采用不同 DNS 域名。Client 通过域名解析的方式获取域名下的所有 IP，然后来访问集群节点。</p>
@@ -1884,20 +1890,8 @@
 <p>总结Mc 对<strong>命令的处理全过程</strong>：</p>
 <img src="/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%BA%8C%EF%BC%89-Memcached/cache_09.png" alt="Mc命令处理全流程" style="zoom:67%;">
 
-<h3 id="哈希表"><a href="#哈希表" class="headerlink" title="哈希表"></a>哈希表</h3><p><strong>背景</strong></p>
-<p>Mc 将数据存储在 Item 中，然后这些 Item 会被 slabclass 的 4 个 LRU 管理。<strong>这些 LRU 都是通过双向链表实现数据记录的。双向链表在进行增加、删除、修改位置时都非常高效，但其获取定位 key 的性能非常低下，只能通过链表遍历来实现。</strong></p>
-<p>因此，<strong>Mc 还通过 Hashtable，也就是哈希表，来记录管理这些 Item</strong>，通过对 key 进行哈希计算，从而快速定位和读取这些 key/value 所在的 Item。</p>
-<img src="/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%BA%8C%EF%BC%89-Memcached/cache_10.png" alt="HashTable作用" style="zoom:67%;">
 
-<p>哈希表也称散列表，可以通过把 key 映射到哈希表中的一个位置来快速访问记录，定位 key 的时间复杂度只有 O(1)。Mc 的哈希表实际是一个一维指针数组，数组的每个位置称作一个 bucket，即一个桶。性能考虑的需要，Mc 的哈希表的长度设置为 2 的 N 次方。Mc 启动时，默认会构建一个拥有 6.4万 个桶的哈希表，随着新 key 的不断插入，哈希表中的元素超过阀值后，会对哈希表进行扩容，最大可以构建 2 的 32 次方个桶的哈希表。</p>
-<p>用 哈希表就存在<strong>哈希冲突</strong>的问题，这里Mc 是通过<strong>单向链表</strong>解决hash冲突的。</p>
-<p><strong>哈希表扩容</strong></p>
-<p>当 Mc 的哈希表中，Item 数量大于 1.5 倍的哈希桶数量后，Mc 就对哈希表进行扩容处理。</p>
-<p>Mc 的哈希扩容是通过哈希维护线程进行处理的。</p>
-<p>准备开始扩容时，哈希维护线程会首先将所有 IO 工作线程和辅助线程进行<strong>暂停</strong>，其中辅助线程包括 LRU 维护线程、slab 维护线程、LRU 爬虫线程。待这些线程暂停后，哈希维护线程会将当前的主哈希表设为旧哈希表，然后将新的主哈希表<strong>扩容</strong>之前的 2 倍容量。然后，工作线程及辅助线程<strong>继续</strong>工作，同时哈希维护线程开始逐步将 Item 元素从旧哈希表<strong>迁移</strong>到主哈希表。</p>
-<p><strong>锁哈希表</strong></p>
-<p>Mc 在启动时，会根据设置的工作线程数，来构建 一个 Item 锁哈希表，线程越多，构建的锁哈希表越大，Mc 的锁哈希表中，每个桶对应一个 Item 锁，Item 锁哈希表最多有 32k 个桶，所以 Mc 最多只有 32768 个 Item 锁。</p>
-<p>Mc 哈希表在读取、变更以及扩容迁移过程中，先将 key hash 定位到 Item 锁哈希表的锁桶，然后对 Item 锁进行加锁，然后再进行实际操作。实际上，除了在哈希表，在其他任何时候，只要涉及到在对 Item 的操作，都会根据 Item 中的 key，进行 Item 哈希锁桶加锁，以避免 Item 被同时读写而产生脏数据。</p>
+
 <h3 id="LRU淘汰策略"><a href="#LRU淘汰策略" class="headerlink" title="LRU淘汰策略"></a>LRU淘汰策略</h3><p>Mc 作为缓存组件，意味着 Mc 中只能存储访问最频繁的热数据，一旦存入数据超过内存限制，就需要对 Mc 中的冷 key 进行淘汰工作。</p>
 <p>Mc 中的 key 基本都会有过期时间，在 key 过期后，出于性能考虑，<strong>Mc 并不会立即删除过期的 key，而是由维护线程逐步清理，只有这个失效的 key 被访问时，才会进行删除，从而回收存储空间</strong>。</p>
 <p>所以Mc的内存回收工作分为俩阶段：<strong>失效 和 删除</strong></p>
@@ -1919,7 +1913,7 @@
 <p>在 key 进行读取、插入或变更时，<strong>同步进行 key 淘汰回收</strong>，并不是一种高效的办法，因为淘汰回收操作相比请求处理，也是一个重量级操作，<strong>会导致 Mc 性能大幅下降</strong>。因此 Mc 额外增加了一个 LRU 维护线程，对过期失效 key 进行回收。</p>
 </li>
 </ul>
-<p>前面讲到，Mc 有 64 个 slabclass，其中 1<del>63 号 slabclass 用于存取 Item 数据。实际上，为了管理过期失效数据，**1</del>63 号 slabclass 还分别对应了 4 个 LRU（双向链表），分布是 TEMP、HOT、WARM、COLD LRU。<strong>所以这就总共有 63*4 = 252 个 LRU。</strong>LRU 维护线程，会按策略间断 sleep，待 sleep 结束，就开始对 4 个 LRU 进行队尾清理工作。**</p>
+<p>前面讲到，Mc 有 64 个 slabclass，其中 1-63 号 slabclass 用于存取 Item 数据。实际上，为了管理过期失效数据，<strong>1-63 号 slabclass 还分别对应了 4 个 LRU（双向链表），分布是 TEMP、HOT、WARM、COLD LRU。所以这就总共有 63*4 = 252 个 LRU。LRU 维护线程，会按策略间断 sleep，待 sleep 结束，就开始对 4 个 LRU 进行队尾清理工作。</strong></p>
 <p><strong>四种 LRU 回收和迁移的要点如下：</strong></p>
 <ul>
 <li>Mc 在新写入 key 时，如果 key 的过期时间小于 61s，就会直接插入到 TEMP LRU 中，大于61s，就会直接插入到 HOT LRU。</li>
@@ -1991,6 +1985,20 @@
 <li><strong>存入LRU</strong>：然后这个 Item 还会被存入 LRU，Mc 会根据这个 key 的过期时间进行判断，如果过期时间小于 61s，则存入 TEMP LRU，否则存入 HOT LRU。</li>
 </ul>
 <p>如果最终分配失败，则会回复一个 <strong>SERVER_ERROR</strong> 响应，通知 <strong>client</strong> 存储失败。</p>
+<h3 id="哈希表"><a href="#哈希表" class="headerlink" title="哈希表"></a>哈希表</h3><p><strong>背景</strong></p>
+<p>Mc 将数据存储在 Item 中，然后这些 Item 会被 slabclass 的 4 个 LRU 管理。<strong>这些 LRU 都是通过双向链表实现数据记录的。双向链表在进行增加、删除、修改位置时都非常高效，但其获取定位 key 的性能非常低下，只能通过链表遍历来实现。</strong></p>
+<p>因此，<strong>Mc 还通过 Hashtable，也就是哈希表，来记录管理这些 Item</strong>，通过对 key 进行哈希计算，从而快速定位和读取这些 key/value 所在的 Item。</p>
+<img src="/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%BA%8C%EF%BC%89-Memcached/cache_10.png" alt="HashTable作用" style="zoom:67%;">
+
+<p>哈希表也称散列表，可以通过把 key 映射到哈希表中的一个位置来快速访问记录，定位 key 的时间复杂度只有 O(1)。Mc 的哈希表实际是一个一维指针数组，数组的每个位置称作一个 bucket，即一个桶。性能考虑的需要，Mc 的哈希表的长度设置为 2 的 N 次方。Mc 启动时，默认会构建一个拥有 6.4万 个桶的哈希表，随着新 key 的不断插入，哈希表中的元素超过阀值后，会对哈希表进行扩容，最大可以构建 2 的 32 次方个桶的哈希表。</p>
+<p>用 哈希表就存在<strong>哈希冲突</strong>的问题，这里Mc 是通过<strong>单向链表</strong>解决hash冲突的。</p>
+<p><strong>哈希表扩容</strong></p>
+<p>当 Mc 的哈希表中，Item 数量大于 1.5 倍的哈希桶数量后，Mc 就对哈希表进行扩容处理。</p>
+<p>Mc 的哈希扩容是通过哈希维护线程进行处理的。</p>
+<p>准备开始扩容时，哈希维护线程会首先将所有 IO 工作线程和辅助线程进行<strong>暂停</strong>，其中辅助线程包括 LRU 维护线程、slab 维护线程、LRU 爬虫线程。待这些线程暂停后，哈希维护线程会将当前的主哈希表设为旧哈希表，然后将新的主哈希表<strong>扩容</strong>之前的 2 倍容量。然后，工作线程及辅助线程<strong>继续</strong>工作，同时哈希维护线程开始逐步将 Item 元素从旧哈希表<strong>迁移</strong>到主哈希表。</p>
+<p><strong>锁哈希表</strong></p>
+<p>Mc 在启动时，会根据设置的工作线程数，来构建 一个 Item 锁哈希表，线程越多，构建的锁哈希表越大，Mc 的锁哈希表中，每个桶对应一个 Item 锁，Item 锁哈希表最多有 32k 个桶，所以 Mc 最多只有 32768 个 Item 锁。</p>
+<p>Mc 哈希表在读取、变更以及扩容迁移过程中，先将 key hash 定位到 Item 锁哈希表的锁桶，然后对 Item 锁进行加锁，然后再进行实际操作。实际上，除了在哈希表，在其他任何时候，只要涉及到在对 Item 的操作，都会根据 Item 中的 key，进行 Item 哈希锁桶加锁，以避免 Item 被同时读写而产生脏数据。</p>
 <h2 id="Mc协议"><a href="#Mc协议" class="headerlink" title="Mc协议"></a>Mc协议</h2><h3 id="异常错误响应"><a href="#异常错误响应" class="headerlink" title="异常错误响应"></a>异常错误响应</h3><p>首先看一下Mc在发现异常后，如何进行异常错误响应的，这里是<strong>返回三种错误信息</strong>：</p>
 <ul>
 <li><strong>协议错误</strong>：一个”ERROR\r\n”的字符串。表明 client 发送了一个非法命令。</li>
@@ -2538,7 +2546,7 @@
 <li><strong>ReuseExecutor</strong>：该类主要特点是复用。它复用的是<strong>Statement对象或者PreparedStatement对象</strong>。<br>该类中有一个属性statementMap，key是SQL语句，value是Statement对象。每次执行首先根据SQL语句查询statementMap，如果有对应的Statement对象，则直接使用该Statement对象，如果没有，则创建新的Statement对象，然后将其和SQL语句添加到statementMap；</li>
 </ul>
 <p>在 配置类 <strong>org.apache.ibatis.session.Configuration</strong> 中 创建 Executor 的方法中可以看到，默认创建 Executor 实现类为：<strong>SimpleExecutor</strong>，而后 根据配置属性 <strong><em>cacheEnabled</em></strong> 判断是否使用缓存，使用则 为 <strong>CachingExecutor</strong>，而改属性默认为 true，<strong>综上Mybatis默认使用的 Executor  为 CachingExecutor</strong></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">	<span class="function"><span class="keyword">public</span> Executor <span class="title">newExecutor</span><span class="params">(Transaction transaction, ExecutorType executorType)</span> </span>&#123;</span><br><span class="line">       executorType = executorType == <span class="keyword">null</span> ? <span class="keyword">this</span>.defaultExecutorType : executorType;</span><br><span class="line">       executorType = executorType == <span class="keyword">null</span> ? ExecutorType.SIMPLE : executorType;</span><br><span class="line">       Object executor;</span><br><span class="line">       <span class="keyword">if</span> (ExecutorType.BATCH == executorType) &#123;</span><br><span class="line">           executor = <span class="keyword">new</span> BatchExecutor(<span class="keyword">this</span>, transaction);</span><br><span class="line">       &#125; <span class="keyword">else</span> <span class="keyword">if</span> (ExecutorType.REUSE == executorType) &#123;</span><br><span class="line">           executor = <span class="keyword">new</span> ReuseExecutor(<span class="keyword">this</span>, transaction);</span><br><span class="line">       &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">           executor = <span class="keyword">new</span> SimpleExecutor(<span class="keyword">this</span>, transaction);</span><br><span class="line">       &#125;</span><br><span class="line">	<span class="comment">// 判断是否开启二级缓存</span></span><br><span class="line">       <span class="comment">// 也可在配置文件中指明： &lt;setting name="cacheEnabled"value="true"/&gt;</span></span><br><span class="line">       <span class="keyword">if</span> (<span class="keyword">this</span>.cacheEnabled) &#123;</span><br><span class="line">           executor = <span class="keyword">new</span> CachingExecutor((Executor)executor);</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       Executor executor = (Executor)<span class="keyword">this</span>.interceptorChain.pluginAll(executor);</span><br><span class="line">       <span class="keyword">return</span> executor;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 但从Configuration 无参构造方法中可知 默认是开启的</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">Configuration</span><span class="params">()</span> </span>&#123;</span><br><span class="line">       <span class="keyword">this</span>.safeResultHandlerEnabled = <span class="keyword">true</span>;</span><br><span class="line">       <span class="keyword">this</span>.multipleResultSetsEnabled = <span class="keyword">true</span>;</span><br><span class="line">       <span class="keyword">this</span>.useColumnLabel = <span class="keyword">true</span>;</span><br><span class="line">       <span class="keyword">this</span>.cacheEnabled = <span class="keyword">true</span>;</span><br><span class="line">       <span class="comment">// ....省略</span></span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// XMLConfigBuilder 创建方法中正是调用了 Configuration 无参构造器</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="title">XMLConfigBuilder</span><span class="params">(XPathParser parser, String environment, Properties props)</span> </span>&#123;</span><br><span class="line">       <span class="keyword">super</span>(<span class="keyword">new</span> Configuration());</span><br><span class="line">       <span class="keyword">this</span>.localReflectorFactory = <span class="keyword">new</span> DefaultReflectorFactory();</span><br><span class="line">       ErrorContext.instance().resource(<span class="string">"SQL Mapper Configuration"</span>);</span><br><span class="line">       <span class="keyword">this</span>.configuration.setVariables(props);</span><br><span class="line">       <span class="keyword">this</span>.parsed = <span class="keyword">false</span>;</span><br><span class="line">       <span class="keyword">this</span>.environment = environment;</span><br><span class="line">       <span class="keyword">this</span>.parser = parser;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Executor <span class="title">newExecutor</span><span class="params">(Transaction transaction, ExecutorType executorType)</span> </span>&#123;</span><br><span class="line">        executorType = executorType == <span class="keyword">null</span> ? <span class="keyword">this</span>.defaultExecutorType : executorType;</span><br><span class="line">        executorType = executorType == <span class="keyword">null</span> ? ExecutorType.SIMPLE : executorType;</span><br><span class="line">        Object executor;</span><br><span class="line">        <span class="keyword">if</span> (ExecutorType.BATCH == executorType) &#123;</span><br><span class="line">            executor = <span class="keyword">new</span> BatchExecutor(<span class="keyword">this</span>, transaction);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (ExecutorType.REUSE == executorType) &#123;</span><br><span class="line">            executor = <span class="keyword">new</span> ReuseExecutor(<span class="keyword">this</span>, transaction);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            executor = <span class="keyword">new</span> SimpleExecutor(<span class="keyword">this</span>, transaction);</span><br><span class="line">        &#125;</span><br><span class="line">		<span class="comment">// 判断是否开启二级缓存</span></span><br><span class="line">        <span class="comment">// 也可在配置文件中指明： &lt;setting name="cacheEnabled"value="true"/&gt;</span></span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.cacheEnabled) &#123;</span><br><span class="line">            executor = <span class="keyword">new</span> CachingExecutor((Executor)executor);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        Executor executor = (Executor)<span class="keyword">this</span>.interceptorChain.pluginAll(executor);</span><br><span class="line">        <span class="keyword">return</span> executor;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 但从Configuration 无参构造方法中可知 默认是开启的</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">Configuration</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.safeResultHandlerEnabled = <span class="keyword">true</span>;</span><br><span class="line">        <span class="keyword">this</span>.multipleResultSetsEnabled = <span class="keyword">true</span>;</span><br><span class="line">        <span class="keyword">this</span>.useColumnLabel = <span class="keyword">true</span>;</span><br><span class="line">        <span class="keyword">this</span>.cacheEnabled = <span class="keyword">true</span>;</span><br><span class="line">        <span class="comment">// ....省略</span></span><br><span class="line">    &#125;</span><br><span class="line">	</span><br><span class="line">	<span class="comment">// XMLConfigBuilder 创建方法中正是调用了 Configuration 无参构造器</span></span><br><span class="line">	<span class="function"><span class="keyword">private</span> <span class="title">XMLConfigBuilder</span><span class="params">(XPathParser parser, String environment, Properties props)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(<span class="keyword">new</span> Configuration());</span><br><span class="line">        <span class="keyword">this</span>.localReflectorFactory = <span class="keyword">new</span> DefaultReflectorFactory();</span><br><span class="line">        ErrorContext.instance().resource(<span class="string">"SQL Mapper Configuration"</span>);</span><br><span class="line">        <span class="keyword">this</span>.configuration.setVariables(props);</span><br><span class="line">        <span class="keyword">this</span>.parsed = <span class="keyword">false</span>;</span><br><span class="line">        <span class="keyword">this</span>.environment = environment;</span><br><span class="line">        <span class="keyword">this</span>.parser = parser;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
 
 <p>综上，SQL执行逻辑可以关注 <strong>SimpleExecutor</strong> 类，这里 举例<strong>doQuery</strong> 方法：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> &lt;E&gt; <span class="function">List&lt;E&gt; <span class="title">doQuery</span><span class="params">(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql)</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">    Statement stmt = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">    List var9;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        Configuration configuration = ms.getConfiguration();</span><br><span class="line">        StatementHandler handler = configuration.newStatementHandler(<span class="keyword">this</span>.wrapper, ms, parameter, rowBounds, resultHandler, boundSql);</span><br><span class="line">        <span class="comment">// 获取 Statement 对象</span></span><br><span class="line">        stmt = <span class="keyword">this</span>.prepareStatement(handler, ms.getStatementLog());</span><br><span class="line">        <span class="comment">// 交由对象handler 执行查询</span></span><br><span class="line">        var9 = handler.query(stmt, resultHandler);</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="keyword">this</span>.closeStatement(stmt);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> var9;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -2864,12 +2872,12 @@
 <li><strong>易用性 API 接口；</strong></li>
 <li><strong>对数据协议、序列化的支持。</strong></li>
 </ul>
-<h4 id="Java-NIO-的演变"><a href="#Java-NIO-的演变" class="headerlink" title="Java NIO 的演变"></a><strong>Java NIO 的演变</strong></h4><p>在 JDK 1.4 投入使用之前，只有 <strong>BIO</strong> 一种模式。开发过程相对简单。新来一个连接就会创建一个新的线程处理。随着请求并发度的提升，<strong>BIO</strong> 很快遇到了性能瓶颈。</p>
+<h4 id="Java-NIO-的演变"><a href="#Java-NIO-的演变" class="headerlink" title="Java NIO 的演变"></a>Java NIO 的演变</h4><p>在 JDK 1.4 投入使用之前，只有 <strong>BIO</strong> 一种模式。开发过程相对简单。新来一个连接就会创建一个新的线程处理。随着请求并发度的提升，<strong>BIO</strong> 很快遇到了性能瓶颈。</p>
 <p>JDK 1.4 以后开始引入了 <strong>NIO</strong> 技术，支持 <strong>select</strong> 和 <strong>poll</strong>；</p>
 <p>JDK 1.5 支持了 <strong>epoll</strong>；</p>
 <p>JDK 1.7 发布了 <strong>NIO2</strong>，支持 <strong>AIO</strong> 模型。</p>
 <p>虽然 <strong>Java NIO</strong> 已经升级的足够成熟，但是 <strong>Netty</strong> 相比其还是有很多优点。</p>
-<h4 id="Netty-相比-Java-NIO-的优点"><a href="#Netty-相比-Java-NIO-的优点" class="headerlink" title="Netty 相比 *Java NIO *的优点"></a><strong>Netty</strong> 相比 *<em>Java NIO *</em>的优点</h4><ul>
+<h4 id="Netty-相比-Java-NIO-的优点"><a href="#Netty-相比-Java-NIO-的优点" class="headerlink" title="Netty 相比  Java NIO 的优点"></a><strong>Netty</strong> 相比  Java NIO 的优点</h4><ul>
 <li><p><strong>易用性。</strong> 我们使用 <strong>JDK NIO</strong> 编程需要了解很多复杂的概念，比如 <strong>Channels</strong>、<strong>Selectors、Sockets、Buffers</strong> 等。<strong>Netty</strong> 在 <strong>NIO</strong> 基础上进行了更高层次的封装，屏蔽了 <strong>NIO</strong> 的复杂性；</p>
 <p><strong>Netty</strong> 封装了更加人性化的 API，统一的 API（阻塞/非阻塞） 大大降低了开发者的上手难度；与此同时，<strong>Netty</strong> 提供了很多开箱即用的工具，例如常用的行解码器、长度域解码器等，而这些在 <strong>JDK NIO</strong> 中都需要你自己实现。</p>
 </li>
@@ -3393,7 +3401,7 @@
 <ul>
 <li><strong>postProcessBeforeInstantiation</strong>： 自身方法，是最先执行的方法，它在目标对象实例化之前调用，该方法的返回值类型是Object，我们可以返回任何类型的值。由于这个时候目标对象还未实例化，所以这个返回值可以用来代替原本该生成的目标对象的实例(比如代理对象)。如果该方法的返回值代替原本该生成的目标对象，后续只有<strong>postProcessAfterInitialization</strong>方法会调用，其它方法不再调用；否则按照正常的流程走。</li>
 <li><strong>postProcessAfterInstantiation</strong>：在目标对象实例化之后调用，这个时候对象已经被实例化，但是该实例的属性还未被设置，都是null。因为它的返回值是决定要不要调用 <strong>postProcessPropertyValues</strong>方法的其中一个因素（因为还有一个因素是<strong><em>mbd.getDependencyCheck()</em></strong>）；如果该方法返回<strong>false</strong>,并且不需要<strong>check</strong>，那么<strong>postProcessPropertyValues</strong>就会被忽略不执行；如果返回<strong>true</strong>，<strong>postProcessPropertyValues</strong>就会被执行。</li>
-<li>对属性值进行修改，如果<strong>postProcessAfterInstantiation</strong>方法返回<strong>false</strong>，该方法可能不会被调用。可以在该方法内对属性值进行修改。</li>
+<li><strong>postProcessPropertyValues</strong>：对属性值进行修改，如果<strong>postProcessAfterInstantiation</strong>方法返回<strong>false</strong>，该方法可能不会被调用。可以在该方法内对属性值进行修改。</li>
 </ul>
 <p>示例：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line">**</span><br><span class="line"> * 自定义处理器</span><br><span class="line"> * <span class="meta">@author</span> dengp</span><br><span class="line"> *</span><br><span class="line"> */</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyInstantiationAwareBeanPostProcessor</span> <span class="keyword">implements</span> <span class="title">InstantiationAwareBeanPostProcessor</span></span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * BeanPostProcessor接口中的方法</span></span><br><span class="line"><span class="comment">     * 在Bean的自定义初始化方法之前执行</span></span><br><span class="line"><span class="comment">     * Bean对象已经存在了</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">postProcessBeforeInitialization</span><span class="params">(Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"》》》初始化前：postProcessBeforeInitialization"</span>);</span><br><span class="line">        <span class="keyword">return</span> bean;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * BeanPostProcessor接口中的方法</span></span><br><span class="line"><span class="comment">     * 在Bean的自定义初始化方法执行完成之后执行</span></span><br><span class="line"><span class="comment">     * Bean对象已经存在了</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">postProcessAfterInitialization</span><span class="params">(Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"》》》初始化后：postProcessAfterInitialization"</span>);</span><br><span class="line">        <span class="keyword">return</span> bean;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * InstantiationAwareBeanPostProcessor中自定义的方法</span></span><br><span class="line"><span class="comment">     * 在方法实例化之前执行  Bean对象还没有</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">postProcessBeforeInstantiation</span><span class="params">(Class&lt;?&gt; beanClass, String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"》》》实例化前：postProcessBeforeInstantiation"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * InstantiationAwareBeanPostProcessor中自定义的方法</span></span><br><span class="line"><span class="comment">     * 在方法实例化之后执行  Bean对象已经创建出来了</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">postProcessAfterInstantiation</span><span class="params">(Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"》》》实例化后：postProcessAfterInstantiation"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * InstantiationAwareBeanPostProcessor中自定义的方法</span></span><br><span class="line"><span class="comment">     * 可以用来修改Bean中属性的内容</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> PropertyValues <span class="title">postProcessPropertyValues</span><span class="params">(PropertyValues pvs, PropertyDescriptor[] pds, Object bean,</span></span></span><br><span class="line"><span class="function"><span class="params">                                                    String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"》》》设置属性：postProcessPropertyValues"</span>);</span><br><span class="line">        <span class="keyword">return</span> pvs;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -3469,7 +3477,7 @@
 <li>上下文关闭事件（<strong>ContextClosedEvent</strong>）：当<strong>ApplicationContext</strong>被关闭时触发该事件。容器被关闭时，其管理的所有单例<strong>Bean</strong>都被销毁。</li>
 <li>请求处理事件（<strong>RequestHandledEvent</strong>）：在<strong>Web</strong>应用中，当一个<strong>http</strong>请求（<strong>request</strong>）结束触发该事件。</li>
 </ul>
-<h4 id="依赖注入（DI）"><a href="#依赖注入（DI）" class="headerlink" title="依赖注入（DI）"></a>依赖注入（DI）</h4><p>将依赖关系的管理交给 <strong>Spring</strong> 维护，在当前类需要用到其他类的对象，由 *<em>Spring *</em> 为我们提供，只需要在配置文件中说明关系的维护。</p>
+<h4 id="依赖注入（DI）"><a href="#依赖注入（DI）" class="headerlink" title="依赖注入（DI）"></a>依赖注入（DI）</h4><p>将依赖关系的管理交给 <strong>Spring</strong> 维护，在当前类需要用到其他类的对象，由 <strong>Spring</strong> 为我们提供，只需要在配置文件中说明关系的维护。</p>
 <p><strong>能够注入的数据：</strong></p>
 <ul>
 <li>基本类型和 <strong>String</strong></li>
@@ -3508,7 +3516,7 @@
 </li>
 <li><p>用于注入数据：作用和XML配置文件中的bean标签中的<property>作用一样；</property></p>
 <ol>
-<li><p><strong>@Autowried</strong></p>
+<li><p><strong>@Autowried（byType）</strong></p>
 <p>作用：自动按<strong>类型</strong>注入，只要容器中由唯一的bean对象类型和要注入的变量类型匹配，就可以成功注入</p>
 <p>位置：可以为成员变量，也可以为方法</p>
 </li>
@@ -3516,34 +3524,34 @@
 <p>作用：再按照<strong>类型</strong>注入的基础之上再按照<strong>名称</strong>注入，它在给类成员注入时不能单独使用，和<strong>Autowired</strong>配合使用，但是给方法注入时可以。</p>
 <p>属性：value：用于指定注入bean的id</p>
 </li>
-<li><p><strong>@Resources</strong> </p>
+<li><p><strong>@Resources（byName）</strong> </p>
 <p>作用：属于<strong><em>JSR-250</em></strong>规范定义的注解，支持根据<strong>类型和名称</strong>进行对象注入，它可以独立使用</p>
 <p>属性：name:用于指定bean的id</p>
 <p> <strong>以上三种注入只能注入其他bean类型的数据，而基本类型和String类型无法使用上述注解实现</strong></p>
 </li>
 <li><p><strong>@Value</strong></p>
+<p>作用：用于注入基本类型和<strong>String</strong>类型数据</p>
+<p>属性：value：用于指定数据的值，它可以使用spring中的spEL(也就是spring的el表达式)</p>
+<p>SpEl的写法：${表达式}     </p>
 </li>
 </ol>
 </li>
 </ul>
-<p>​              作用：用于注入基本类型和<strong>String</strong>类型数据</p>
-<p>​              属性：value：用于指定数据的值，它可以使用spring中的spEL(也就是spring的el表达式)</p>
-<p>​              SpEl的写法：${表达式}     </p>
 <ul>
 <li><p>用于改变作用范围：作用和在<strong>bean</strong>标签中使用<strong>scope</strong>属性实现的功能一样的</p>
-<p><strong>Scope</strong> </p>
+<p><strong>@Scope</strong> </p>
 <p>作用：用于指定bean的作用范围</p>
 <p>属性：value:指定范围取值。常用的值：singleton(单例) prototype(多例）</p>
 </li>
 <li><p>和生命周期相关：作用和在bean标签中使用<strong>init-method</strong>和<strong>destroy-method</strong>的作用一样</p>
-<p><strong>PreDestroy</strong>：用于指定销毁，属于<strong><em>JSR-250</em></strong>规范定义的注解</p>
-<p><strong>PostConstruct</strong>：用于指定初始化，属于<strong><em>JSR-250</em></strong>规范定义的注解</p>
+<p><strong>@PreDestroy</strong>：用于指定销毁，属于<strong><em>JSR-250</em></strong>规范定义的注解</p>
+<p><strong>@PostConstruct</strong>：用于指定初始化，属于<strong><em>JSR-250</em></strong>规范定义的注解</p>
 </li>
 </ul>
 <h4 id="Spring-AOP"><a href="#Spring-AOP" class="headerlink" title="Spring AOP"></a>Spring AOP</h4><p><strong>AOP （Aspect Orient Programming）</strong>,直译过来就是 <strong>面向切面编程</strong>。<strong>AOP</strong> 是一种编程思想，是面向对象编程（<strong>OOP</strong>）的一种补充。</p>
 <p><strong>AOP</strong> 要达到的效果是，保证开发者不修改源代码的前提下，去为系统中的业务组件添加某种通用功能。</p>
 <ul>
-<li><strong>静态 AOP 实现</strong>： AOP 框架在编译阶段对程序源代码进行修改，生成了静态的 AOP 代理类（生成的 <em>.class 文件已经被改掉了，需要使用特定的编译器），比如 *</em>AspectJ**。</li>
+<li><strong>静态 AOP 实现</strong>： AOP 框架在编译阶段对程序源代码进行修改，生成了静态的 AOP 代理类（生成的 *.class 文件已经被改掉了，需要使用特定的编译器），比如<strong>AspectJ</strong>。</li>
 <li><strong>动态 AOP 实现</strong>： AOP 框架在运行阶段对动态生成代理对象（在内存中以 JDK 动态代理，或 CGlib 动态地生成 AOP 代理类），如 <strong>SpringAOP</strong>。</li>
 </ul>
 <p><strong>AOP 领域中的特性术语：</strong></p>
@@ -3593,13 +3601,116 @@
 
 
 
-<h4 id="Spring事务处理"><a href="#Spring事务处理" class="headerlink" title="Spring事务处理"></a>Spring事务处理</h4><p>前面关于<strong>事务</strong>的概念在<a href="http://blogsea.cn/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/" target="_blank" rel="noopener">分布式架构之事务管理</a>中提到过：</p>
-<ul>
-<li>事务的概念</li>
-<li>事务的四大特性</li>
-<li>事务的隔离级别</li>
+<h4 id="Spring-事务"><a href="#Spring-事务" class="headerlink" title="Spring 事务"></a>Spring 事务</h4><p><strong>Spring事务</strong>的本质其实就是<strong>数据库对事务的支持</strong>，没有数据库的事务支持，spring是无法提供事务功能的。对于纯JDBC操作数据库，想要用到事务，可以按照以下步骤进行：</p>
+<ol>
+<li><strong>获取连接</strong> Connection con = DriverManager.getConnection()</li>
+<li><strong>开启事务</strong>con.setAutoCommit(true/false);</li>
+<li><strong>执行CRUD</strong></li>
+<li><strong>提交事务/回滚事务</strong> con.commit() / con.rollback();</li>
+<li><strong>关闭连接</strong> conn.close();</li>
+</ol>
+<h5 id="分类"><a href="#分类" class="headerlink" title="分类"></a>分类</h5><ul>
+<li><strong>编程式事务</strong>：指在代码中手动的管理事务的提交、回滚等操作，代码侵入性比较强</li>
+<li><strong>声明式事务</strong>：基于AOP面向切面的，它将具体业务与事务处理部分解耦，代码侵入性很低，所以在实际开发中声明式事务用的比较多。声明式事务也有两种实现方式，是基于<strong>TX和AOP的xml配置文件</strong>方式，二种就是基于@<strong>Transactional</strong>注解了。</li>
 </ul>
-<p>此处不再赘述。</p>
+<p>这里举例 <strong>注解的方式</strong>配置事务。</p>
+<h5 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h5><p>1、定义事务管理器，传入 数据源对象</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span> </span><br><span class="line"><span class="function"><span class="keyword">public</span> PlatformTransactionManager <span class="title">transactionManager</span><span class="params">()</span> </span>&#123; </span><br><span class="line"></span><br><span class="line">	JpaTransactionManager transactionManager = <span class="keyword">new</span> JpaTransactionManager(); </span><br><span class="line">	transactionManager.setDataSource(dataSource()); </span><br><span class="line">	<span class="keyword">return</span> transactionManager; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>2、在对应需要事务的类或方法上添加注解 <strong><em>@Transactional</em></strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// @Transactional注解来自org.springframework.transaction.annotation包，而不是javax.transaction。</span></span><br><span class="line"><span class="meta">@Transactional</span> </span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">saveSomething</span><span class="params">(String name)</span> </span>&#123; </span><br><span class="line">    <span class="comment">//数据库操作 </span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h5 id="实现原理"><a href="#实现原理" class="headerlink" title="实现原理"></a><strong>实现原理</strong></h5><ul>
+<li>配置文件开启注解驱动，在相关的类和方法上通过注解<strong><em>@Transactional</em></strong>标识。类上添加<strong><em>@Transactional</em></strong>则代表该类的所有方法都有事务。</li>
+<li><strong>Spring</strong> 在启动的时候会去解析生成相关的bean，这时候会查看拥有相关注解的类和方法，并且为这些类和方法生成<strong>代理</strong>，并根据<strong><em>@Transaction</em></strong>的相关参数进行相关配置注入，这样就在代理中为我们把相关的事务处理掉了（开启正常提交事务，异常回滚事务）。</li>
+<li>真正的数据库层的事务提交和回滚是通过<strong>bin log和redo log</strong>实现的。</li>
+</ul>
+<h5 id="事务机制"><a href="#事务机制" class="headerlink" title="事务机制"></a>事务机制</h5><p><strong>Spring</strong>的事务机制是<strong>用统一的机制来处理不同数据访问技术的事务处理</strong>。<strong>Spring</strong>的事务机制提供了一个<strong><em>PlatformTransactionManager</em></strong>接口，不同的数据访问技术的事务使用不同的接口实现</p>
+<ul>
+<li><strong>JDBC</strong>：DataSourceTransactionManager</li>
+<li><strong>JPA</strong>：JpaTransactionManager</li>
+<li><strong>Hibernate</strong>：HibernateTransactionManager</li>
+<li><strong>JDO</strong>：JdoTransactionManager</li>
+<li><strong>分布式事务</strong>：JtaTransactionManager</li>
+</ul>
+<h5 id="Spring-事务隔离级别"><a href="#Spring-事务隔离级别" class="headerlink" title="Spring 事务隔离级别"></a>Spring 事务隔离级别</h5><p><a href="http://blogsea.cn/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/" target="_blank" rel="noopener">分布式事务</a>课程中，我们学习了<strong>数据库隔离级别</strong></p>
+<p><img src="/2021/03/15/%E5%BF%85%E4%BC%9A%E6%A1%86%E6%9E%B6%EF%BC%88%E4%B8%80%EF%BC%89-Spring/framework_09.png" alt="数据库隔离级别"></p>
+<p><strong>脏读</strong>：一事务对数据进行了增删改，但未提交，另一事务可以读取到未提交的数据。如果第一个事务这时候回滚了，那么第二个事务就读到了脏数据。</p>
+<p><strong>不可重复读</strong>：一个事务中发生了两次读操作，第一次读操作和第二次操作之间，另外一个事务对数据进行了修改，这时候两次读取的数据是不一致的。</p>
+<p><strong>幻读</strong>：第一个事务对一定范围的数据进行批量修改，第二个事务在这个范围增加一条数据，这时候第一个事务就会丢失对新增数据的修改。</p>
+<p>总结：</p>
+<ul>
+<li><p>隔离级别越高，越能保证数据的完整性和一致性，但是对并发性能的影响也越大。</p>
+</li>
+<li><p>大多数的数据库默认隔离级别为 <strong>Read Commited</strong>，比如 SqlServer、Oracle</p>
+</li>
+<li><p>少数数据库默认隔离级别为：<strong>Repeatable Read</strong> 比如： MySQL InnoDB</p>
+</li>
+</ul>
+<p><strong>Spring 中的事务隔离级别</strong></p>
+<p><img src="/2021/03/15/%E5%BF%85%E4%BC%9A%E6%A1%86%E6%9E%B6%EF%BC%88%E4%B8%80%EF%BC%89-Spring/framework_10.png" alt="Spring 事务隔离级别"></p>
+<h5 id="事务嵌套（传播机制）"><a href="#事务嵌套（传播机制）" class="headerlink" title="事务嵌套（传播机制）"></a>事务嵌套（传播机制）</h5><ul>
+<li><p><strong>PROPAGATION_REQUIRED</strong> (spring 默认)</p>
+<p>支持当前事务,如果有就加入当前事务中;如果当前方法没有事务,就新建一个事务;</p>
+</li>
+<li><p><strong>PROPAGATION_REQUIRES_NEW</strong></p>
+<p>新建事务,如果当前存在事务,就把当前事务挂起;如果当前方法没有事务,就新建事务;</p>
+<p>他与 <strong>PROPAGATION_REQUIRED</strong> 的事务区别在于事务的回滚程度了。</p>
+</li>
+<li><p><strong>PROPAGATION_NESTED</strong></p>
+<p>如果当前方法有事务,则在嵌套事务内执行;如果当前方法没有事务,则与required操作类似;</p>
+</li>
+<li><p><strong>PROPAGATION_MANATORY</strong></p>
+<p>支持当前事务,如果有就加入当前事务中;如果当前没有事务,就抛出异常;</p>
+</li>
+<li><p><strong>PROPAGATION_SUPPORTS</strong></p>
+<p>支持当前事务,如果有就加入当前事务中;如果当前方法没有事务,就以非事务的方式执行;</p>
+<p>这种时候，内部方法的事务性完全依赖于最外层的事务。</p>
+</li>
+<li><p><strong>PROPAGATION_NOT_SUPPORTED</strong></p>
+<p>以非事务方式执行,如果当前方法存在事务就挂起当前事务;如果当前方法不存在事务,就以非事务方式执行;</p>
+</li>
+<li><p><strong>PROPAGATION_NERVER</strong></p>
+<p>以非事务方式执行,如果当前方法存在事务就抛出异常;如果当前方法不存在事务,就以非事务方式执行;</p>
+</li>
+</ul>
+<h5 id="Transactional-失效原因"><a href="#Transactional-失效原因" class="headerlink" title="@Transactional 失效原因"></a>@Transactional 失效原因</h5><ul>
+<li><p><strong>@Transactional 做用于非public方法上</strong>。</p>
+<p>因为在<strong>Spring AOP</strong>代理时<strong>TransactionInterceptor</strong> （事务拦截器）在目标方法执行前后进行拦截，<strong>DynamicAdvisedInterceptor</strong>（CglibAopProxy 的内部类）的 <strong><em>intercept</em></strong> 方法或 <strong>JdkDynamicAopProxy</strong> 的 <strong><em>invoke</em></strong> 方法会间接调用 <strong>AbstractFallbackTransactionAttributeSource</strong>的 <strong><em>computeTransactionAttribute</em></strong>方法，获取<strong>Transactional</strong> 注解的事务配置信息。其中此方法会检查目标方法的修饰符是否为 <strong>public</strong>，<strong>不是 public则不会获取@Transactional 的属性配置信息</strong>。</p>
+</li>
+</ul>
+<ul>
+<li><p><strong>@Transactional 注解属性 rollbackFor 设置错误</strong>。</p>
+<p><strong>rollbackFor</strong> 可以指定能够触发事务回滚的异常类型。Spring默认抛出了<strong>未检查unchecked异常（继承自 RuntimeException 的异常）或者 Error才回滚事务</strong>。如果需要制定异常回滚，则需配置 rollbackFor ，</p>
+<p><strong>若在目标方法中抛出的异常是 rollbackFor 指定的异常的子类，事务同样会回滚。</strong></p>
+</li>
+</ul>
+<ul>
+<li><p><strong>同一个类中方法调用，导致@Transactional失效</strong>。</p>
+<p>这是由于使用Spring AOP代理造成的，因为只有当事务方法被当前类以外的代码调用时，才会由Spring生成的代理对象来管理。</p>
+<p>解决方法可以是，上层自定义 self() 方法，返回代理对象。调用本类方法时，使用 <strong><em>self().testB()</em></strong> 即可。</p>
+<p>具体实现方法为 ：</p>
+<ol>
+<li><p>自定义 接口  <strong>ProxySelf</strong>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">public interface ProxySelf&lt;T&gt; &#123;</span><br><span class="line">    default T self() &#123;</span><br><span class="line">        return AopContext.currentProxy();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>service 接口继承 ProxySelf ，泛型传入自身接口</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">IUserService</span> <span class="keyword">extends</span> <span class="title">ProxySelf</span>&lt;<span class="title">IUserService</span>&gt;</span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>service 实现类中调用 <strong><em>this.self().testB()</em></strong> 方法即可。</p>
+</li>
+</ol>
+</li>
+</ul>
+<ul>
+<li><p><strong>异常被你的 catch “吃了” 导致@Transactional失效</strong></p>
+</li>
+<li><p><strong>数据库引擎不支持事务</strong>：例如 Mysql 切换 MyISAM 引擎等</p>
+</li>
+</ul>
+<p><strong>更多事务扩展知识</strong>可在<a href="http://blogsea.cn/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/" target="_blank" rel="noopener">分布式架构之事务管理</a>中学习。</p>
 <h3 id="SpringMVC"><a href="#SpringMVC" class="headerlink" title="SpringMVC"></a>SpringMVC</h3><p>在早期 Java Web 的开发中，统一把显示层、控制层、数据层的操作全部交给 JSP 或者 JavaBean 来进行处理，我们称之为 <strong>Model1</strong></p>
 <p><strong>出现的弊端：</strong></p>
 <ul>
@@ -3693,80 +3804,7 @@
 <p><img src="/2021/03/15/%E5%BF%85%E4%BC%9A%E6%A1%86%E6%9E%B6%EF%BC%88%E4%B8%80%EF%BC%89-Spring/framework_08.png" alt="Filter 和 拦截器执行顺序"></p>
 </li>
 </ul>
-<h3 id="SpringData"><a href="#SpringData" class="headerlink" title="SpringData"></a>SpringData</h3><h4 id="JPA（待更新）"><a href="#JPA（待更新）" class="headerlink" title="JPA（待更新）"></a>JPA（待更新）</h4><h4 id="Spring-事务"><a href="#Spring-事务" class="headerlink" title="Spring 事务"></a>Spring 事务</h4><p><strong>Spring事务</strong>的本质其实就是<strong>数据库对事务的支持</strong>，没有数据库的事务支持，spring是无法提供事务功能的。对于纯JDBC操作数据库，想要用到事务，可以按照以下步骤进行：</p>
-<ol>
-<li><strong>获取连接</strong> Connection con = DriverManager.getConnection()</li>
-<li><strong>开启事务</strong>con.setAutoCommit(true/false);</li>
-<li><strong>执行CRUD</strong></li>
-<li><strong>提交事务/回滚事务</strong> con.commit() / con.rollback();</li>
-<li><strong>关闭连接</strong> conn.close();</li>
-</ol>
-<p>使用<strong>Spring</strong>的事务管理功能后，我们可以不再写步骤 2 和 4 的代码，而是由Spirng 自动完成。</p>
-<p><strong>Spring</strong> 事务管理有俩种方式，一种是 <strong>xml 配置</strong>，一种是<strong>注解</strong>方式，这里举例 <strong>注解的方式</strong>配置事务。</p>
-<h5 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h5><p>1、定义事务管理器，传入 数据源对象</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span> </span><br><span class="line"><span class="function"><span class="keyword">public</span> PlatformTransactionManager <span class="title">transactionManager</span><span class="params">()</span> </span>&#123; </span><br><span class="line"></span><br><span class="line">	JpaTransactionManager transactionManager = <span class="keyword">new</span> JpaTransactionManager(); </span><br><span class="line">	transactionManager.setDataSource(dataSource()); </span><br><span class="line">	<span class="keyword">return</span> transactionManager; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>2、在对应需要事务的类或方法上添加注解 <strong><em>@Transactional</em></strong></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// @Transactional注解来自org.springframework.transaction.annotation包，而不是javax.transaction。</span></span><br><span class="line"><span class="meta">@Transactional</span> </span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">saveSomething</span><span class="params">(String name)</span> </span>&#123; </span><br><span class="line">    <span class="comment">//数据库操作 </span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h5 id="实现原理"><a href="#实现原理" class="headerlink" title="实现原理"></a><strong>实现原理</strong></h5><ul>
-<li>配置文件开启注解驱动，在相关的类和方法上通过注解<strong><em>@Transactional</em></strong>标识。类上添加<strong><em>@Transactional</em></strong>则代表该类的所有方法都有事务。</li>
-<li><strong>Spring</strong> 在启动的时候会去解析生成相关的bean，这时候会查看拥有相关注解的类和方法，并且为这些类和方法生成<strong>代理</strong>，并根据<strong><em>@Transaction</em></strong>的相关参数进行相关配置注入，这样就在代理中为我们把相关的事务处理掉了（开启正常提交事务，异常回滚事务）。</li>
-<li>真正的数据库层的事务提交和回滚是通过</li>
-<li>或者<strong>redo log</strong>实现的。</li>
-</ul>
-<h5 id="事务机制"><a href="#事务机制" class="headerlink" title="事务机制"></a>事务机制</h5><p><strong>Spring</strong>的事务机制是<strong>用统一的机制来处理不同数据访问技术的事务处理</strong>。<strong>Spring</strong>的事务机制提供了一个<strong><em>PlatformTransactionManager</em></strong>接口，不同的数据访问技术的事务使用不同的接口实现</p>
-<ul>
-<li><strong>JDBC</strong>：DataSourceTransactionManager</li>
-<li><strong>JPA</strong>：JpaTransactionManager</li>
-<li><strong>Hibernate</strong>：HibernateTransactionManager</li>
-<li><strong>JDO</strong>：JdoTransactionManager</li>
-<li><strong>分布式事务</strong>：JtaTransactionManager</li>
-</ul>
-<h5 id="Spring-事务隔离级别"><a href="#Spring-事务隔离级别" class="headerlink" title="Spring 事务隔离级别"></a>Spring 事务隔离级别</h5><p><a href="http://blogsea.cn/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/" target="_blank" rel="noopener">分布式事务</a>课程中，我们学习了<strong>数据库隔离级别</strong></p>
-<p><img src="/2021/03/15/%E5%BF%85%E4%BC%9A%E6%A1%86%E6%9E%B6%EF%BC%88%E4%B8%80%EF%BC%89-Spring/framework_09.png" alt="数据库隔离级别"></p>
-<p><strong>脏读</strong>：一事务对数据进行了增删改，但未提交，另一事务可以读取到未提交的数据。如果第一个事务这时候回滚了，那么第二个事务就读到了脏数据。</p>
-<p><strong>不可重复读</strong>：一个事务中发生了两次读操作，第一次读操作和第二次操作之间，另外一个事务对数据进行了修改，这时候两次读取的数据是不一致的。</p>
-<p><strong>幻读</strong>：第一个事务对一定范围的数据进行批量修改，第二个事务在这个范围增加一条数据，这时候第一个事务就会丢失对新增数据的修改。</p>
-<p>总结：</p>
-<ul>
-<li><p>隔离级别越高，越能保证数据的完整性和一致性，但是对并发性能的影响也越大。</p>
-</li>
-<li><p>大多数的数据库默认隔离级别为 <strong>Read Commited</strong>，比如 SqlServer、Oracle</p>
-</li>
-<li><p>少数数据库默认隔离级别为：<strong>Repeatable Read</strong> 比如： MySQL InnoDB</p>
-</li>
-</ul>
-<p><strong>Spring 中的事务隔离级别</strong></p>
-<p><img src="/2021/03/15/%E5%BF%85%E4%BC%9A%E6%A1%86%E6%9E%B6%EF%BC%88%E4%B8%80%EF%BC%89-Spring/framework_10.png" alt="Spring 事务隔离级别"></p>
-<h5 id="事务嵌套（传播机制）"><a href="#事务嵌套（传播机制）" class="headerlink" title="事务嵌套（传播机制）"></a>事务嵌套（传播机制）</h5><ul>
-<li><p><strong>PROPAGATION_REQUIRED</strong> (spring 默认)</p>
-<p>支持当前事务,如果有就加入当前事务中;如果当前方法没有事务,就新建一个事务;</p>
-</li>
-<li><p><strong>PROPAGATION_REQUIRES_NEW</strong></p>
-<p>新建事务,如果当前存在事务,就把当前事务挂起;如果当前方法没有事务,就新建事务;</p>
-<p>他与 <strong>PROPAGATION_REQUIRED</strong> 的事务区别在于事务的回滚程度了。</p>
-</li>
-<li><p><strong>PROPAGATION_NESTED</strong></p>
-<p>如果当前方法有事务,则在嵌套事务内执行;如果当前方法没有事务,则与required操作类似;</p>
-</li>
-<li><p><strong>PROPAGATION_MANATORY</strong></p>
-<p>支持当前事务,如果有就加入当前事务中;如果当前没有事务,就抛出异常;</p>
-</li>
-<li><p><strong>PROPAGATION_SUPPORTS</strong></p>
-<p>支持当前事务,如果有就加入当前事务中;如果当前方法没有事务,就以非事务的方式执行;</p>
-<p>这种时候，内部方法的事务性完全依赖于最外层的事务。</p>
-</li>
-<li><p><strong>PROPAGATION_NOT_SUPPORTED</strong></p>
-<p>以非事务方式执行,如果当前方法存在事务就挂起当前事务;如果当前方法不存在事务,就以非事务方式执行;</p>
-</li>
-<li><p><strong>PROPAGATION_NERVER</strong></p>
-<p>以非事务方式执行,如果当前方法存在事务就抛出异常;如果当前方法不存在事务,就以非事务方式执行;</p>
-</li>
-</ul>
-<h3 id="SpringBoot"><a href="#SpringBoot" class="headerlink" title="SpringBoot"></a>SpringBoot</h3><p><a href="http://blogsea.cn/2020/04/28/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/" target="_blank" rel="noopener">SpringBoot学习之启动配置原理</a></p>
+<h3 id="SpringData"><a href="#SpringData" class="headerlink" title="SpringData"></a>SpringData</h3><h4 id="JPA（待更新）"><a href="#JPA（待更新）" class="headerlink" title="JPA（待更新）"></a>JPA（待更新）</h4><h3 id="SpringBoot"><a href="#SpringBoot" class="headerlink" title="SpringBoot"></a>SpringBoot</h3><p><a href="http://blogsea.cn/2020/04/28/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/" target="_blank" rel="noopener">SpringBoot学习之启动配置原理</a></p>
 <p><a href="http://blogsea.cn/2020/05/07/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/" target="_blank" rel="noopener">SpringBoot学习之自动配置原理</a></p>
 <p><a href="http://blogsea.cn/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/" target="_blank" rel="noopener">SpringBoot学习之日志管理</a></p>
 <p>另补充<strong>SpringBoot</strong>关键注解：</p>
@@ -3882,9 +3920,162 @@
 <li>文档管理：<strong>javaDoc</strong>、<strong>Swagger</strong></li>
 <li>网络工具：<strong>PostMan</strong>、WireShark、Fiddler、Charles</li>
 </ul>
-<p><strong>Ant+ivy</strong>、<strong>Maven</strong>、<strong>Gradle</strong> 都是用来构建项目、管理依赖的工具。其中 <strong>Ant</strong> 通过直接引用 <strong>jar</strong> 文件来进行依赖管理，通过脚本来描述，执行不同的构建目标。目前 <strong>Ant</strong> 使用得已经比较少，<strong>Maven</strong> 是比较主流的项目管理工具。<br><strong>Gradle</strong>是一个自动化的构建工具，<strong>Gradle</strong>属于结合以上两个的优点，它继承了<strong>Ant</strong>的灵活和<strong>Maven</strong>的生命周期管理，它最后被google作为了Android御用管理工具。它最大的区别是不用 <code>XML</code> 作为配置文件格式，采用了 <code>DSL</code> 格式，使得脚本更加简洁。<strong>Gradle</strong>引入了基于<strong>Groovy</strong>语言的 <code>DSL</code> 语法来代替 <code>XML</code> 配置，因此它的配置文件是一个<strong>Groovy</strong>文件。</p>
+<p><strong>Ant+ivy</strong>、<strong>Maven</strong>、<strong>Gradle</strong> 都是用来构建项目、管理依赖的工具。</p>
+<p>其中 <strong>Ant</strong> 通过直接引用 <strong>jar</strong> 文件来进行依赖管理，通过脚本来描述，执行不同的构建目标。</p>
+<p>目前 <strong>Ant</strong> 使用得已经比较少，<strong>Maven</strong> 是比较主流的项目管理工具。<br><strong>Gradle</strong>是一个自动化的构建工具，<strong>Gradle</strong>属于结合以上两个的优点，它继承了<strong>Ant</strong>的灵活和<strong>Maven</strong>的生命周期管理，它最后被google作为了Android御用管理工具。</p>
+<p>它最大的区别是不用 <code>XML</code> 作为配置文件格式，采用了 <code>DSL</code> 格式，使得脚本更加简洁。<strong>Gradle</strong>引入了基于<strong>Groovy</strong>语言的 <code>DSL</code> 语法来代替 <code>XML</code> 配置，因此它的配置文件是一个<strong>Groovy</strong>文件。</p>
 <p><strong>Ant</strong> 由于出现较早，可结合项目复习，不再赘述。</p>
-<h3 id="Maven"><a href="#Maven" class="headerlink" title="Maven"></a>Maven</h3>
+<h3 id="Maven"><a href="#Maven" class="headerlink" title="Maven"></a>Maven</h3><h5 id="构建的各个环节"><a href="#构建的各个环节" class="headerlink" title="构建的各个环节"></a>构建的各个环节</h5><p>　　[1] 清理clean：将以前编译得到的旧文件class字节码文件删除</p>
+<p>　　[2] 编译compile：将java源程序编译成class字节码文件</p>
+<p>　　[3] 测试test：自动测试，自动调用junit程序</p>
+<p>　　[4] 报告report：测试程序执行的结果</p>
+<p>　　[5] 打包package：动态Web工程打War包，java工程打jar包</p>
+<p>　　[6] 安装install：Maven特定的概念—–将打包得到的文件复制到“仓库”中的指定位置</p>
+<p>　　[7] 部署deploy：将动态Web工程生成的war包复制到Servlet容器下，使其可以运行</p>
+<h5 id="常用maven命令"><a href="#常用maven命令" class="headerlink" title="常用maven命令"></a>常用maven命令</h5><p>　　[1] mvn clean：清理 </p>
+<p>　　[2] mvn compile：编译主程序</p>
+<p>　　[3] mvn test-compile：编译测试程序</p>
+<p>　　[4] mvn test：执行测试 </p>
+<p>　　[5] mvn package：打包</p>
+<p>　　[6] mvn install：安装</p>
+<p>　　执行maven命令必须进入到pom.xml的目录中进行执行</p>
+<h5 id="scope（依赖的范围）"><a href="#scope（依赖的范围）" class="headerlink" title="scope（依赖的范围）"></a>scope（依赖的范围）</h5><p>　　1、compile，默认值，适用于所有阶段（开发、测试、部署、运行），本jar会一直存在所有阶段。 </p>
+<p>　　2、provided，只在开发、测试阶段使用，目的是不让Servlet容器和你本地仓库的jar包冲突 。如servlet.jar。 </p>
+<p>　　3、runtime，只在运行时使用，如JDBC驱动，适用运行和测试阶段。 </p>
+<p>　　4、test，只在测试时使用，用于编译和运行测试代码。不会随项目发布。 </p>
+<p>　　5、system，类似provided，需要显式提供包含依赖的jar，Maven不会在Repository中查找它。</p>
+<h5 id="maven-聚合管理"><a href="#maven-聚合管理" class="headerlink" title="maven 聚合管理"></a>maven 聚合管理</h5><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">modules</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">module</span>&gt;</span>../mvc-core<span class="tag">&lt;/<span class="name">module</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">module</span>&gt;</span>../mvc-dao<span class="tag">&lt;/<span class="name">module</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">module</span>&gt;</span>../mvc-service<span class="tag">&lt;/<span class="name">module</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">module</span>&gt;</span>../mvc-log<span class="tag">&lt;/<span class="name">module</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">modules</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="Maven-配置依赖管理"><a href="#Maven-配置依赖管理" class="headerlink" title="Maven 配置依赖管理"></a>Maven 配置依赖管理</h5><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependencyManagement</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>junit<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>junit<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;junit-version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">scope</span>&gt;</span>test<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    ...</span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencyManagement</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="maven-配置继承关系"><a href="#maven-配置继承关系" class="headerlink" title="maven 配置继承关系"></a>maven 配置继承关系</h5><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">parent</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.example.demo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>demo-parent<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>0.0.1-SNAPSHOT<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">relativePath</span>&gt;</span>../demo-parent/pom.xml<span class="tag">&lt;/<span class="name">relativePath</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">parent</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Git"><a href="#Git" class="headerlink" title="Git"></a>Git</h3><h5 id="Git-常用命令"><a href="#Git-常用命令" class="headerlink" title="Git 常用命令"></a>Git 常用命令</h5><ul>
+<li>设置用户名：git config –global user.name 【git用户名】</li>
+<li>设置邮箱：git config –global user.email 【邮箱地址】</li>
+<li>查看当前用户信息：git config –list </li>
+<li>初始化git仓库：git init</li>
+<li>将工作目录中的文件全部添加到暂存区：git add .</li>
+<li>查看文件状态：git status</li>
+<li>向本地仓库中提交代码：git commit -m  【提交时的描述】</li>
+<li>用暂存区中的文件覆盖工作目录中的文件：git checkout  【文件名】</li>
+<li>将文件从暂存区中删除：git rm –cached 【文件名】</li>
+<li>将 git 仓库中指定的更新记录恢复出来，并且覆盖暂存区和工作目录：git rest –hard commitID</li>
+<li>查看提交记录：git log</li>
+<li>克隆远程仓库文件到本地仓库：git clone 【 仓库地址】</li>
+<li>把本地仓库的文件提交到远程仓库：git push 【仓库地址】【分支名称】 </li>
+<li>git push  -u【仓库地址】【分支名称】<br>-u 记住推送地址及分支，下次推送只需要输入git push即可</li>
+<li>设置仓库别名：git remote add 【自定义仓库别名】【远程仓库地址】</li>
+<li>拉取远程仓库中最新的版本到本地仓库：git pull 【仓库地址】【分支名称】</li>
+<li>查看分支：git branch</li>
+<li>创建分支：git branch 【分支名称】</li>
+<li>切换分支：git checkout 【分支名称】</li>
+<li>合并某分支到当前分支：git merge 【分支名称】</li>
+<li>删除分支：git branch -d 【分支名称】（分支被合并后才允许删除）（-D 强制删除）</li>
+</ul>
+<h5 id="Git撤销-amp-回滚操作-git-reset-和-get-revert"><a href="#Git撤销-amp-回滚操作-git-reset-和-get-revert" class="headerlink" title="Git撤销&amp;回滚操作 (git reset 和 get revert)"></a>Git撤销&amp;回滚操作 (git reset 和 get revert)</h5><p>概念：</p>
+<ul>
+<li><p><strong>工作区</strong>：即自己当前分支所修改的代码，<strong>git add xx 之前的代码</strong>；</p>
+</li>
+<li><p><strong>暂存区</strong>：git add xxx 之后，git commit xxx 之前的。</p>
+</li>
+<li><p><strong>本地分支</strong>：已经git commit -m xxx 提交到本地分支的。</p>
+</li>
+</ul>
+<p><strong>工作区（未add）</strong></p>
+<ul>
+<li><strong>git checkout – a.txt</strong>  # 丢弃某个文件，或者</li>
+<li><strong>git checkout – .</strong>    # 丢弃全部，包含新增的会删除，删除的会还原</li>
+</ul>
+<p><strong>暂存区（已add,未commit）</strong></p>
+<ul>
+<li><strong>git reset HEAD .</strong>   # 将所有暂存区文件丢弃到工作区</li>
+<li><strong>git reset HEAD a.txt</strong>   #将制定文件丢弃到工作区</li>
+</ul>
+<p><strong>本地分支（已commit，未push）</strong></p>
+<p><strong>git log</strong> # 得到你需要回退一次提交的commit id</p>
+<ul>
+<li><strong>git reset –hard <commit_id></commit_id></strong>  # 回到其中你想要的某个版本</li>
+<li><strong>git reset –hard HEAD^</strong>  # 回到最新的一次提交</li>
+<li><strong>git reset HEAD^</strong>  # 此时代码保留，回到 git add 之前</li>
+</ul>
+<p>– soft ：回到暂存区</p>
+<p>– mixd：回到工作区</p>
+<p>– hard：彻底回滚，找不回</p>
+<p><strong>远程分支（已push）</strong></p>
+<ul>
+<li><p>通过git reset是直接删除指定的commit</p>
+<p>git log # 得到你需要回退一次提交的commit id<br>git reset –hard <commit_id><br>git push origin HEAD –force # 强制提交一次，之前错误的提交就从远程仓库删除</commit_id></p>
+</li>
+<li><p>通过git revert是用一次新的commit来回滚之前的commit</p>
+<p>git log # 得到你需要回退一次提交的commit id<br>git revert <commit_id>  # 撤销指定的版本，撤销也会作为一次提交进行保存</commit_id></p>
+</li>
+<li><p>git revert 和 git reset的区别</p>
+<ul>
+<li>git revert是用一次新的commit来回滚之前的commit，此次提交之前的commit都会被保留；</li>
+<li>git reset是回到某次提交，提交及之前的commit都会被保留，但是此commit id之后的修改都会被删除</li>
+</ul>
+</li>
+</ul>
+<h5 id="Git-工作流"><a href="#Git-工作流" class="headerlink" title="Git 工作流"></a>Git 工作流</h5><p>目前常用工作流分别是以下三种：</p>
+<ul>
+<li><strong>Git Flow</strong></li>
+<li><strong>GitHub Flow</strong></li>
+<li><strong>GitLab Flow</strong></li>
+</ul>
+<p><strong>Git Flow</strong></p>
+<table>
+<thead>
+<tr>
+<th>分支</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>master</td>
+<td>主分支，最新的稳定版本的已部署到生产环境的代码分支，用于发布官方的大版本</td>
+</tr>
+<tr>
+<td>develop</td>
+<td>开发分支，最新的处于开发测试阶段的稳定版本，用来记录新功能开发的代码节点</td>
+</tr>
+<tr>
+<td>feature</td>
+<td>功能分支，基于develop分支的新功能分支。feature分支不能和master分支有直接的交互</td>
+</tr>
+<tr>
+<td>release</td>
+<td>预发分支，基于develop分支的满足发布条件的分支，最终会合并到master分支</td>
+</tr>
+<tr>
+<td>hotfix</td>
+<td>补丁分支，基于master分支的紧急修复分支，最终会被并入develop和master分支</td>
+</tr>
+</tbody></table>
+<p>首先，项目存在两个长期分支。<strong>主分支master 和开发分支 develop；</strong></p>
+<p>前者用于存放对外发布的版本，任何时候在这个分支拿到的，都是稳定的分布版；后者用于日常开发，存放的开发版。</p>
+<p>其次，项目存在三种短期分支。<strong>功能分支（feature branch）、补丁分支（hotfix branch）、预发分支（release branch）。</strong></p>
+<p>一旦完成开发，它们就会被合并进develop或master，然后被删除。</p>
+<p><strong>优缺点</strong>：</p>
+<ul>
+<li>优点：清晰可控</li>
+<li>缺点：复杂，分支多，切换出错</li>
+</ul>
+<p><strong>GitHub Flow</strong></p>
+<p>Github flow 是Git flow的简化版，专门配合”持续发布”。它是 Github.com 使用的工作流程。</p>
+<p>它<strong>只有一个长期分支，就是master</strong>，因此用起来非常简单。</p>
+<p>每次新版本 一个 feature 分支，开发完成向 master 合并，适合 持续交付类项目。</p>
+<p><strong>Gitlab Flow</strong></p>
+<p><strong>Gitlab flow 是 Git flow 与 Github flow 的综合。</strong>它吸取了两者的优点，既有适应不同开发环境的弹性，又有单一主分支的简单和便利。</p>
+<p>Gitlab flow 的较大原则叫做”<strong>上游优先</strong>”（upsteam first），即只存在一个主分支master，它是所有其他分支的”上游”。只有上游分支采纳的代码变化，才能应用到其他分支。</p>
+<p>对于”持续发布”的项目，它建议在master分支以外，再<strong>建立不同的环境分支</strong>。比如，”开发环境”的分支是master，”预发环境”的分支是pre-production，”生产环境”的分支是production。</p>
+<p>开发分支是预发分支的”上游”，预发分支又是生产分支的”上游”。<strong>代码的变化，必须由”上游”向”下游”发展</strong>。比如，生产环境出现了bug，这时就要新建一个功能分支，先把它合并到master，确认没有问题，再cherry-pick到pre-production，这一步也没有问题，才进入production。</p>
+<p><strong>只有紧急情况，才允许跳过上游，直接合并到下游分支。</strong></p>
+<blockquote>
+<p>参考：<a href="https://blog.csdn.net/cvvface/article/details/81216462" target="_blank" rel="noopener">https://blog.csdn.net/cvvface/article/details/81216462</a></p>
+<p><a href="http://www.duozhishidai.com/article-113700-1.html" target="_blank" rel="noopener">http://www.duozhishidai.com/article-113700-1.html</a></p>
+</blockquote>
+
       
       <!-- reward -->
       

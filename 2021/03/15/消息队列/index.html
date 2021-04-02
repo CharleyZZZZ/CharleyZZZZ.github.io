@@ -117,7 +117,7 @@
 <p><strong>JMS</strong> 即 <strong>Java消息服务（Java Message Service）应用程序接口</strong>，是一个<a href="https://baike.baidu.com/item/Java平台" target="_blank" rel="noopener">Java平台</a>中关于面向<a href="https://baike.baidu.com/item/消息中间件/5899771" target="_blank" rel="noopener">消息中间件</a>（MOM）的<a href="https://baike.baidu.com/item/API/10154" target="_blank" rel="noopener">API</a>，用于在两个应用程序之间，或<a href="https://baike.baidu.com/item/分布式系统/4905336" target="_blank" rel="noopener">分布式系统</a>中发送消息，进行<a href="https://baike.baidu.com/item/异步通信/2273903" target="_blank" rel="noopener">异步通信</a>。Java消息服务是一个与具体平台无关的API，绝大多数MOM提供商都对JMS提供支持。</p>
 <p>《百度百科》</p>
 </blockquote>
-<p><strong>JMS *<em>只是 *</em>Java EE</strong> 中定义的一组标准 <strong>API</strong>，它自身并不是一个消息服务系统，它是消息传送服务的一个<strong>抽象</strong>，也就是说它定义了消息传送的接口而并没有具体实现。</p>
+<p><strong>JMS</strong>只是 <strong>Java EE</strong> 中定义的一组标准 <strong>API</strong>，它自身并不是一个消息服务系统，它是消息传送服务的一个<strong>抽象</strong>，也就是说它定义了消息传送的接口而并没有具体实现。</p>
 <p>JMS其实就是一个<code>Java</code>业界的<code>标准规范</code>而已，提供了一些编程接口给第三方去实现。包括消息产生、发送、读取、接收等。像<code>ActiveMQ</code>、<code>RocketMQ</code>之类的框架都是针对这个标准去实现的。</p>
 <h3 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h3><ul>
 <li><strong>异步</strong>：规范（标准）指出：消息的发送应该是异步的、非阻塞的。也就是说消息的发送者发送完消息后就直接返回了，不需要等待接收者返回后才能返回，发送者和接收者可以说是互不影响，减轻或消除系统瓶颈，实现系统之间去除耦合，提高系统的整体可伸缩性和灵活性。</li>

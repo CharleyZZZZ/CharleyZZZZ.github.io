@@ -1222,9 +1222,12 @@
 <h3 id="不同隔离级别"><a href="#不同隔离级别" class="headerlink" title="不同隔离级别"></a>不同隔离级别</h3><p>SQL 标准根据三种不一致的异常现象，将隔离性定义为<strong>四个隔离级别</strong>（Isolation Level），<strong>隔离级别和数据库的性能呈反比，隔离级别越低，数据库性能越高；而隔离级别越高，数据库性能越差</strong>，具体如下：</p>
 <img src="/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/transaction_02.png" style="zoom: 50%;">
 
-<h4 id="Read-uncommitted-读未提交"><a href="#Read-uncommitted-读未提交" class="headerlink" title="Read uncommitted 读未提交"></a>Read uncommitted 读未提交</h4><p>在该级别下，一个事务对数据修改的过程中，不允许另一个事务对该行数据进行修改，但允许另一个事务对该行数据进行读，不会出现更新丢失，但会出现<strong>脏读、不可重复读</strong>的情况。</p>
-<h4 id="Read-committed-读已提交"><a href="#Read-committed-读已提交" class="headerlink" title="Read committed 读已提交"></a>Read committed 读已提交</h4><p>在该级别下，未提交的写事务不允许其他事务访问该行，不会出现脏读，但是读取数据的事务允许其他事务访问该行数据，因此会出现<strong>不可重复读</strong>的情况。</p>
-<h4 id="Repeatable-read-可重复读"><a href="#Repeatable-read-可重复读" class="headerlink" title="Repeatable read 可重复读"></a>Repeatable read 可重复读</h4><p>在该级别下，在同一个事务内的查询都是和事务开始时刻一致的，保证对同一字段的多次读取结果都相同，除非数据是被本身事务自己所修改，不会出现同一事务读到两次不同数据的情况。因为没有约束其他事务的新增Insert操作，所以 SQL 标准中可重复读级别会出现<strong>幻读</strong>。</p>
+<h4 id="Read-uncommitted-读未提交"><a href="#Read-uncommitted-读未提交" class="headerlink" title="Read uncommitted 读未提交"></a>Read uncommitted 读未提交</h4><p>字面理解，即读取其他事务未提交的数据。</p>
+<p>在该级别下，一个事务对数据修改的过程中，不允许另一个事务对该行数据进行修改，但允许另一个事务对该行数据进行读，不会出现更新丢失，但会出现<strong>脏读、不可重复读</strong>的情况。</p>
+<h4 id="Read-committed-读已提交"><a href="#Read-committed-读已提交" class="headerlink" title="Read committed 读已提交"></a>Read committed 读已提交</h4><p>字面理解，即读取其他事务已提交的数据。</p>
+<p>在该级别下，未提交的写事务不允许其他事务访问该行，不会出现脏读，但是读取数据的事务允许其他事务访问该行数据，因此会出现<strong>不可重复读</strong>的情况。</p>
+<h4 id="Repeatable-read-可重复读"><a href="#Repeatable-read-可重复读" class="headerlink" title="Repeatable read 可重复读"></a>Repeatable read 可重复读</h4><p>字面理解，即一个事务内重复读取相同数据结果一致的。（幻读是记录条数不一致，所以不能避免幻读）</p>
+<p>在该级别下，在同一个事务内的查询都是和事务开始时刻一致的，保证对同一字段的多次读取结果都相同，除非数据是被本身事务自己所修改，不会出现同一事务读到两次不同数据的情况。因为没有约束其他事务的新增Insert操作，所以 SQL 标准中可重复读级别会出现<strong>幻读</strong>。</p>
 <p>值得一提的是，可重复读是 MySQL InnoDB 引擎的默认隔离级别，但是在 MySQL 额外添加了间隙锁（Gap Lock），可以防止幻读。</p>
 <h4 id="Serializable-序列化"><a href="#Serializable-序列化" class="headerlink" title="Serializable 序列化"></a>Serializable 序列化</h4><p>该级别要求所有事务都必须串行执行，可以避免各种并发引起的问题，效率也最低。</p>
 <p>对不同隔离级别的解释，其实是为了保持数据库事务中的隔离性（Isolation），目标是使并发事务的执行效果与串行一致，隔离级别的提升带来的是并发能力的下降，两者是负相关的关系。</p>
@@ -2474,7 +2477,7 @@
 
 
 
-<h5 id="基于CGLIB的动态代理"><a href="#基于CGLIB的动态代理" class="headerlink" title="基于CGLIB的动态代理"></a><strong>基于CGLIB的动态代理</strong></h5><p>基于JDK的动态代理一定要继承一个接口，而绝大部分情况是基于POJO类的动态代理，那么CGLIB就是一个很好的选择，在Hibernate框架中PO的字节码生产工作就是靠CGLIB来完成的。</p>
+<h5 id="基于CGLIB的动态代理"><a href="#基于CGLIB的动态代理" class="headerlink" title="基于CGLIB的动态代理"></a><strong>基于CGLIB的动态代理</strong></h5><p>基于JDK的动态代理，原对象一定要实现一个接口，而绝大部分情况原对象是一个POJO类，那么CGLIB就是一个很好的选择，在Hibernate框架中PO的字节码生产工作就是靠CGLIB来完成的。</p>
 <ol>
 <li><p>引入CGLIB的jar包。</p>
 </li>
@@ -2648,7 +2651,7 @@
 <li><strong>Vector</strong> 实现了<strong>RandmoAccess</strong>接口，即<strong>提供了随机访问功能</strong>。我们即可以通过元素的序号快速获取元素对象；</li>
 <li><strong>Vector</strong> 实现了<strong>Cloneable</strong>接口，即实现clone()函数。它能被克隆。</li>
 <li>和<strong>ArrayList</strong>不同，<strong>Vector中的操作是线程安全的</strong>。</li>
-<li>Vector 默认容量是 10，当Vector容量不足以容纳全部元素时，Vector的容量会增加。<strong>若容量增加系数 &gt;0，则将容量的值增加到 “容量增 + 系数”；否则，将容量大小增加一倍。</strong>（增加系数有构造器时指定）</li>
+<li>Vector 默认容量是 10，当Vector容量不足以容纳全部元素时，Vector的容量会增加。<strong>若容量增加系数 &gt;0，则将容量的值增加到 “容量 + 系数”；否则，将容量大小增加一倍。</strong>（增加系数有构造器时指定）</li>
 </ul>
 <h5 id="Vector-源码分析"><a href="#Vector-源码分析" class="headerlink" title="Vector 源码分析"></a>Vector 源码分析</h5><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Vector</span>&lt;<span class="title">E</span>&gt;</span></span><br><span class="line"><span class="class">    <span class="keyword">extends</span> <span class="title">AbstractList</span>&lt;<span class="title">E</span>&gt;</span></span><br><span class="line"><span class="class">    <span class="keyword">implements</span> <span class="title">List</span>&lt;<span class="title">E</span>&gt;, <span class="title">RandomAccess</span>, <span class="title">Cloneable</span>, <span class="title">java</span>.<span class="title">io</span>.<span class="title">Serializable</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">   </span><br><span class="line">    <span class="comment">// 保存Vector中数据的数组</span></span><br><span class="line">    <span class="keyword">protected</span> Object[] elementData;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 实际数据的数量</span></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">int</span> elementCount;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 容量增长系数</span></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">int</span> capacityIncrement;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Vector的序列版本号</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = -<span class="number">2767605614048989439L</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Vector构造函数。默认容量是10。</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Vector</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>(<span class="number">10</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 指定Vector容量大小的构造函数</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Vector</span><span class="params">(<span class="keyword">int</span> initialCapacity)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>(initialCapacity, <span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 指定Vector"容量大小"和"增长系数"的构造函数</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Vector</span><span class="params">(<span class="keyword">int</span> initialCapacity, <span class="keyword">int</span> capacityIncrement)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>();</span><br><span class="line">        <span class="keyword">if</span> (initialCapacity &lt; <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"Illegal Capacity: "</span>+</span><br><span class="line">                                               initialCapacity);</span><br><span class="line">        <span class="comment">// 新建一个数组，数组容量是initialCapacity</span></span><br><span class="line">        <span class="keyword">this</span>.elementData = <span class="keyword">new</span> Object[initialCapacity];</span><br><span class="line">        <span class="comment">// 设置容量增长系数</span></span><br><span class="line">        <span class="keyword">this</span>.capacityIncrement = capacityIncrement;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 指定集合的Vector构造函数。</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Vector</span><span class="params">(Collection&lt;? extends E&gt; c)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 获取“集合(c)”的数组，并将其赋值给elementData</span></span><br><span class="line">        elementData = c.toArray();</span><br><span class="line">        <span class="comment">// 设置数组长度</span></span><br><span class="line">        elementCount = elementData.length;</span><br><span class="line">        <span class="comment">// c.toArray might (incorrectly) not return Object[] (see 6260652)</span></span><br><span class="line">        <span class="keyword">if</span> (elementData.getClass() != Object[]<span class="class">.<span class="keyword">class</span>)</span></span><br><span class="line"><span class="class">            <span class="title">elementData</span> </span>= Arrays.copyOf(elementData, elementCount, Object[]<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 确认“Vector容量”的帮助函数</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">ensureCapacityHelper</span><span class="params">(<span class="keyword">int</span> minCapacity)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> oldCapacity = elementData.length;</span><br><span class="line">        <span class="comment">// 当Vector的容量不足以容纳当前的全部元素，增加容量大小。</span></span><br><span class="line">        <span class="comment">// 若 容量增量系数&gt;0(即capacityIncrement&gt;0)，则将容量增大当capacityIncrement</span></span><br><span class="line">        <span class="comment">// 否则，将容量增大一倍。</span></span><br><span class="line">        <span class="keyword">if</span> (minCapacity &gt; oldCapacity) &#123;</span><br><span class="line">            Object[] oldData = elementData;</span><br><span class="line">            <span class="keyword">int</span> newCapacity = (capacityIncrement &gt; <span class="number">0</span>) ?</span><br><span class="line">                (oldCapacity + capacityIncrement) : (oldCapacity * <span class="number">2</span>);</span><br><span class="line">            <span class="keyword">if</span> (newCapacity &lt; minCapacity) &#123;</span><br><span class="line">                newCapacity = minCapacity;</span><br><span class="line">            &#125;</span><br><span class="line">            elementData = Arrays.copyOf(elementData, newCapacity);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 确定Vector的容量。</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">ensureCapacity</span><span class="params">(<span class="keyword">int</span> minCapacity)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 将Vector的改变统计数+1</span></span><br><span class="line">        modCount++;</span><br><span class="line">        ensureCapacityHelper(minCapacity);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 设置容量值为 newSize</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">setSize</span><span class="params">(<span class="keyword">int</span> newSize)</span> </span>&#123;</span><br><span class="line">        modCount++;</span><br><span class="line">        <span class="keyword">if</span> (newSize &gt; elementCount) &#123;</span><br><span class="line">            <span class="comment">// 若 "newSize 大于 Vector容量"，则调整Vector的大小。</span></span><br><span class="line">            ensureCapacityHelper(newSize);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// 若 "newSize 小于/等于 Vector容量"，则将newSize位置开始的元素都设置为null</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = newSize ; i &lt; elementCount ; i++) &#123;</span><br><span class="line">                elementData[i] = <span class="keyword">null</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        elementCount = newSize;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 省略其他方法.......</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -3194,7 +3197,154 @@
 <p>SLF4J加载不同提供商的日志实现类</p>
 <p>Dubbo中也大量使用SPI的方式实现框架的扩展</p>
 <p>此外，spring-boot 自动配置原理似乎也是借鉴SPI机制，详见 <a href="http://blogsea.cn/2020/05/07/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/" target="_blank" rel="noopener">SpringBoot学习之自动配置原理</a></p>
-<h3 id="GC垃圾回收器"><a href="#GC垃圾回收器" class="headerlink" title="GC垃圾回收器"></a>GC垃圾回收器</h3><h3 id="编译器优化"><a href="#编译器优化" class="headerlink" title="编译器优化"></a>编译器优化</h3><h3 id="性能调优"><a href="#性能调优" class="headerlink" title="性能调优"></a>性能调优</h3><blockquote>
+<h3 id="GC垃圾回收器"><a href="#GC垃圾回收器" class="headerlink" title="GC垃圾回收器"></a>GC垃圾回收器</h3><p>JVM中堆是一个巨大的对象池。在这个对象池中管理着数量巨大的对象实例。而池中对象的引用层次，有的是很深的。一个被频繁调用的接口，每秒生成对象的速度，也是非常可观的。对象之间的关系，形成了一张巨大的网。虽然 Java 一直在营造一种无限内存的氛围，但对象不能只增不减，所以需要<strong>垃圾回收</strong>（GC）。</p>
+<p>当我们的内存空间达到一定条件时，会自动触发。这个过程就叫作 <strong>GC</strong>，负责 GC 的组件，就叫作<strong>垃圾回收器</strong>。</p>
+<h4 id="判断哪些对象被回收"><a href="#判断哪些对象被回收" class="headerlink" title="判断哪些对象被回收"></a><strong>判断哪些对象被回收</strong></h4><p>由 GC Roots 向下追溯、搜索，会产生一个叫作 <strong>Reference Chain</strong> 的链条。<strong>当一个对象不能和任何一个 GC Root 产生关系时，就会垃圾回收。</strong></p>
+<ul>
+<li>GC Roots 是一组<strong>必须活跃的引用</strong>。大体分为：<ul>
+<li>活动线程相关的各种引用。</li>
+<li>类的静态变量的引用。</li>
+<li>JNI 引用。</li>
+</ul>
+</li>
+<li><strong>活跃的引用，而不是对象</strong>，对象是不能作为 GC Roots 的。</li>
+<li><strong>GC 过程是找出所有活对象，并把其余空间认定为“无用”；而不是找出所有死掉的对象，并回收它们占用的空间。</strong>所以，哪怕 JVM 的堆非常的大，基于 tracing 的 GC 方式，回收速度也会非常快。</li>
+</ul>
+<h4 id="引用级别"><a href="#引用级别" class="headerlink" title="引用级别"></a>引用级别</h4><p>能够找到 Reference Chain 的对象，就一定会存活么？不一定</p>
+<p>对象的引用级别分为：<strong>强引用、软引用、弱引用、虚引用</strong>等。不同的引用级别，回收条件也不一样。</p>
+<ul>
+<li><p><strong>强引用 Strong references</strong>：当内存空间不足，系统撑不住了，JVM 就会抛出 OutOfMemoryError 错误。<strong>即使程序会异常终止，这种对象也不会被回收。</strong></p>
+<p>这种引用属于最普通最强硬的一种存在，只有在和 GC Roots 断绝关系时，才会被消灭掉。</p>
+</li>
+<li><p><strong>软引用 Soft references</strong>：软引用用于维护一些可有可无的对象。在内存足够的时候，软引用对象不会被回收，<strong>只有在内存不足时，系统则会回收软引用对象</strong>，如果回收了软引用对象之后仍然没有足够的内存，才会抛出内存溢出异常。可以看到，这种特性非常适合用在缓存技术上。比如网页缓存、图片缓存等。Guava 的 CacheBuilder，就提供了软引用和弱引用的设置方式。</p>
+<p>软引用需要显式的声明，使用泛型来实现。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Object object = <span class="keyword">new</span> Object();</span><br><span class="line">SoftReference&lt;Object&gt; softRef = <span class="keyword">new</span> SoftReference(object);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>弱引用 Weak references</strong>：弱引用对象相比较软引用，要更加无用一些，它拥有更短的生命周期。当 JVM 进行垃圾回收时，<strong>无论内存是否充足，都会回收被弱引用关联的对象</strong>。它的应用场景和软引用类似，可以在一些对内存更加敏感的系统里采用。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Object object = <span class="keyword">new</span> Object();</span><br><span class="line">WeakReference&lt;Object&gt; softRef = <span class="keyword">new</span> WeakReference(object);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>虚引用 Phantom References</strong>：这是一种<strong>形同虚设的引用，</strong>在现实场景中用的不是很多。虚引用主要用来跟踪对象被垃圾回收的活动。</p>
+<p>当垃圾回收器准备回收一个对象时，如果发现它还有虚引用，就会在回收对象之前，把这个虚引用加入到与之关联的引用队列中。反之，程序如果发现某个虚引用已经被加入到引用队列，那么就可以在所引用的对象的内存被回收之前采取必要的行动。</p>
+</li>
+</ul>
+<h4 id="典型OOM场景"><a href="#典型OOM场景" class="headerlink" title="典型OOM场景"></a>典型OOM场景</h4><p>JVM 中，除了程序计数器，其他区域都有OOM溢出的可能。但是<strong>最常见的还是发生在堆上</strong>。</p>
+<p>常见OOM场景：</p>
+<ul>
+<li>内存的容量太小了，需要扩容，或者需要调整堆的空间。</li>
+<li>错误的引用方式，发生了内存泄漏。</li>
+<li>没有及时的切断与 GC Roots 的关系。比如线程池里的线程，在复用的情况下忘记清理 ThreadLocal 的内容。接口没有进行范围校验，外部传参超出范围。比如数据库查询时的每页条数等。</li>
+<li>对堆外内存无限制的使用。这种情况一旦发生更加严重，会造成操作系统内存耗尽。</li>
+</ul>
+<h4 id="垃圾回收"><a href="#垃圾回收" class="headerlink" title="垃圾回收"></a>垃圾回收</h4><p><strong>GC 的过程</strong>是先找到活跃的对象，然后把其他不活跃的对象判定为垃圾，然后删除。所以垃圾回收只与活跃的对象有关，和堆的大小无关。</p>
+<p>垃圾回收几个概念：</p>
+<ul>
+<li><strong>标记</strong>：垃圾回收的第一步，就是找出活跃的对象。根据 GC Roots 遍历所有的可达对象，这个过程，就叫作<strong>标记</strong>。</li>
+<li><strong>清除</strong>：清除阶段就是把未被标记的对象回收掉。</li>
+<li><strong>复制</strong>：经过清除后，剩下活跃对象分散分布，造成内存碎片。我们可以通过复制方式解决内存碎片：提供一个对等的内存空间，将存活的对象复制过去，然后清除原内存空间。</li>
+<li><strong>整理</strong>：其实不用分配一个对等的额外空间，也是可以完成内存的整理工作，就是移动所有存活的对象，且按照内存地址顺序依次排列，然后将末端内存地址以后的内存全部回收。</li>
+</ul>
+<p>回收算法：</p>
+<ul>
+<li><strong>复制算法（Copy）</strong>复制算法是所有算法里面效率最高的，缺点是会造成一定的空间浪费。</li>
+<li><strong>标记-清除（Mark-Sweep）</strong>效率一般，缺点是会造成内存碎片问题。</li>
+<li><strong>标记-整理（Mark-Compact）</strong>效率比前两者要差，但没有空间浪费，也消除了内存碎片问题。</li>
+</ul>
+<h4 id="分代"><a href="#分代" class="headerlink" title="分代"></a>分代</h4><p>JVM 是计算节点，而不是存储节点。最理想的情况，就是对象在用完之后，它的生命周期立马就结束了。而那些被频繁访问的资源，我们希望它能够常驻在内存里。<br>研究表明，大部分对象，可以分为两类：<strong>大部分对象的生命周期都很短；其他对象则很可能会存活很长时间。</strong></p>
+<p><strong>大部分死的快，其他的活的长。</strong>这个假设我们称之为<strong>弱代假设</strong>（weak generational hypothesis）。</p>
+<p>现在的垃圾回收器，都会<strong>在物理上或者逻辑上</strong>，把这两类对象进行区分。我们把死的快的对象所占的区域，叫作<strong>年轻代（Young generation）</strong>。把其他活的长的对象所占的区域，叫作<strong>老年代（Old generation）</strong>（老年代在有些地方也会叫作 Tenured Generation）。</p>
+<h5 id="年轻代"><a href="#年轻代" class="headerlink" title="年轻代"></a>年轻代</h5><p><strong>年轻代使用的垃圾回收算法是复制算法。</strong>因为年轻代发生 GC 后，只会有非常少的对象存活，复制这部分对象是非常高效的。</p>
+<p>年轻代分为：<strong>一个伊甸园空间（Eden ），两个幸存者空间（Survivor ）</strong>。内存<strong>比例为 8:1:1</strong>。（这个比例，是由参数 <strong>-XX:SurvivorRatio</strong> 进行配置的（默认为 8））</p>
+<ul>
+<li><p>在 Eden 区执行了第一次 GC 之后，存活的对象会被移动到其中一个 Survivor 分区（以下简称from）；</p>
+</li>
+<li><p>Eden 区再次 GC，这时会采用复制算法，将 Eden 和 from 区一起清理。存活的对象会被复制到 to 区（另一个Survivor 分区）；</p>
+</li>
+<li><p>接下来，只需要清空 from 区就可以了。</p>
+</li>
+</ul>
+<p>所以在这个过程中，<strong>总会有一个 Survivor 分区是空置的，所以只会造成 10% 的空间浪费。</strong></p>
+<h5 id="老年代"><a href="#老年代" class="headerlink" title="老年代"></a>老年代</h5><p><strong>老年代一般使用“标记-清除”、“标记-整理”算法</strong>，因为老年代的对象存活率一般是比较高的，空间又比较大，拷贝起来并不划算，还不如采取就地收集的方式。</p>
+<p>对象进入老年代的方式：</p>
+<ul>
+<li><strong>提升（Promotion）</strong>：每当发生一次 Minor GC（年轻代 GC），存活下来的对象年龄都会加 1。直到达到一定的阈值，就会把这些“老顽固”给提升到老年代。（阈值可以通过参数 <strong>‐XX:+MaxTenuringThreshold</strong> 进行配置，最大值是 15，因为它是用 4bit 存储的）</li>
+<li><strong>分配担保</strong>：Minor GC后，每次存活的对象，都会放入其中一个幸存区，这个区域默认的比例是 10%。但是我们无法保证每次存活的对象都小于 10%，当 Survivor 空间不够，就需要依赖其他内存（指老年代）进行分配担保。这个时候，对象也会直接在老年代上分配。</li>
+<li><strong>大对象直接在老年代分配</strong>：超出某个大小的对象将直接在老年代分配。</li>
+<li><strong>动态对象年龄判定</strong>：对于提升中，阈值不是一个固定值，而是有某个算法动态获得的age，大于或等于 age 的对象将会直接进入老年代。</li>
+</ul>
+<h5 id="卡片标记"><a href="#卡片标记" class="headerlink" title="卡片标记"></a>卡片标记</h5><p>对象的引用关系是一个巨大的网状。有的对象可能在 Eden 区，有的可能在老年代，那么这种<strong>跨代的引用</strong>是如何处理？由于 Minor GC 是单独发生的，如果一个老年代的对象引用了它，如何确保能够让年轻代的对象存活呢？</p>
+<p>对于是、否的判断，我们通常都会用 Bitmap（位图）和布隆过滤器来加快搜索的速度。</p>
+<p>JVM 也是用了类似的方法。老年代是被分成众多的卡页（card page）的（一般数量是 2 的次幂）。<br><strong>卡表（Card Table）</strong>就是用于标记卡页状态的一个集合，每个卡表项对应一个卡页。<br>如果年轻代有对象分配，而且老年代有对象指向这个新对象， 那么这个老年代对象所对应内存的卡页，就会标识为 dirty，卡表只需要非常小的存储空间就可以保留这些状态。垃圾回收时，就可以先读这个卡表，进行快速判断。</p>
+<h4 id="HotSpot-垃圾回收器"><a href="#HotSpot-垃圾回收器" class="headerlink" title="HotSpot 垃圾回收器"></a><strong>HotSpot 垃圾回收器</strong></h4><ul>
+<li><strong>年轻代垃圾回收器</strong><ul>
+<li><strong>Serial 垃圾收集器</strong>：处理 GC 的只有一条线程，并且在垃圾回收的过程中暂停一切用户线程。</li>
+<li><strong>ParNew 垃圾收集器</strong>：ParNew 是 Serial 的多线程版本。由多条 GC 线程并行地进行垃圾清理。清理过程依然要停止用户线程。</li>
+<li><strong>Parallel Scavenge 垃圾收集器</strong>：另一个多线程版本的垃圾回收器。它与 ParNew 的主要区别是：Parallel Scavenge：追求 CPU 吞吐量，能够在较短时间内完成指定任务，适合没有交互的后台计算。<strong>弱交互强计算</strong>。ParNew：追求降低用户停顿时间，适合交互式应用。强交互弱计算。</li>
+</ul>
+</li>
+<li><strong>老年代垃圾回收器</strong><ul>
+<li><strong>Serial Old 垃圾收集器</strong>：与年轻代的 Serial 垃圾收集器对应，都是单线程版本。年轻代的 Serial，使用复制算法。老年代的 Old Serial，使用标记-整理算法。</li>
+<li><strong>Parallel Old</strong>：Parallel Old 收集器是 Parallel Scavenge 的老年代版本，追求 CPU 吞吐量。</li>
+<li><strong>CMS 垃圾收集器</strong>：CMS（Concurrent Mark Sweep）收集器是以获取最短 GC 停顿时间为目标的收集器，它在垃圾收集时使得<strong>用户线程和 GC 线程能够并发执行</strong>，因此在垃圾收集过程中用户也不会感到明显的卡顿。</li>
+</ul>
+</li>
+</ul>
+<p>除了上面几个垃圾回收器，我们还有 G1、ZGC 等更加高级的垃圾回收器，它们都有专门的配置参数来使其生效。</p>
+<p>配置参数：</p>
+<ul>
+<li><strong>-XX:+UseSerialGC</strong> 年轻代和老年代都用串行收集器</li>
+<li><strong>-XX:+UseParNewGC</strong> 年轻代使用 ParNew，老年代使用 Serial Old</li>
+<li><strong>-XX:+UseParallelGC</strong> 年轻代使用 ParallerGC，老年代使用 Serial Old</li>
+<li><strong>-XX:+UseParallelOldGC</strong> 新生代和老年代都使用并行收集器</li>
+<li><strong>-XX:+UseConcMarkSweepGC</strong>，表示年轻代使用 ParNew，老年代的用 CMS</li>
+<li><strong>-XX:+UseG1GC</strong> 使用 G1垃圾回收器</li>
+<li><strong>-XX:+UseZGC</strong> 使用 ZGC 垃圾回收器</li>
+</ul>
+<p>Java7、8 的默认参数：-XX:+UseParallelGC。Java13 的默认参数：-XX:+UseG1GC。</p>
+<ul>
+<li><p><strong>java -XX:+PrintCommandLineFlags -version</strong>  ：查看详细参数</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\Users\charleyZZZZ&gt;java <span class="literal">-XX</span>:+PrintCommandLineFlags <span class="literal">-version</span></span><br><span class="line"><span class="literal">-XX</span>:InitialHeapSize=<span class="number">131691328</span> <span class="literal">-XX</span>:MaxHeapSize=<span class="number">2107061248</span> <span class="literal">-XX</span>:+PrintCommandLineFlags <span class="literal">-XX</span>:+UseCompressedClassPointers <span class="literal">-XX</span>:+UseCompressedOops <span class="literal">-XX</span>:<span class="literal">-UseLargePagesIndividualAllocation</span> <span class="literal">-XX</span>:+UseParallelGC</span><br><span class="line">java version <span class="string">"1.8.0_65"</span></span><br><span class="line">Java(TM) SE Runtime Environment (build <span class="number">1.8</span>.<span class="number">0</span>_65<span class="literal">-b17</span>)</span><br><span class="line">Java HotSpot(TM) <span class="number">64</span><span class="literal">-Bit</span> Server VM (build <span class="number">25.65</span><span class="literal">-b01</span>, mixed mode)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>java -XX:+PrintGCDetails -version</strong> ：查看GC详情</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\Users\charleyZZZZ&gt;java <span class="literal">-XX</span>:+PrintGCDetails <span class="literal">-version</span></span><br><span class="line">java version <span class="string">"1.8.0_65"</span></span><br><span class="line">Java(TM) SE Runtime Environment (build <span class="number">1.8</span>.<span class="number">0</span>_65<span class="literal">-b17</span>)</span><br><span class="line">Java HotSpot(TM) <span class="number">64</span><span class="literal">-Bit</span> Server VM (build <span class="number">25.65</span><span class="literal">-b01</span>, mixed mode)</span><br><span class="line">Heap</span><br><span class="line"> PSYoungGen      total <span class="number">37888</span>K, used <span class="number">3277</span>K [<span class="number">0</span><span class="type">x00000000d6200000</span>, <span class="number">0</span><span class="type">x00000000d8c00000</span>, <span class="number">0</span><span class="type">x0000000100000000</span>)</span><br><span class="line">  <span class="type">eden</span> <span class="type">space</span> <span class="number">32768</span><span class="type">K</span>, <span class="number">10</span>% <span class="type">used</span> [<span class="number">0</span><span class="type">x00000000d6200000</span>,<span class="number">0</span><span class="type">x00000000d65335f0</span>,<span class="number">0</span><span class="type">x00000000d8200000</span>)</span><br><span class="line">  <span class="type">from</span> <span class="type">space</span> <span class="number">5120</span><span class="type">K</span>, <span class="number">0</span>% <span class="type">used</span> [<span class="number">0</span><span class="type">x00000000d8700000</span>,<span class="number">0</span><span class="type">x00000000d8700000</span>,<span class="number">0</span><span class="type">x00000000d8c00000</span>)</span><br><span class="line">  <span class="type">to</span>   <span class="type">space</span> <span class="number">5120</span><span class="type">K</span>, <span class="number">0</span>% <span class="type">used</span> [<span class="number">0</span><span class="type">x00000000d8200000</span>,<span class="number">0</span><span class="type">x00000000d8200000</span>,<span class="number">0</span><span class="type">x00000000d8700000</span>)</span><br><span class="line"> <span class="type">ParOldGen</span>       <span class="type">total</span> <span class="number">86016</span><span class="type">K</span>, <span class="type">used</span> <span class="number">0</span><span class="type">K</span> [<span class="number">0</span><span class="type">x0000000082600000</span>, <span class="number">0</span><span class="type">x0000000087a00000</span>, <span class="number">0</span><span class="type">x00000000d6200000</span>)</span><br><span class="line">  <span class="type">object</span> <span class="type">space</span> <span class="number">86016</span><span class="type">K</span>, <span class="number">0</span>% <span class="type">used</span> [<span class="number">0</span><span class="type">x0000000082600000</span>,<span class="number">0</span><span class="type">x0000000082600000</span>,<span class="number">0</span><span class="type">x0000000087a00000</span>)</span><br><span class="line"> <span class="type">Metaspace</span>       <span class="type">used</span> <span class="number">2367</span><span class="type">K</span>, <span class="type">capacity</span> <span class="number">4480</span><span class="type">K</span>, <span class="type">committed</span> <span class="number">4480</span><span class="type">K</span>, <span class="type">reserved</span> <span class="number">1056768</span><span class="type">K</span></span><br><span class="line">  <span class="type">class</span> <span class="type">space</span>    <span class="type">used</span> <span class="number">259</span><span class="type">K</span>, <span class="type">capacity</span> <span class="number">384</span><span class="type">K</span>, <span class="type">committed</span> <span class="number">384</span><span class="type">K</span>, <span class="type">reserved</span> <span class="number">1048576</span><span class="type">K</span></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+</li>
+</ul>
+<h4 id="STW（Stop-the-world）"><a href="#STW（Stop-the-world）" class="headerlink" title="STW（Stop the world）"></a>STW（Stop the world）</h4><p>为了保证程序不会乱套，<strong>在垃圾回收的时候（不管是标记还是整理复制）,暂停用户的一切线程</strong>。也就是在这段时间，你是不能 new 对象的，只能等待。表现在 JVM 上就是短暂的卡顿，什么都干不了。这种现象，就叫作 Stop the world。简称 <strong>STW</strong>。</p>
+<p>标记阶段，大多数是要 STW 的。</p>
+<p>现在的垃圾回收器，都会尽量去减少这个过程。但即使是最先进的 ZGC，也会有短暂的 STW 过程。</p>
+<h4 id="垃圾回收器"><a href="#垃圾回收器" class="headerlink" title="垃圾回收器"></a>垃圾回收器</h4><h5 id="CMS"><a href="#CMS" class="headerlink" title="CMS"></a>CMS</h5><p>CMS 的全称是 Mostly Concurrent Mark and Sweep Garbage Collector（主要并发­标记­清除­垃圾收集器），它在年轻代使用<strong>复制</strong>算法，而对老年代使用<strong>标记-清除</strong>算法。年轻代使用 <strong>ParNew</strong>，老年代的用 <strong>CMS</strong>。CMS 的设计目标，是避免在老年代 GC 时出现长时间的卡顿（但它并不是一个老年代回收器）。</p>
+<ul>
+<li>CMS 主要优点是获得更少的停顿。</li>
+<li>CMS 使用的是 Sweep 而不是 Compact，所以它的主要问题是碎片化。解决方法：Full GC进行内存整理，但是该整理会造成较长时间的停顿。</li>
+</ul>
+<p>优缺点：</p>
+<p><strong>优势：</strong>低延迟，尤其对于大堆来说。大部分垃圾回收过程并发执行。<br><strong>劣势：</strong>内存碎片问题。Full GC 的整理阶段，会造成较长时间的停顿。需要预留空间，用来分配收集阶段产生的“浮动垃圾”。使用更多的 CPU 资源，在应用运行的同时进行堆扫描。</p>
+<p>CMS 是一种高度可配置的复杂算法，因此给 JDK 中的 GC 代码库带来了很多复杂性。由于 G1 和 ZGC 的产生，CMS 已经在被废弃的路上。</p>
+<h5 id="G1"><a href="#G1" class="headerlink" title="G1"></a>G1</h5><p>G1 的目标是用来干掉 CMS 的，它同样是一款软实时垃圾回收器。相比 CMS，G1 的使用更加人性化。</p>
+<p>G1 的全称是 Garbage­First GC。其他的回收器，都是对某个年代的整体收集，收集时间上自然不好控制。<strong>G1 把堆切成了很多份，把每一份当作一个小目标，部分上目标很容易达成。</strong></p>
+<p>所以 G1 只有<strong>逻辑上的 年轻代和老年代</strong>。</p>
+<p>G1 将堆内存 分为 一小份一小份区域，<strong>这一小份区域的大小是固定的，名字叫作小堆区（Region）</strong>。小堆区可以是 Eden 区，也可以是 Survivor 区，还可以是 Old 区。所以 G1 的年轻代和老年代的概念都是逻辑上的。</p>
+<p><strong>每一块 Region，大小都是一致的</strong>，它的数值是在 1M 到 32M 字节之间的一个 2 的幂值数。Region 的大小，可以通过参数进行设置：</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="literal">-XX</span>:G1HeapRegionSize=&lt;N&gt;M</span><br></pre></td></tr></table></figure>
+
+<p><strong>大小超过 Region 50% 的对象</strong>，将会在 <strong>Humongous Region</strong> 区分配。</p>
+<p><strong>垃圾最多的小堆区，会被优先收集。</strong>这就是 G1 名字的由来。</p>
+<p><strong>G1 采用分而治之，部分收集的思想</strong>，尽力达到我们给它设定的停顿目标。</p>
+<h3 id="性能调优"><a href="#性能调优" class="headerlink" title="性能调优"></a>性能调优</h3><p>优先级：</p>
+<ul>
+<li>程序优化，效果通常非常大；</li>
+<li>扩容，如果金钱的成本比较小，采用扩容服务器资源；</li>
+<li>参数调优，在成本、吞吐量、延迟之间找一个平衡点。</li>
+</ul>
+<h4 id="OOM排查"><a href="#OOM排查" class="headerlink" title="OOM排查"></a>OOM排查</h4><ul>
+<li>隔离：把你的这台机器从请求列表里摘除，比如把 nginx 相关的权重设成零。在微服务中，也有相应的隔离机制。目的保证生产问题解决，第二保留现场。</li>
+<li>排查问题。</li>
+</ul>
+<blockquote>
 <p>笔记来源 ： 网络 和 李国老师的《深入浅出 JVM虚拟机》课程</p>
 </blockquote>
 ]]></content>
@@ -3346,7 +3496,7 @@
 <ul>
 <li>继承 <strong>Thread</strong> 类：重写 <strong>run()</strong> 方法，调用 <strong>start()</strong> 方法启动线程。</li>
 <li>实现 <strong>Runnable</strong> 接口：重写 <strong>run()</strong> 方法，调用 <strong>start()</strong> 方法启动线程。</li>
-<li>通过 <strong>Callable</strong> 和 <strong>Future</strong> 创建线程：实现 <strong>call()</strong> 方法（有返回值），使用 <strong>FutureTask</strong> 类来包装 <strong>Callable *<em>对象，调用 *</em>FutureTask</strong> 对象的 <strong>get()</strong> 方法来获得子线程执行结束后的返回值。</li>
+<li>通过 <strong>Callable</strong> 和 <strong>Future</strong> 创建线程：实现 <strong>call()</strong> 方法（有返回值），使用 <strong>FutureTask</strong> 类来包装 <strong>Callable</strong>对象，调用 <strong>FutureTask</strong> 对象的 <strong>get()</strong> 方法来获得子线程执行结束后的返回值。</li>
 </ul>
 <p>优劣对比：接口实现的方式 可以 继承其他类，也可以实现其他接口，对线程类限制较少，Callable 的方式 可以获取返回值。而Thread 类方式创建较为简单。</p>
 <h3 id="线程的生命周期"><a href="#线程的生命周期" class="headerlink" title="线程的生命周期"></a>线程的生命周期</h3><p><strong>线程</strong>是 JVM 执行任务的最小单元，理解线程的状态转换是理解后续多线程问题的基础。在 JVM 运行中，线程一共有 <strong>NEW、RUNNABLE、BLOCKED、WAITING、TIMED_WAITING、TERMINATED</strong> 六种状态，这些状态对应 <strong>Thread.State</strong> 枚举类中的状态。</p>
@@ -3405,7 +3555,7 @@
 <p><strong>join() 方法</strong></p>
 <p><strong>Thread</strong>的方法 <strong>join()</strong> 让一个线程B“加入”到另外一个线程A的尾部。在A执行完毕之前，B不能工作。</p>
 <p>同时 还支持带超时参数的 方法 <strong>join(long millis)</strong>。</p>
-<h4 id="wait-notify-和-notifyAll"><a href="#wait-notify-和-notifyAll" class="headerlink" title="wait(), notify() 和 notifyAll()"></a>wait(), notify() 和 notifyAll()</h4><p>这三个方法都是定义到<strong>Object</strong>类中，<strong>wait()</strong> 的作用是当当前线程释放它所持有的锁进入等待状态，而 <strong>notify()</strong> 和 <strong>notifyAll()</strong> 则是唤醒当前对象上的等待线程。</p>
+<h4 id="wait-notify-和-notifyAll"><a href="#wait-notify-和-notifyAll" class="headerlink" title="wait(), notify() 和 notifyAll()"></a>wait(), notify() 和 notifyAll()</h4><p>这三个方法都是定义到<strong>Object</strong>类中，<strong>wait()</strong> 的作用是让当前线程释放它所持有的锁进入等待状态，而 <strong>notify()</strong> 和 <strong>notifyAll()</strong> 则是唤醒当前对象上的等待线程。</p>
 <ul>
 <li><p><strong>notify()</strong>： 唤醒在此对象监视器上等待的单个线程。</p>
 </li>
@@ -3482,14 +3632,16 @@
 <ol>
 <li>首先读取目标对象的 <strong>MarkWord</strong>, 判断是否处于<strong>可偏向</strong>的状态。</li>
 <li>如果为<strong>可偏向状态</strong>, 则尝试用 <strong>CAS</strong> 操作， 将自己的线程 ID 写入<strong>MarkWord</strong>。</li>
-<li>如果<strong>CAS</strong>操作成功，则认为已经获取到该对象的<strong>偏向锁</strong>，执行同步块代码 。一个线程在执行完同步代码块以后， 并不会尝试将 MarkWord 中的 <strong>thread ID</strong> 赋回原值 。如果该线程需要<strong>再次</strong>对这个对象加锁，而这个对象之前一直没有被其他线程尝试获取过锁，依旧停留在可偏向的状态下， 即可在不修改对象头的情况下， 直接认为偏向成功。</li>
+<li>如果<strong>CAS</strong>操作成功，则认为已经获取到该对象的<strong>偏向锁</strong>，执行同步块代码 。一个线程在执行完同步代码块以后， 并不会尝试将 MarkWord 中的 <strong>thread ID</strong> 赋回原值 。如果该线程需要<strong>再次</strong>对这个对象加锁，而这个对象之前一直没有被其他线程尝试获取过锁，依旧停留在可偏向的状态下， 即可在不修改对象头的情况下（即不需要再进行CAS操作，单线程优化，即偏向锁的作用） 直接认为偏向成功。</li>
 <li>如果 是<strong>已偏向状态</strong>，则检测 MarkWord 中存储的 <strong>thread ID</strong> 是否等于当前 <strong>thread ID</strong> 。<ul>
 <li>如果相等， 则证明本线程已经获取到偏向锁， 可以直接继续执行同步代码块</li>
 <li>如果不等， 则证明该对象目前偏向于其他线程， 需要<strong>撤销</strong>偏向锁</li>
 </ul>
 </li>
 </ol>
-<h5 id="轻量级锁的加锁过程"><a href="#轻量级锁的加锁过程" class="headerlink" title="轻量级锁的加锁过程"></a>轻量级锁的加锁过程</h5><p>在偏向锁加锁过程中，如果出现存在超过一个线程竞争某个对象时，会发生偏向锁的撤销操作。偏向锁撤销后，对象可能处于俩种状态：</p>
+<p><strong>偏向锁的作用</strong></p>
+<p>Java偏向锁(Biased Locking)是Java6引入的一项多线程优化。它通过<strong>消除资源无竞争情况下的同步原语</strong>，进一步提高了程序的运行性能。即<strong>在无竞争场景下完全消除同步，连CAS也不执行</strong>(CAS本身仍旧是一种操作系统同步原语，始终要在JVM与OS之间来回，有一定的开销)。</p>
+<h5 id="轻量级锁的加锁过程"><a href="#轻量级锁的加锁过程" class="headerlink" title="轻量级锁的加锁过程"></a>轻量级锁的加锁过程</h5><p>在偏向锁加锁过程中，如果出现存在超过一个线程竞争某个对象时，会发生偏向锁的<strong>撤销</strong>操作。偏向锁撤销后，对象可能处于俩种状态：</p>
 <ul>
 <li>不可偏向的 无锁状态（检测到多线程竞争，升级到轻量级锁的机制）</li>
 <li>不可偏向的 已锁状态（轻量级锁）</li>
@@ -3506,7 +3658,7 @@
 </li>
 <li><p>在当前线程的<strong>栈桢</strong>（Stack Frame）中创建用于存储<strong>锁记录</strong>（lock record）的空间，并将对象头中的Mark Word复制到锁记录中，官方称为<strong>Displaced Mark Word</strong>。</p>
 </li>
-<li><p>拷贝成功后，虚拟机将使用CAS操作尝试将<strong>对象的Mark Word更新为指向Lock Record的指针</strong>，并将<strong>Lock record里的owner指针指向对象的 mark word</strong>（互相指向）。</p>
+<li><p>拷贝成功后，虚拟机将使用<strong>CAS操作</strong>尝试将<strong>对象的Mark Word更新为指向Lock Record的指针</strong>，并将<strong>Lock record里的owner指针指向对象的 mark word</strong>（互相指向）。</p>
 <img src="/2021/02/08/%E5%B9%B6%E5%8F%91%E4%B8%8E%E5%A4%9A%E7%BA%BF%E7%A8%8B%EF%BC%88%E4%B8%80%EF%BC%89/concurrent_04.png" alt="CAS操作" style="zoom:40%;">
 </li>
 <li><p>如果上述操作成功，则更新标志位 设置为“00”，代表该对象处于轻量级锁状态，如果失败，则膨胀为重量级锁。</p>
@@ -3515,7 +3667,17 @@
 <h5 id="重量级锁的加锁过程"><a href="#重量级锁的加锁过程" class="headerlink" title="重量级锁的加锁过程"></a>重量级锁的加锁过程</h5><p><strong>Synchronized</strong>是通过对象内部的一个叫做 <strong>监视器锁（Monitor）</strong>来实现的。但是监视器锁本质又是依赖于底层的操作系统的<strong>互斥量 Mutex Lock</strong>来实现的。而操作系统实现线程之间的切换这就需要从<strong>用户态转换到核心态</strong>，这个<strong>成本非常高</strong>，状态之间的转换需要相对比较长的时间，这就是为什么<strong>Synchronized</strong>效率低的原因。因此，这种依赖于操作系统Mutex Lock所实现的锁我们称之为 “<strong>重量级锁</strong>”。</p>
 <img src="/2021/02/08/%E5%B9%B6%E5%8F%91%E4%B8%8E%E5%A4%9A%E7%BA%BF%E7%A8%8B%EF%BC%88%E4%B8%80%EF%BC%89/concurrent_05.png" alt="多线程加锁过程" style="zoom:88%;">
 
-<p>​    </p>
+
+
+<h5 id="自旋优化"><a href="#自旋优化" class="headerlink" title="自旋优化"></a>自旋优化</h5><p>当线程申请一个已经被其他线程占用的锁，就会出现两种情况。一种是没有获得锁的线程会阻塞自己，等到锁被释放后再被唤起，这就是互斥锁（开销大）；另一种是没有获得锁的线程一直循环在那里看是否该锁的保持者已经释放了锁，这就是自旋锁。</p>
+<p><strong>重量级锁在相互竞争的时候，线程先会进入一个自旋</strong>。</p>
+<p><strong>互斥同步进入阻塞状态的开销都很大，应该尽量避免。</strong>许多应用中，共享数据的锁定状态只会持续很短的一段时间。<strong>自旋锁的思想则是让一个线程在请求一个共享数据的锁时执行忙循环（自旋）一段时间，如果这段时间内能够获得锁，就可避免进入阻塞状态。</strong></p>
+<p><strong>优点</strong>：自旋锁适合于共享数据的锁定状态很短的场景。</p>
+<p><strong>缺点</strong>：</p>
+<ol>
+<li>需要进行忙循环操作占用CPU时间，不适合锁定状态很长的场景。　　</li>
+<li>递归死锁：试图递归地获得自旋锁必然会引起死锁：递归程序的持有实例在第二个实例循环，以试图获得相同自旋锁时，不会释放此自旋锁。</li>
+</ol>
 <h4 id="详解-volatile"><a href="#详解-volatile" class="headerlink" title="详解 volatile"></a>详解 volatile</h4><p>前面我们说到并发编程的三个特性：原子性、可见性、有序性：</p>
 <ul>
 <li>原子性：即一个操作或者多个操作 要么全部执行并且执行的过程不会被任何因素打断，要么就都不执行。</li>
@@ -3557,7 +3719,7 @@
 <p><strong>ThreadLocalMap</strong> 是 <strong>ThreadLocal</strong> 的静态内部类，并没有实现 <strong>Map</strong> 接口，它由一个 <strong>Entry 数组</strong>来存储  Key，Value。<strong>Entry</strong>并不是链表形式, 而是每个<strong>bucket</strong>里面仅仅放一个<strong>Entry</strong>;</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">nextIndex</span><span class="params">(<span class="keyword">int</span> i, <span class="keyword">int</span> len)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> ((i + <span class="number">1</span> &lt; len) ? i + <span class="number">1</span> : <span class="number">0</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">prevIndex</span><span class="params">(<span class="keyword">int</span> i, <span class="keyword">int</span> len)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> ((i - <span class="number">1</span> &gt;= <span class="number">0</span>) ? i - <span class="number">1</span> : len - <span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">set</span><span class="params">(ThreadLocal&lt;?&gt; key, Object value)</span> </span>&#123;</span><br><span class="line">    ThreadLocal.ThreadLocalMap.Entry[] tab = table;</span><br><span class="line">    <span class="keyword">int</span> len = tab.length;</span><br><span class="line">    <span class="comment">//计算索引，上面已经有说过。</span></span><br><span class="line">    <span class="keyword">int</span> i = key.threadLocalHashCode &amp; (len-<span class="number">1</span>);</span><br><span class="line">    <span class="comment">/**根据获取到的索引进行循环，如果当前索引上的table[i]不为空，在没有return的情况下，</span></span><br><span class="line"><span class="comment">    * 就使用nextIndex()获取下一个（上面提到到线性探测法）。*/</span></span><br><span class="line">    <span class="keyword">for</span> (ThreadLocal.ThreadLocalMap.Entry e = tab[i]; e != <span class="keyword">null</span>;</span><br><span class="line">        e = tab[i = nextIndex(i, len)]) &#123;</span><br><span class="line">        ThreadLocal&lt;?&gt; k = e.get();</span><br><span class="line">        <span class="comment">//table[i]上key不为空，并且和当前key相同，更新value</span></span><br><span class="line">        <span class="keyword">if</span> (k == key) &#123;</span><br><span class="line">            e.value = value;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">/**table[i]上的key为空，说明被回收了</span></span><br><span class="line"><span class="comment">         * 说明改table[i]可以重新使用，用新的key-value将其替换,并删除其他无效的entry*/</span></span><br><span class="line">        <span class="keyword">if</span> (k == <span class="keyword">null</span>) &#123;</span><br><span class="line">            replaceStaleEntry(key, value, i);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//不存在也没有旧元素就创建一个</span></span><br><span class="line">    tab[i] = <span class="keyword">new</span> Entry(key, value);</span><br><span class="line">    <span class="keyword">int</span> sz = ++size;</span><br><span class="line">    <span class="keyword">if</span> (!cleanSomeSlots(i, sz) &amp;&amp; sz &gt;= threshold)</span><br><span class="line">        rehash();<span class="comment">//扩容</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>由上面源码可知，<strong>ThreadLocalMap</strong> 在set 值时，如果遇到 hash冲突，解决方法是：这个时候将<strong>index</strong>加<strong>1</strong>，取<strong>table[index + 1]</strong>进行判断，这个时候如果还是冲突则会继续往下，直至最后一个还是冲突则会返回第一个比较，以此类推，直到可以插入。</p>
+<p>由上面源码可知，<strong>ThreadLocalMap</strong> 在set 值时，如果遇到 hash冲突，解决方法是：这个时候将<strong>index</strong>加<strong>1</strong>，取<strong>table[index + 1]</strong>进行判断，这个时候如果还是冲突则会继续往下，直至最后一个还是冲突则会返回第一个比较，以此类推，直到可以插入。（开放定址法）</p>
 <p>这里的 <strong>key.threadLocalHashCode &amp; (len-1)</strong>  ，实际相当于数组长度取模，数组长度 <strong>len</strong> 为 2^n，这在<strong>HashMap</strong>中 详解过原因。</p>
 <p>综上所述，可以把<strong>table</strong>看成一个环形数组。</p>
 <p>如果清理完无用条目(ThreadLocal被回收的条目)、并且<strong>数组中的数据大小 &gt; 阈值</strong>的时候对当前的<strong>Table</strong>进行重新哈希。</p>
@@ -3589,9 +3751,9 @@
 <p><strong>Java中断机制</strong>是一种协作机制，也就是说通过中断<strong>并不能直接终止另一个线程</strong>，而需要被中断的线程自己处理中断。每个线程对象里都有一个类似<strong>boolean</strong>类型的标识，代表着是否有中断请求（该请求可以来自所有线程，包括被中断的线程本身），当线程<strong>t1</strong>想中断线程<strong>t2</strong>，只需要在线程<strong>t1</strong>中将线程<strong>t2</strong>对象的中断标识置为<strong>true</strong>，然后线程<strong>t2</strong>可以选择在合适的时候处理该中断请求，甚至可以不理会该请求，就像这个线程没有被中断一样。</p>
 <p><strong>java.lang.Thread</strong>类提供了几个方法来操作这个中断状态，这些方法包括：</p>
 <ul>
-<li>public static boolean <strong>interrupted</strong><br>测试当前线程是否已经中断。线程的<em>中断状态</em> 由该方法清除。换句话说，如果连续两次调用该方法，则第二次调用将返回 false（在第一次调用已清除了其中断状态之后，且第二次调用检验完中断状态前，当前线程再次中断的情况除外）。</li>
-<li>public boolean <strong>isInterrupted</strong>()<br>测试线程是否已经中断。线程的<em>中断状态</em>不受该方法的影响。</li>
-<li>public void <strong>interrupt</strong>()<br>中断线程。改变状态位。</li>
+<li>public static boolean <strong>interrupted()</strong><br>测试当前线程是否已经中断。线程的<em>中断状态</em> 由该方法清除。换句话说，如果连续两次调用该方法，则第二次调用将返回 false（在第一次调用已清除了其中断状态之后，且第二次调用检验完中断状态前，当前线程再次中断的情况除外）。</li>
+<li>public boolean <strong>isInterrupted()</strong><br>测试线程是否已经中断。线程的<em>中断状态</em>不受该方法的影响。</li>
+<li>public void <strong>interrupt()</strong><br>中断线程。改变状态位。</li>
 </ul>
 <p><strong>InterruptedException</strong> 异常：</p>
 <p>抛<strong>InterruptedException</strong>的代表方法有：</p>
@@ -3988,6 +4150,25 @@
 <p>特点：每一轮都需要做不同的决策，而每次的决策又依赖上一轮决策的结果。</p>
 <p><strong>动态规划问题没有标准化的解题方法，但它有一些宏观层面通用的方法论</strong></p>
 <p>（有点复杂，暂时不能理解，后续弄懂后再补充）</p>
+<h4 id="回溯法"><a href="#回溯法" class="headerlink" title="回溯法"></a>回溯法</h4><p>回溯法非常<strong>适合解决由多个步骤组成，并且每个步骤都有多个选项的问题</strong>。 当我们在某一步选择了其中一个选项后，就进入下一步，然后又面临新的选项。就这样重复选择，直至最终的状态。</p>
+<p>可以用树结构（解空间树）来表示用回溯法解决的问题的所有选项。在某一步有 n  个可能的选项，那么该步骤就可以看成是树结构中的一个节点，每个选项看成树中节点的连接线，经过这些连接线到达该节点的 n 个子节点。<strong>叶节点则对应着最终的状态</strong>：</p>
+<ul>
+<li><p>如果在叶节点的状态满足题目的约束条件，那我们就找到了一个问题的解；</p>
+</li>
+<li><p>如果在叶节点的状态不满足约束条件，那就回溯到它的上一个节点尝试其它的选项；</p>
+</li>
+<li><p>如果上一个节点所有可能的选项都已经试过，则再回溯到它的上一个节点，直至所有节点的所有选项都尝试过；</p>
+</li>
+<li><p>如果所有节点的所有选项都已经尝试过却没有找到满足约束条件的最终状态，说明该问题无解。</p>
+</li>
+</ul>
+<p>所以，用回溯法求解问题的过程，就是搜索整个解空间树的过程。当搜索至任一节点时，先判断该节点是否包含问题的解，如果不包含，则跳过该节点的子节点的搜索，避免无效搜索，这个过程叫作 “<strong>剪枝</strong>”。</p>
+<p><strong>示例</strong>：数组 [1, 2, 3] 排列组合情况，输出并打印。</p>
+<img src="/2021/03/15/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/algorithm_08.png" alt="回溯法" style="zoom:80%;">
+
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class Solution &#123;</span><br><span class="line">    public List&lt;List&lt;Integer&gt;&gt; permute(int[] nums) &#123;</span><br><span class="line">        List&lt;List&lt;Integer&gt;&gt; list &#x3D; new ArrayList&lt;&gt;();</span><br><span class="line">        backTrack(list, new ArrayList&lt;Integer&gt;(), nums);</span><br><span class="line">        return list;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void backTrack(List&lt;List&lt;Integer&gt;&gt; list, List&lt;Integer&gt; tempList, int[] nums)&#123;</span><br><span class="line">        if(tempList.size() &#x3D;&#x3D; nums.length)&#123;</span><br><span class="line">            list.add(new ArrayList&lt;&gt;(tempList));</span><br><span class="line">        &#125;else&#123;</span><br><span class="line">            for(int i &#x3D; 0; i &lt; nums.length; i++)&#123;</span><br><span class="line">            	&#x2F;&#x2F; 已经使用过的数字就不能再用了，continue跳出本次循环，进行下一次循环</span><br><span class="line">                if(tempList.contains(nums[i]))</span><br><span class="line">                    continue;</span><br><span class="line">                tempList.add(nums[i]);</span><br><span class="line">                backTrack(list, tempList, nums);</span><br><span class="line">                &#x2F;&#x2F; 回溯</span><br><span class="line">                tempList.remove(tempList.size() - 1);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>类似题目：数字的全排列（有重复数字）、矩阵中的路径、子集问题、电话号码的字母组合</p>
 <h3 id="解题步骤"><a href="#解题步骤" class="headerlink" title="解题步骤"></a>解题步骤</h3><ul>
 <li>明确目标</li>
 <li>定位问题</li>
@@ -4013,6 +4194,7 @@
 </ul>
 <blockquote>
 <p>笔记来源：公瑾 老师的《重学数据结构与算法》课程</p>
+<p>回溯法：<a href="https://blog.csdn.net/weixin_45594025/article/details/105005464" target="_blank" rel="noopener">https://blog.csdn.net/weixin_45594025/article/details/105005464</a></p>
 </blockquote>
 ]]></content>
       <categories>
@@ -4038,9 +4220,162 @@
 <li>文档管理：<strong>javaDoc</strong>、<strong>Swagger</strong></li>
 <li>网络工具：<strong>PostMan</strong>、WireShark、Fiddler、Charles</li>
 </ul>
-<p><strong>Ant+ivy</strong>、<strong>Maven</strong>、<strong>Gradle</strong> 都是用来构建项目、管理依赖的工具。其中 <strong>Ant</strong> 通过直接引用 <strong>jar</strong> 文件来进行依赖管理，通过脚本来描述，执行不同的构建目标。目前 <strong>Ant</strong> 使用得已经比较少，<strong>Maven</strong> 是比较主流的项目管理工具。<br><strong>Gradle</strong>是一个自动化的构建工具，<strong>Gradle</strong>属于结合以上两个的优点，它继承了<strong>Ant</strong>的灵活和<strong>Maven</strong>的生命周期管理，它最后被google作为了Android御用管理工具。它最大的区别是不用 <code>XML</code> 作为配置文件格式，采用了 <code>DSL</code> 格式，使得脚本更加简洁。<strong>Gradle</strong>引入了基于<strong>Groovy</strong>语言的 <code>DSL</code> 语法来代替 <code>XML</code> 配置，因此它的配置文件是一个<strong>Groovy</strong>文件。</p>
+<p><strong>Ant+ivy</strong>、<strong>Maven</strong>、<strong>Gradle</strong> 都是用来构建项目、管理依赖的工具。</p>
+<p>其中 <strong>Ant</strong> 通过直接引用 <strong>jar</strong> 文件来进行依赖管理，通过脚本来描述，执行不同的构建目标。</p>
+<p>目前 <strong>Ant</strong> 使用得已经比较少，<strong>Maven</strong> 是比较主流的项目管理工具。<br><strong>Gradle</strong>是一个自动化的构建工具，<strong>Gradle</strong>属于结合以上两个的优点，它继承了<strong>Ant</strong>的灵活和<strong>Maven</strong>的生命周期管理，它最后被google作为了Android御用管理工具。</p>
+<p>它最大的区别是不用 <code>XML</code> 作为配置文件格式，采用了 <code>DSL</code> 格式，使得脚本更加简洁。<strong>Gradle</strong>引入了基于<strong>Groovy</strong>语言的 <code>DSL</code> 语法来代替 <code>XML</code> 配置，因此它的配置文件是一个<strong>Groovy</strong>文件。</p>
 <p><strong>Ant</strong> 由于出现较早，可结合项目复习，不再赘述。</p>
-<h3 id="Maven"><a href="#Maven" class="headerlink" title="Maven"></a>Maven</h3>]]></content>
+<h3 id="Maven"><a href="#Maven" class="headerlink" title="Maven"></a>Maven</h3><h5 id="构建的各个环节"><a href="#构建的各个环节" class="headerlink" title="构建的各个环节"></a>构建的各个环节</h5><p>　　[1] 清理clean：将以前编译得到的旧文件class字节码文件删除</p>
+<p>　　[2] 编译compile：将java源程序编译成class字节码文件</p>
+<p>　　[3] 测试test：自动测试，自动调用junit程序</p>
+<p>　　[4] 报告report：测试程序执行的结果</p>
+<p>　　[5] 打包package：动态Web工程打War包，java工程打jar包</p>
+<p>　　[6] 安装install：Maven特定的概念—–将打包得到的文件复制到“仓库”中的指定位置</p>
+<p>　　[7] 部署deploy：将动态Web工程生成的war包复制到Servlet容器下，使其可以运行</p>
+<h5 id="常用maven命令"><a href="#常用maven命令" class="headerlink" title="常用maven命令"></a>常用maven命令</h5><p>　　[1] mvn clean：清理 </p>
+<p>　　[2] mvn compile：编译主程序</p>
+<p>　　[3] mvn test-compile：编译测试程序</p>
+<p>　　[4] mvn test：执行测试 </p>
+<p>　　[5] mvn package：打包</p>
+<p>　　[6] mvn install：安装</p>
+<p>　　执行maven命令必须进入到pom.xml的目录中进行执行</p>
+<h5 id="scope（依赖的范围）"><a href="#scope（依赖的范围）" class="headerlink" title="scope（依赖的范围）"></a>scope（依赖的范围）</h5><p>　　1、compile，默认值，适用于所有阶段（开发、测试、部署、运行），本jar会一直存在所有阶段。 </p>
+<p>　　2、provided，只在开发、测试阶段使用，目的是不让Servlet容器和你本地仓库的jar包冲突 。如servlet.jar。 </p>
+<p>　　3、runtime，只在运行时使用，如JDBC驱动，适用运行和测试阶段。 </p>
+<p>　　4、test，只在测试时使用，用于编译和运行测试代码。不会随项目发布。 </p>
+<p>　　5、system，类似provided，需要显式提供包含依赖的jar，Maven不会在Repository中查找它。</p>
+<h5 id="maven-聚合管理"><a href="#maven-聚合管理" class="headerlink" title="maven 聚合管理"></a>maven 聚合管理</h5><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">modules</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">module</span>&gt;</span>../mvc-core<span class="tag">&lt;/<span class="name">module</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">module</span>&gt;</span>../mvc-dao<span class="tag">&lt;/<span class="name">module</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">module</span>&gt;</span>../mvc-service<span class="tag">&lt;/<span class="name">module</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">module</span>&gt;</span>../mvc-log<span class="tag">&lt;/<span class="name">module</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">modules</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="Maven-配置依赖管理"><a href="#Maven-配置依赖管理" class="headerlink" title="Maven 配置依赖管理"></a>Maven 配置依赖管理</h5><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependencyManagement</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>junit<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>junit<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;junit-version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">scope</span>&gt;</span>test<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    ...</span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencyManagement</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="maven-配置继承关系"><a href="#maven-配置继承关系" class="headerlink" title="maven 配置继承关系"></a>maven 配置继承关系</h5><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">parent</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.example.demo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>demo-parent<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>0.0.1-SNAPSHOT<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">relativePath</span>&gt;</span>../demo-parent/pom.xml<span class="tag">&lt;/<span class="name">relativePath</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">parent</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Git"><a href="#Git" class="headerlink" title="Git"></a>Git</h3><h5 id="Git-常用命令"><a href="#Git-常用命令" class="headerlink" title="Git 常用命令"></a>Git 常用命令</h5><ul>
+<li>设置用户名：git config –global user.name 【git用户名】</li>
+<li>设置邮箱：git config –global user.email 【邮箱地址】</li>
+<li>查看当前用户信息：git config –list </li>
+<li>初始化git仓库：git init</li>
+<li>将工作目录中的文件全部添加到暂存区：git add .</li>
+<li>查看文件状态：git status</li>
+<li>向本地仓库中提交代码：git commit -m  【提交时的描述】</li>
+<li>用暂存区中的文件覆盖工作目录中的文件：git checkout  【文件名】</li>
+<li>将文件从暂存区中删除：git rm –cached 【文件名】</li>
+<li>将 git 仓库中指定的更新记录恢复出来，并且覆盖暂存区和工作目录：git rest –hard commitID</li>
+<li>查看提交记录：git log</li>
+<li>克隆远程仓库文件到本地仓库：git clone 【 仓库地址】</li>
+<li>把本地仓库的文件提交到远程仓库：git push 【仓库地址】【分支名称】 </li>
+<li>git push  -u【仓库地址】【分支名称】<br>-u 记住推送地址及分支，下次推送只需要输入git push即可</li>
+<li>设置仓库别名：git remote add 【自定义仓库别名】【远程仓库地址】</li>
+<li>拉取远程仓库中最新的版本到本地仓库：git pull 【仓库地址】【分支名称】</li>
+<li>查看分支：git branch</li>
+<li>创建分支：git branch 【分支名称】</li>
+<li>切换分支：git checkout 【分支名称】</li>
+<li>合并某分支到当前分支：git merge 【分支名称】</li>
+<li>删除分支：git branch -d 【分支名称】（分支被合并后才允许删除）（-D 强制删除）</li>
+</ul>
+<h5 id="Git撤销-amp-回滚操作-git-reset-和-get-revert"><a href="#Git撤销-amp-回滚操作-git-reset-和-get-revert" class="headerlink" title="Git撤销&amp;回滚操作 (git reset 和 get revert)"></a>Git撤销&amp;回滚操作 (git reset 和 get revert)</h5><p>概念：</p>
+<ul>
+<li><p><strong>工作区</strong>：即自己当前分支所修改的代码，<strong>git add xx 之前的代码</strong>；</p>
+</li>
+<li><p><strong>暂存区</strong>：git add xxx 之后，git commit xxx 之前的。</p>
+</li>
+<li><p><strong>本地分支</strong>：已经git commit -m xxx 提交到本地分支的。</p>
+</li>
+</ul>
+<p><strong>工作区（未add）</strong></p>
+<ul>
+<li><strong>git checkout – a.txt</strong>  # 丢弃某个文件，或者</li>
+<li><strong>git checkout – .</strong>    # 丢弃全部，包含新增的会删除，删除的会还原</li>
+</ul>
+<p><strong>暂存区（已add,未commit）</strong></p>
+<ul>
+<li><strong>git reset HEAD .</strong>   # 将所有暂存区文件丢弃到工作区</li>
+<li><strong>git reset HEAD a.txt</strong>   #将制定文件丢弃到工作区</li>
+</ul>
+<p><strong>本地分支（已commit，未push）</strong></p>
+<p><strong>git log</strong> # 得到你需要回退一次提交的commit id</p>
+<ul>
+<li><strong>git reset –hard <commit_id></commit_id></strong>  # 回到其中你想要的某个版本</li>
+<li><strong>git reset –hard HEAD^</strong>  # 回到最新的一次提交</li>
+<li><strong>git reset HEAD^</strong>  # 此时代码保留，回到 git add 之前</li>
+</ul>
+<p>– soft ：回到暂存区</p>
+<p>– mixd：回到工作区</p>
+<p>– hard：彻底回滚，找不回</p>
+<p><strong>远程分支（已push）</strong></p>
+<ul>
+<li><p>通过git reset是直接删除指定的commit</p>
+<p>git log # 得到你需要回退一次提交的commit id<br>git reset –hard <commit_id><br>git push origin HEAD –force # 强制提交一次，之前错误的提交就从远程仓库删除</commit_id></p>
+</li>
+<li><p>通过git revert是用一次新的commit来回滚之前的commit</p>
+<p>git log # 得到你需要回退一次提交的commit id<br>git revert <commit_id>  # 撤销指定的版本，撤销也会作为一次提交进行保存</commit_id></p>
+</li>
+<li><p>git revert 和 git reset的区别</p>
+<ul>
+<li>git revert是用一次新的commit来回滚之前的commit，此次提交之前的commit都会被保留；</li>
+<li>git reset是回到某次提交，提交及之前的commit都会被保留，但是此commit id之后的修改都会被删除</li>
+</ul>
+</li>
+</ul>
+<h5 id="Git-工作流"><a href="#Git-工作流" class="headerlink" title="Git 工作流"></a>Git 工作流</h5><p>目前常用工作流分别是以下三种：</p>
+<ul>
+<li><strong>Git Flow</strong></li>
+<li><strong>GitHub Flow</strong></li>
+<li><strong>GitLab Flow</strong></li>
+</ul>
+<p><strong>Git Flow</strong></p>
+<table>
+<thead>
+<tr>
+<th>分支</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>master</td>
+<td>主分支，最新的稳定版本的已部署到生产环境的代码分支，用于发布官方的大版本</td>
+</tr>
+<tr>
+<td>develop</td>
+<td>开发分支，最新的处于开发测试阶段的稳定版本，用来记录新功能开发的代码节点</td>
+</tr>
+<tr>
+<td>feature</td>
+<td>功能分支，基于develop分支的新功能分支。feature分支不能和master分支有直接的交互</td>
+</tr>
+<tr>
+<td>release</td>
+<td>预发分支，基于develop分支的满足发布条件的分支，最终会合并到master分支</td>
+</tr>
+<tr>
+<td>hotfix</td>
+<td>补丁分支，基于master分支的紧急修复分支，最终会被并入develop和master分支</td>
+</tr>
+</tbody></table>
+<p>首先，项目存在两个长期分支。<strong>主分支master 和开发分支 develop；</strong></p>
+<p>前者用于存放对外发布的版本，任何时候在这个分支拿到的，都是稳定的分布版；后者用于日常开发，存放的开发版。</p>
+<p>其次，项目存在三种短期分支。<strong>功能分支（feature branch）、补丁分支（hotfix branch）、预发分支（release branch）。</strong></p>
+<p>一旦完成开发，它们就会被合并进develop或master，然后被删除。</p>
+<p><strong>优缺点</strong>：</p>
+<ul>
+<li>优点：清晰可控</li>
+<li>缺点：复杂，分支多，切换出错</li>
+</ul>
+<p><strong>GitHub Flow</strong></p>
+<p>Github flow 是Git flow的简化版，专门配合”持续发布”。它是 Github.com 使用的工作流程。</p>
+<p>它<strong>只有一个长期分支，就是master</strong>，因此用起来非常简单。</p>
+<p>每次新版本 一个 feature 分支，开发完成向 master 合并，适合 持续交付类项目。</p>
+<p><strong>Gitlab Flow</strong></p>
+<p><strong>Gitlab flow 是 Git flow 与 Github flow 的综合。</strong>它吸取了两者的优点，既有适应不同开发环境的弹性，又有单一主分支的简单和便利。</p>
+<p>Gitlab flow 的较大原则叫做”<strong>上游优先</strong>”（upsteam first），即只存在一个主分支master，它是所有其他分支的”上游”。只有上游分支采纳的代码变化，才能应用到其他分支。</p>
+<p>对于”持续发布”的项目，它建议在master分支以外，再<strong>建立不同的环境分支</strong>。比如，”开发环境”的分支是master，”预发环境”的分支是pre-production，”生产环境”的分支是production。</p>
+<p>开发分支是预发分支的”上游”，预发分支又是生产分支的”上游”。<strong>代码的变化，必须由”上游”向”下游”发展</strong>。比如，生产环境出现了bug，这时就要新建一个功能分支，先把它合并到master，确认没有问题，再cherry-pick到pre-production，这一步也没有问题，才进入production。</p>
+<p><strong>只有紧急情况，才允许跳过上游，直接合并到下游分支。</strong></p>
+<blockquote>
+<p>参考：<a href="https://blog.csdn.net/cvvface/article/details/81216462" target="_blank" rel="noopener">https://blog.csdn.net/cvvface/article/details/81216462</a></p>
+<p><a href="http://www.duozhishidai.com/article-113700-1.html" target="_blank" rel="noopener">http://www.duozhishidai.com/article-113700-1.html</a></p>
+</blockquote>
+]]></content>
       <categories>
         <category>技术学习</category>
       </categories>
@@ -4061,12 +4396,12 @@
 <li><strong>易用性 API 接口；</strong></li>
 <li><strong>对数据协议、序列化的支持。</strong></li>
 </ul>
-<h4 id="Java-NIO-的演变"><a href="#Java-NIO-的演变" class="headerlink" title="Java NIO 的演变"></a><strong>Java NIO 的演变</strong></h4><p>在 JDK 1.4 投入使用之前，只有 <strong>BIO</strong> 一种模式。开发过程相对简单。新来一个连接就会创建一个新的线程处理。随着请求并发度的提升，<strong>BIO</strong> 很快遇到了性能瓶颈。</p>
+<h4 id="Java-NIO-的演变"><a href="#Java-NIO-的演变" class="headerlink" title="Java NIO 的演变"></a>Java NIO 的演变</h4><p>在 JDK 1.4 投入使用之前，只有 <strong>BIO</strong> 一种模式。开发过程相对简单。新来一个连接就会创建一个新的线程处理。随着请求并发度的提升，<strong>BIO</strong> 很快遇到了性能瓶颈。</p>
 <p>JDK 1.4 以后开始引入了 <strong>NIO</strong> 技术，支持 <strong>select</strong> 和 <strong>poll</strong>；</p>
 <p>JDK 1.5 支持了 <strong>epoll</strong>；</p>
 <p>JDK 1.7 发布了 <strong>NIO2</strong>，支持 <strong>AIO</strong> 模型。</p>
 <p>虽然 <strong>Java NIO</strong> 已经升级的足够成熟，但是 <strong>Netty</strong> 相比其还是有很多优点。</p>
-<h4 id="Netty-相比-Java-NIO-的优点"><a href="#Netty-相比-Java-NIO-的优点" class="headerlink" title="Netty 相比 *Java NIO *的优点"></a><strong>Netty</strong> 相比 *<em>Java NIO *</em>的优点</h4><ul>
+<h4 id="Netty-相比-Java-NIO-的优点"><a href="#Netty-相比-Java-NIO-的优点" class="headerlink" title="Netty 相比  Java NIO 的优点"></a><strong>Netty</strong> 相比  Java NIO 的优点</h4><ul>
 <li><p><strong>易用性。</strong> 我们使用 <strong>JDK NIO</strong> 编程需要了解很多复杂的概念，比如 <strong>Channels</strong>、<strong>Selectors、Sockets、Buffers</strong> 等。<strong>Netty</strong> 在 <strong>NIO</strong> 基础上进行了更高层次的封装，屏蔽了 <strong>NIO</strong> 的复杂性；</p>
 <p><strong>Netty</strong> 封装了更加人性化的 API，统一的 API（阻塞/非阻塞） 大大降低了开发者的上手难度；与此同时，<strong>Netty</strong> 提供了很多开箱即用的工具，例如常用的行解码器、长度域解码器等，而这些在 <strong>JDK NIO</strong> 中都需要你自己实现。</p>
 </li>
@@ -4540,20 +4875,8 @@
 <p>总结Mc 对<strong>命令的处理全过程</strong>：</p>
 <img src="/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%BA%8C%EF%BC%89-Memcached/cache_09.png" alt="Mc命令处理全流程" style="zoom:67%;">
 
-<h3 id="哈希表"><a href="#哈希表" class="headerlink" title="哈希表"></a>哈希表</h3><p><strong>背景</strong></p>
-<p>Mc 将数据存储在 Item 中，然后这些 Item 会被 slabclass 的 4 个 LRU 管理。<strong>这些 LRU 都是通过双向链表实现数据记录的。双向链表在进行增加、删除、修改位置时都非常高效，但其获取定位 key 的性能非常低下，只能通过链表遍历来实现。</strong></p>
-<p>因此，<strong>Mc 还通过 Hashtable，也就是哈希表，来记录管理这些 Item</strong>，通过对 key 进行哈希计算，从而快速定位和读取这些 key/value 所在的 Item。</p>
-<img src="/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%BA%8C%EF%BC%89-Memcached/cache_10.png" alt="HashTable作用" style="zoom:67%;">
 
-<p>哈希表也称散列表，可以通过把 key 映射到哈希表中的一个位置来快速访问记录，定位 key 的时间复杂度只有 O(1)。Mc 的哈希表实际是一个一维指针数组，数组的每个位置称作一个 bucket，即一个桶。性能考虑的需要，Mc 的哈希表的长度设置为 2 的 N 次方。Mc 启动时，默认会构建一个拥有 6.4万 个桶的哈希表，随着新 key 的不断插入，哈希表中的元素超过阀值后，会对哈希表进行扩容，最大可以构建 2 的 32 次方个桶的哈希表。</p>
-<p>用 哈希表就存在<strong>哈希冲突</strong>的问题，这里Mc 是通过<strong>单向链表</strong>解决hash冲突的。</p>
-<p><strong>哈希表扩容</strong></p>
-<p>当 Mc 的哈希表中，Item 数量大于 1.5 倍的哈希桶数量后，Mc 就对哈希表进行扩容处理。</p>
-<p>Mc 的哈希扩容是通过哈希维护线程进行处理的。</p>
-<p>准备开始扩容时，哈希维护线程会首先将所有 IO 工作线程和辅助线程进行<strong>暂停</strong>，其中辅助线程包括 LRU 维护线程、slab 维护线程、LRU 爬虫线程。待这些线程暂停后，哈希维护线程会将当前的主哈希表设为旧哈希表，然后将新的主哈希表<strong>扩容</strong>之前的 2 倍容量。然后，工作线程及辅助线程<strong>继续</strong>工作，同时哈希维护线程开始逐步将 Item 元素从旧哈希表<strong>迁移</strong>到主哈希表。</p>
-<p><strong>锁哈希表</strong></p>
-<p>Mc 在启动时，会根据设置的工作线程数，来构建 一个 Item 锁哈希表，线程越多，构建的锁哈希表越大，Mc 的锁哈希表中，每个桶对应一个 Item 锁，Item 锁哈希表最多有 32k 个桶，所以 Mc 最多只有 32768 个 Item 锁。</p>
-<p>Mc 哈希表在读取、变更以及扩容迁移过程中，先将 key hash 定位到 Item 锁哈希表的锁桶，然后对 Item 锁进行加锁，然后再进行实际操作。实际上，除了在哈希表，在其他任何时候，只要涉及到在对 Item 的操作，都会根据 Item 中的 key，进行 Item 哈希锁桶加锁，以避免 Item 被同时读写而产生脏数据。</p>
+
 <h3 id="LRU淘汰策略"><a href="#LRU淘汰策略" class="headerlink" title="LRU淘汰策略"></a>LRU淘汰策略</h3><p>Mc 作为缓存组件，意味着 Mc 中只能存储访问最频繁的热数据，一旦存入数据超过内存限制，就需要对 Mc 中的冷 key 进行淘汰工作。</p>
 <p>Mc 中的 key 基本都会有过期时间，在 key 过期后，出于性能考虑，<strong>Mc 并不会立即删除过期的 key，而是由维护线程逐步清理，只有这个失效的 key 被访问时，才会进行删除，从而回收存储空间</strong>。</p>
 <p>所以Mc的内存回收工作分为俩阶段：<strong>失效 和 删除</strong></p>
@@ -4575,7 +4898,7 @@
 <p>在 key 进行读取、插入或变更时，<strong>同步进行 key 淘汰回收</strong>，并不是一种高效的办法，因为淘汰回收操作相比请求处理，也是一个重量级操作，<strong>会导致 Mc 性能大幅下降</strong>。因此 Mc 额外增加了一个 LRU 维护线程，对过期失效 key 进行回收。</p>
 </li>
 </ul>
-<p>前面讲到，Mc 有 64 个 slabclass，其中 1<del>63 号 slabclass 用于存取 Item 数据。实际上，为了管理过期失效数据，**1</del>63 号 slabclass 还分别对应了 4 个 LRU（双向链表），分布是 TEMP、HOT、WARM、COLD LRU。<strong>所以这就总共有 63*4 = 252 个 LRU。</strong>LRU 维护线程，会按策略间断 sleep，待 sleep 结束，就开始对 4 个 LRU 进行队尾清理工作。**</p>
+<p>前面讲到，Mc 有 64 个 slabclass，其中 1-63 号 slabclass 用于存取 Item 数据。实际上，为了管理过期失效数据，<strong>1-63 号 slabclass 还分别对应了 4 个 LRU（双向链表），分布是 TEMP、HOT、WARM、COLD LRU。所以这就总共有 63*4 = 252 个 LRU。LRU 维护线程，会按策略间断 sleep，待 sleep 结束，就开始对 4 个 LRU 进行队尾清理工作。</strong></p>
 <p><strong>四种 LRU 回收和迁移的要点如下：</strong></p>
 <ul>
 <li>Mc 在新写入 key 时，如果 key 的过期时间小于 61s，就会直接插入到 TEMP LRU 中，大于61s，就会直接插入到 HOT LRU。</li>
@@ -4647,6 +4970,20 @@
 <li><strong>存入LRU</strong>：然后这个 Item 还会被存入 LRU，Mc 会根据这个 key 的过期时间进行判断，如果过期时间小于 61s，则存入 TEMP LRU，否则存入 HOT LRU。</li>
 </ul>
 <p>如果最终分配失败，则会回复一个 <strong>SERVER_ERROR</strong> 响应，通知 <strong>client</strong> 存储失败。</p>
+<h3 id="哈希表"><a href="#哈希表" class="headerlink" title="哈希表"></a>哈希表</h3><p><strong>背景</strong></p>
+<p>Mc 将数据存储在 Item 中，然后这些 Item 会被 slabclass 的 4 个 LRU 管理。<strong>这些 LRU 都是通过双向链表实现数据记录的。双向链表在进行增加、删除、修改位置时都非常高效，但其获取定位 key 的性能非常低下，只能通过链表遍历来实现。</strong></p>
+<p>因此，<strong>Mc 还通过 Hashtable，也就是哈希表，来记录管理这些 Item</strong>，通过对 key 进行哈希计算，从而快速定位和读取这些 key/value 所在的 Item。</p>
+<img src="/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%BA%8C%EF%BC%89-Memcached/cache_10.png" alt="HashTable作用" style="zoom:67%;">
+
+<p>哈希表也称散列表，可以通过把 key 映射到哈希表中的一个位置来快速访问记录，定位 key 的时间复杂度只有 O(1)。Mc 的哈希表实际是一个一维指针数组，数组的每个位置称作一个 bucket，即一个桶。性能考虑的需要，Mc 的哈希表的长度设置为 2 的 N 次方。Mc 启动时，默认会构建一个拥有 6.4万 个桶的哈希表，随着新 key 的不断插入，哈希表中的元素超过阀值后，会对哈希表进行扩容，最大可以构建 2 的 32 次方个桶的哈希表。</p>
+<p>用 哈希表就存在<strong>哈希冲突</strong>的问题，这里Mc 是通过<strong>单向链表</strong>解决hash冲突的。</p>
+<p><strong>哈希表扩容</strong></p>
+<p>当 Mc 的哈希表中，Item 数量大于 1.5 倍的哈希桶数量后，Mc 就对哈希表进行扩容处理。</p>
+<p>Mc 的哈希扩容是通过哈希维护线程进行处理的。</p>
+<p>准备开始扩容时，哈希维护线程会首先将所有 IO 工作线程和辅助线程进行<strong>暂停</strong>，其中辅助线程包括 LRU 维护线程、slab 维护线程、LRU 爬虫线程。待这些线程暂停后，哈希维护线程会将当前的主哈希表设为旧哈希表，然后将新的主哈希表<strong>扩容</strong>之前的 2 倍容量。然后，工作线程及辅助线程<strong>继续</strong>工作，同时哈希维护线程开始逐步将 Item 元素从旧哈希表<strong>迁移</strong>到主哈希表。</p>
+<p><strong>锁哈希表</strong></p>
+<p>Mc 在启动时，会根据设置的工作线程数，来构建 一个 Item 锁哈希表，线程越多，构建的锁哈希表越大，Mc 的锁哈希表中，每个桶对应一个 Item 锁，Item 锁哈希表最多有 32k 个桶，所以 Mc 最多只有 32768 个 Item 锁。</p>
+<p>Mc 哈希表在读取、变更以及扩容迁移过程中，先将 key hash 定位到 Item 锁哈希表的锁桶，然后对 Item 锁进行加锁，然后再进行实际操作。实际上，除了在哈希表，在其他任何时候，只要涉及到在对 Item 的操作，都会根据 Item 中的 key，进行 Item 哈希锁桶加锁，以避免 Item 被同时读写而产生脏数据。</p>
 <h2 id="Mc协议"><a href="#Mc协议" class="headerlink" title="Mc协议"></a>Mc协议</h2><h3 id="异常错误响应"><a href="#异常错误响应" class="headerlink" title="异常错误响应"></a>异常错误响应</h3><p>首先看一下Mc在发现异常后，如何进行异常错误响应的，这里是<strong>返回三种错误信息</strong>：</p>
 <ul>
 <li><strong>协议错误</strong>：一个”ERROR\r\n”的字符串。表明 client 发送了一个非法命令。</li>
@@ -4890,7 +5227,7 @@
 <li><strong>ReuseExecutor</strong>：该类主要特点是复用。它复用的是<strong>Statement对象或者PreparedStatement对象</strong>。<br>该类中有一个属性statementMap，key是SQL语句，value是Statement对象。每次执行首先根据SQL语句查询statementMap，如果有对应的Statement对象，则直接使用该Statement对象，如果没有，则创建新的Statement对象，然后将其和SQL语句添加到statementMap；</li>
 </ul>
 <p>在 配置类 <strong>org.apache.ibatis.session.Configuration</strong> 中 创建 Executor 的方法中可以看到，默认创建 Executor 实现类为：<strong>SimpleExecutor</strong>，而后 根据配置属性 <strong><em>cacheEnabled</em></strong> 判断是否使用缓存，使用则 为 <strong>CachingExecutor</strong>，而改属性默认为 true，<strong>综上Mybatis默认使用的 Executor  为 CachingExecutor</strong></p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">	<span class="function"><span class="keyword">public</span> Executor <span class="title">newExecutor</span><span class="params">(Transaction transaction, ExecutorType executorType)</span> </span>&#123;</span><br><span class="line">       executorType = executorType == <span class="keyword">null</span> ? <span class="keyword">this</span>.defaultExecutorType : executorType;</span><br><span class="line">       executorType = executorType == <span class="keyword">null</span> ? ExecutorType.SIMPLE : executorType;</span><br><span class="line">       Object executor;</span><br><span class="line">       <span class="keyword">if</span> (ExecutorType.BATCH == executorType) &#123;</span><br><span class="line">           executor = <span class="keyword">new</span> BatchExecutor(<span class="keyword">this</span>, transaction);</span><br><span class="line">       &#125; <span class="keyword">else</span> <span class="keyword">if</span> (ExecutorType.REUSE == executorType) &#123;</span><br><span class="line">           executor = <span class="keyword">new</span> ReuseExecutor(<span class="keyword">this</span>, transaction);</span><br><span class="line">       &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">           executor = <span class="keyword">new</span> SimpleExecutor(<span class="keyword">this</span>, transaction);</span><br><span class="line">       &#125;</span><br><span class="line">	<span class="comment">// 判断是否开启二级缓存</span></span><br><span class="line">       <span class="comment">// 也可在配置文件中指明： &lt;setting name="cacheEnabled"value="true"/&gt;</span></span><br><span class="line">       <span class="keyword">if</span> (<span class="keyword">this</span>.cacheEnabled) &#123;</span><br><span class="line">           executor = <span class="keyword">new</span> CachingExecutor((Executor)executor);</span><br><span class="line">       &#125;</span><br><span class="line"></span><br><span class="line">       Executor executor = (Executor)<span class="keyword">this</span>.interceptorChain.pluginAll(executor);</span><br><span class="line">       <span class="keyword">return</span> executor;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 但从Configuration 无参构造方法中可知 默认是开启的</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">Configuration</span><span class="params">()</span> </span>&#123;</span><br><span class="line">       <span class="keyword">this</span>.safeResultHandlerEnabled = <span class="keyword">true</span>;</span><br><span class="line">       <span class="keyword">this</span>.multipleResultSetsEnabled = <span class="keyword">true</span>;</span><br><span class="line">       <span class="keyword">this</span>.useColumnLabel = <span class="keyword">true</span>;</span><br><span class="line">       <span class="keyword">this</span>.cacheEnabled = <span class="keyword">true</span>;</span><br><span class="line">       <span class="comment">// ....省略</span></span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// XMLConfigBuilder 创建方法中正是调用了 Configuration 无参构造器</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="title">XMLConfigBuilder</span><span class="params">(XPathParser parser, String environment, Properties props)</span> </span>&#123;</span><br><span class="line">       <span class="keyword">super</span>(<span class="keyword">new</span> Configuration());</span><br><span class="line">       <span class="keyword">this</span>.localReflectorFactory = <span class="keyword">new</span> DefaultReflectorFactory();</span><br><span class="line">       ErrorContext.instance().resource(<span class="string">"SQL Mapper Configuration"</span>);</span><br><span class="line">       <span class="keyword">this</span>.configuration.setVariables(props);</span><br><span class="line">       <span class="keyword">this</span>.parsed = <span class="keyword">false</span>;</span><br><span class="line">       <span class="keyword">this</span>.environment = environment;</span><br><span class="line">       <span class="keyword">this</span>.parser = parser;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Executor <span class="title">newExecutor</span><span class="params">(Transaction transaction, ExecutorType executorType)</span> </span>&#123;</span><br><span class="line">        executorType = executorType == <span class="keyword">null</span> ? <span class="keyword">this</span>.defaultExecutorType : executorType;</span><br><span class="line">        executorType = executorType == <span class="keyword">null</span> ? ExecutorType.SIMPLE : executorType;</span><br><span class="line">        Object executor;</span><br><span class="line">        <span class="keyword">if</span> (ExecutorType.BATCH == executorType) &#123;</span><br><span class="line">            executor = <span class="keyword">new</span> BatchExecutor(<span class="keyword">this</span>, transaction);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (ExecutorType.REUSE == executorType) &#123;</span><br><span class="line">            executor = <span class="keyword">new</span> ReuseExecutor(<span class="keyword">this</span>, transaction);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            executor = <span class="keyword">new</span> SimpleExecutor(<span class="keyword">this</span>, transaction);</span><br><span class="line">        &#125;</span><br><span class="line">		<span class="comment">// 判断是否开启二级缓存</span></span><br><span class="line">        <span class="comment">// 也可在配置文件中指明： &lt;setting name="cacheEnabled"value="true"/&gt;</span></span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.cacheEnabled) &#123;</span><br><span class="line">            executor = <span class="keyword">new</span> CachingExecutor((Executor)executor);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        Executor executor = (Executor)<span class="keyword">this</span>.interceptorChain.pluginAll(executor);</span><br><span class="line">        <span class="keyword">return</span> executor;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 但从Configuration 无参构造方法中可知 默认是开启的</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">Configuration</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.safeResultHandlerEnabled = <span class="keyword">true</span>;</span><br><span class="line">        <span class="keyword">this</span>.multipleResultSetsEnabled = <span class="keyword">true</span>;</span><br><span class="line">        <span class="keyword">this</span>.useColumnLabel = <span class="keyword">true</span>;</span><br><span class="line">        <span class="keyword">this</span>.cacheEnabled = <span class="keyword">true</span>;</span><br><span class="line">        <span class="comment">// ....省略</span></span><br><span class="line">    &#125;</span><br><span class="line">	</span><br><span class="line">	<span class="comment">// XMLConfigBuilder 创建方法中正是调用了 Configuration 无参构造器</span></span><br><span class="line">	<span class="function"><span class="keyword">private</span> <span class="title">XMLConfigBuilder</span><span class="params">(XPathParser parser, String environment, Properties props)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(<span class="keyword">new</span> Configuration());</span><br><span class="line">        <span class="keyword">this</span>.localReflectorFactory = <span class="keyword">new</span> DefaultReflectorFactory();</span><br><span class="line">        ErrorContext.instance().resource(<span class="string">"SQL Mapper Configuration"</span>);</span><br><span class="line">        <span class="keyword">this</span>.configuration.setVariables(props);</span><br><span class="line">        <span class="keyword">this</span>.parsed = <span class="keyword">false</span>;</span><br><span class="line">        <span class="keyword">this</span>.environment = environment;</span><br><span class="line">        <span class="keyword">this</span>.parser = parser;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
 
 <p>综上，SQL执行逻辑可以关注 <strong>SimpleExecutor</strong> 类，这里 举例<strong>doQuery</strong> 方法：</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> &lt;E&gt; <span class="function">List&lt;E&gt; <span class="title">doQuery</span><span class="params">(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql)</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">    Statement stmt = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">    List var9;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        Configuration configuration = ms.getConfiguration();</span><br><span class="line">        StatementHandler handler = configuration.newStatementHandler(<span class="keyword">this</span>.wrapper, ms, parameter, rowBounds, resultHandler, boundSql);</span><br><span class="line">        <span class="comment">// 获取 Statement 对象</span></span><br><span class="line">        stmt = <span class="keyword">this</span>.prepareStatement(handler, ms.getStatementLog());</span><br><span class="line">        <span class="comment">// 交由对象handler 执行查询</span></span><br><span class="line">        var9 = handler.query(stmt, resultHandler);</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="keyword">this</span>.closeStatement(stmt);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> var9;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -5408,7 +5745,7 @@
 <ul>
 <li><strong>postProcessBeforeInstantiation</strong>： 自身方法，是最先执行的方法，它在目标对象实例化之前调用，该方法的返回值类型是Object，我们可以返回任何类型的值。由于这个时候目标对象还未实例化，所以这个返回值可以用来代替原本该生成的目标对象的实例(比如代理对象)。如果该方法的返回值代替原本该生成的目标对象，后续只有<strong>postProcessAfterInitialization</strong>方法会调用，其它方法不再调用；否则按照正常的流程走。</li>
 <li><strong>postProcessAfterInstantiation</strong>：在目标对象实例化之后调用，这个时候对象已经被实例化，但是该实例的属性还未被设置，都是null。因为它的返回值是决定要不要调用 <strong>postProcessPropertyValues</strong>方法的其中一个因素（因为还有一个因素是<strong><em>mbd.getDependencyCheck()</em></strong>）；如果该方法返回<strong>false</strong>,并且不需要<strong>check</strong>，那么<strong>postProcessPropertyValues</strong>就会被忽略不执行；如果返回<strong>true</strong>，<strong>postProcessPropertyValues</strong>就会被执行。</li>
-<li>对属性值进行修改，如果<strong>postProcessAfterInstantiation</strong>方法返回<strong>false</strong>，该方法可能不会被调用。可以在该方法内对属性值进行修改。</li>
+<li><strong>postProcessPropertyValues</strong>：对属性值进行修改，如果<strong>postProcessAfterInstantiation</strong>方法返回<strong>false</strong>，该方法可能不会被调用。可以在该方法内对属性值进行修改。</li>
 </ul>
 <p>示例：</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line">**</span><br><span class="line"> * 自定义处理器</span><br><span class="line"> * <span class="meta">@author</span> dengp</span><br><span class="line"> *</span><br><span class="line"> */</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyInstantiationAwareBeanPostProcessor</span> <span class="keyword">implements</span> <span class="title">InstantiationAwareBeanPostProcessor</span></span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * BeanPostProcessor接口中的方法</span></span><br><span class="line"><span class="comment">     * 在Bean的自定义初始化方法之前执行</span></span><br><span class="line"><span class="comment">     * Bean对象已经存在了</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">postProcessBeforeInitialization</span><span class="params">(Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"》》》初始化前：postProcessBeforeInitialization"</span>);</span><br><span class="line">        <span class="keyword">return</span> bean;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * BeanPostProcessor接口中的方法</span></span><br><span class="line"><span class="comment">     * 在Bean的自定义初始化方法执行完成之后执行</span></span><br><span class="line"><span class="comment">     * Bean对象已经存在了</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">postProcessAfterInitialization</span><span class="params">(Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"》》》初始化后：postProcessAfterInitialization"</span>);</span><br><span class="line">        <span class="keyword">return</span> bean;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * InstantiationAwareBeanPostProcessor中自定义的方法</span></span><br><span class="line"><span class="comment">     * 在方法实例化之前执行  Bean对象还没有</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">postProcessBeforeInstantiation</span><span class="params">(Class&lt;?&gt; beanClass, String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"》》》实例化前：postProcessBeforeInstantiation"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * InstantiationAwareBeanPostProcessor中自定义的方法</span></span><br><span class="line"><span class="comment">     * 在方法实例化之后执行  Bean对象已经创建出来了</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">postProcessAfterInstantiation</span><span class="params">(Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"》》》实例化后：postProcessAfterInstantiation"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * InstantiationAwareBeanPostProcessor中自定义的方法</span></span><br><span class="line"><span class="comment">     * 可以用来修改Bean中属性的内容</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> PropertyValues <span class="title">postProcessPropertyValues</span><span class="params">(PropertyValues pvs, PropertyDescriptor[] pds, Object bean,</span></span></span><br><span class="line"><span class="function"><span class="params">                                                    String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"》》》设置属性：postProcessPropertyValues"</span>);</span><br><span class="line">        <span class="keyword">return</span> pvs;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -5484,7 +5821,7 @@
 <li>上下文关闭事件（<strong>ContextClosedEvent</strong>）：当<strong>ApplicationContext</strong>被关闭时触发该事件。容器被关闭时，其管理的所有单例<strong>Bean</strong>都被销毁。</li>
 <li>请求处理事件（<strong>RequestHandledEvent</strong>）：在<strong>Web</strong>应用中，当一个<strong>http</strong>请求（<strong>request</strong>）结束触发该事件。</li>
 </ul>
-<h4 id="依赖注入（DI）"><a href="#依赖注入（DI）" class="headerlink" title="依赖注入（DI）"></a>依赖注入（DI）</h4><p>将依赖关系的管理交给 <strong>Spring</strong> 维护，在当前类需要用到其他类的对象，由 *<em>Spring *</em> 为我们提供，只需要在配置文件中说明关系的维护。</p>
+<h4 id="依赖注入（DI）"><a href="#依赖注入（DI）" class="headerlink" title="依赖注入（DI）"></a>依赖注入（DI）</h4><p>将依赖关系的管理交给 <strong>Spring</strong> 维护，在当前类需要用到其他类的对象，由 <strong>Spring</strong> 为我们提供，只需要在配置文件中说明关系的维护。</p>
 <p><strong>能够注入的数据：</strong></p>
 <ul>
 <li>基本类型和 <strong>String</strong></li>
@@ -5523,7 +5860,7 @@
 </li>
 <li><p>用于注入数据：作用和XML配置文件中的bean标签中的<property>作用一样；</property></p>
 <ol>
-<li><p><strong>@Autowried</strong></p>
+<li><p><strong>@Autowried（byType）</strong></p>
 <p>作用：自动按<strong>类型</strong>注入，只要容器中由唯一的bean对象类型和要注入的变量类型匹配，就可以成功注入</p>
 <p>位置：可以为成员变量，也可以为方法</p>
 </li>
@@ -5531,34 +5868,34 @@
 <p>作用：再按照<strong>类型</strong>注入的基础之上再按照<strong>名称</strong>注入，它在给类成员注入时不能单独使用，和<strong>Autowired</strong>配合使用，但是给方法注入时可以。</p>
 <p>属性：value：用于指定注入bean的id</p>
 </li>
-<li><p><strong>@Resources</strong> </p>
+<li><p><strong>@Resources（byName）</strong> </p>
 <p>作用：属于<strong><em>JSR-250</em></strong>规范定义的注解，支持根据<strong>类型和名称</strong>进行对象注入，它可以独立使用</p>
 <p>属性：name:用于指定bean的id</p>
 <p> <strong>以上三种注入只能注入其他bean类型的数据，而基本类型和String类型无法使用上述注解实现</strong></p>
 </li>
 <li><p><strong>@Value</strong></p>
+<p>作用：用于注入基本类型和<strong>String</strong>类型数据</p>
+<p>属性：value：用于指定数据的值，它可以使用spring中的spEL(也就是spring的el表达式)</p>
+<p>SpEl的写法：${表达式}     </p>
 </li>
 </ol>
 </li>
 </ul>
-<p>​              作用：用于注入基本类型和<strong>String</strong>类型数据</p>
-<p>​              属性：value：用于指定数据的值，它可以使用spring中的spEL(也就是spring的el表达式)</p>
-<p>​              SpEl的写法：${表达式}     </p>
 <ul>
 <li><p>用于改变作用范围：作用和在<strong>bean</strong>标签中使用<strong>scope</strong>属性实现的功能一样的</p>
-<p><strong>Scope</strong> </p>
+<p><strong>@Scope</strong> </p>
 <p>作用：用于指定bean的作用范围</p>
 <p>属性：value:指定范围取值。常用的值：singleton(单例) prototype(多例）</p>
 </li>
 <li><p>和生命周期相关：作用和在bean标签中使用<strong>init-method</strong>和<strong>destroy-method</strong>的作用一样</p>
-<p><strong>PreDestroy</strong>：用于指定销毁，属于<strong><em>JSR-250</em></strong>规范定义的注解</p>
-<p><strong>PostConstruct</strong>：用于指定初始化，属于<strong><em>JSR-250</em></strong>规范定义的注解</p>
+<p><strong>@PreDestroy</strong>：用于指定销毁，属于<strong><em>JSR-250</em></strong>规范定义的注解</p>
+<p><strong>@PostConstruct</strong>：用于指定初始化，属于<strong><em>JSR-250</em></strong>规范定义的注解</p>
 </li>
 </ul>
 <h4 id="Spring-AOP"><a href="#Spring-AOP" class="headerlink" title="Spring AOP"></a>Spring AOP</h4><p><strong>AOP （Aspect Orient Programming）</strong>,直译过来就是 <strong>面向切面编程</strong>。<strong>AOP</strong> 是一种编程思想，是面向对象编程（<strong>OOP</strong>）的一种补充。</p>
 <p><strong>AOP</strong> 要达到的效果是，保证开发者不修改源代码的前提下，去为系统中的业务组件添加某种通用功能。</p>
 <ul>
-<li><strong>静态 AOP 实现</strong>： AOP 框架在编译阶段对程序源代码进行修改，生成了静态的 AOP 代理类（生成的 <em>.class 文件已经被改掉了，需要使用特定的编译器），比如 *</em>AspectJ**。</li>
+<li><strong>静态 AOP 实现</strong>： AOP 框架在编译阶段对程序源代码进行修改，生成了静态的 AOP 代理类（生成的 *.class 文件已经被改掉了，需要使用特定的编译器），比如<strong>AspectJ</strong>。</li>
 <li><strong>动态 AOP 实现</strong>： AOP 框架在运行阶段对动态生成代理对象（在内存中以 JDK 动态代理，或 CGlib 动态地生成 AOP 代理类），如 <strong>SpringAOP</strong>。</li>
 </ul>
 <p><strong>AOP 领域中的特性术语：</strong></p>
@@ -5608,13 +5945,116 @@
 
 
 
-<h4 id="Spring事务处理"><a href="#Spring事务处理" class="headerlink" title="Spring事务处理"></a>Spring事务处理</h4><p>前面关于<strong>事务</strong>的概念在<a href="http://blogsea.cn/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/" target="_blank" rel="noopener">分布式架构之事务管理</a>中提到过：</p>
-<ul>
-<li>事务的概念</li>
-<li>事务的四大特性</li>
-<li>事务的隔离级别</li>
+<h4 id="Spring-事务"><a href="#Spring-事务" class="headerlink" title="Spring 事务"></a>Spring 事务</h4><p><strong>Spring事务</strong>的本质其实就是<strong>数据库对事务的支持</strong>，没有数据库的事务支持，spring是无法提供事务功能的。对于纯JDBC操作数据库，想要用到事务，可以按照以下步骤进行：</p>
+<ol>
+<li><strong>获取连接</strong> Connection con = DriverManager.getConnection()</li>
+<li><strong>开启事务</strong>con.setAutoCommit(true/false);</li>
+<li><strong>执行CRUD</strong></li>
+<li><strong>提交事务/回滚事务</strong> con.commit() / con.rollback();</li>
+<li><strong>关闭连接</strong> conn.close();</li>
+</ol>
+<h5 id="分类"><a href="#分类" class="headerlink" title="分类"></a>分类</h5><ul>
+<li><strong>编程式事务</strong>：指在代码中手动的管理事务的提交、回滚等操作，代码侵入性比较强</li>
+<li><strong>声明式事务</strong>：基于AOP面向切面的，它将具体业务与事务处理部分解耦，代码侵入性很低，所以在实际开发中声明式事务用的比较多。声明式事务也有两种实现方式，是基于<strong>TX和AOP的xml配置文件</strong>方式，二种就是基于@<strong>Transactional</strong>注解了。</li>
 </ul>
-<p>此处不再赘述。</p>
+<p>这里举例 <strong>注解的方式</strong>配置事务。</p>
+<h5 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h5><p>1、定义事务管理器，传入 数据源对象</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Bean</span> </span><br><span class="line"><span class="function"><span class="keyword">public</span> PlatformTransactionManager <span class="title">transactionManager</span><span class="params">()</span> </span>&#123; </span><br><span class="line"></span><br><span class="line">	JpaTransactionManager transactionManager = <span class="keyword">new</span> JpaTransactionManager(); </span><br><span class="line">	transactionManager.setDataSource(dataSource()); </span><br><span class="line">	<span class="keyword">return</span> transactionManager; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>2、在对应需要事务的类或方法上添加注解 <strong><em>@Transactional</em></strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// @Transactional注解来自org.springframework.transaction.annotation包，而不是javax.transaction。</span></span><br><span class="line"><span class="meta">@Transactional</span> </span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">saveSomething</span><span class="params">(String name)</span> </span>&#123; </span><br><span class="line">    <span class="comment">//数据库操作 </span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h5 id="实现原理"><a href="#实现原理" class="headerlink" title="实现原理"></a><strong>实现原理</strong></h5><ul>
+<li>配置文件开启注解驱动，在相关的类和方法上通过注解<strong><em>@Transactional</em></strong>标识。类上添加<strong><em>@Transactional</em></strong>则代表该类的所有方法都有事务。</li>
+<li><strong>Spring</strong> 在启动的时候会去解析生成相关的bean，这时候会查看拥有相关注解的类和方法，并且为这些类和方法生成<strong>代理</strong>，并根据<strong><em>@Transaction</em></strong>的相关参数进行相关配置注入，这样就在代理中为我们把相关的事务处理掉了（开启正常提交事务，异常回滚事务）。</li>
+<li>真正的数据库层的事务提交和回滚是通过<strong>bin log和redo log</strong>实现的。</li>
+</ul>
+<h5 id="事务机制"><a href="#事务机制" class="headerlink" title="事务机制"></a>事务机制</h5><p><strong>Spring</strong>的事务机制是<strong>用统一的机制来处理不同数据访问技术的事务处理</strong>。<strong>Spring</strong>的事务机制提供了一个<strong><em>PlatformTransactionManager</em></strong>接口，不同的数据访问技术的事务使用不同的接口实现</p>
+<ul>
+<li><strong>JDBC</strong>：DataSourceTransactionManager</li>
+<li><strong>JPA</strong>：JpaTransactionManager</li>
+<li><strong>Hibernate</strong>：HibernateTransactionManager</li>
+<li><strong>JDO</strong>：JdoTransactionManager</li>
+<li><strong>分布式事务</strong>：JtaTransactionManager</li>
+</ul>
+<h5 id="Spring-事务隔离级别"><a href="#Spring-事务隔离级别" class="headerlink" title="Spring 事务隔离级别"></a>Spring 事务隔离级别</h5><p><a href="http://blogsea.cn/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/" target="_blank" rel="noopener">分布式事务</a>课程中，我们学习了<strong>数据库隔离级别</strong></p>
+<p><img src="/2021/03/15/%E5%BF%85%E4%BC%9A%E6%A1%86%E6%9E%B6%EF%BC%88%E4%B8%80%EF%BC%89-Spring/framework_09.png" alt="数据库隔离级别"></p>
+<p><strong>脏读</strong>：一事务对数据进行了增删改，但未提交，另一事务可以读取到未提交的数据。如果第一个事务这时候回滚了，那么第二个事务就读到了脏数据。</p>
+<p><strong>不可重复读</strong>：一个事务中发生了两次读操作，第一次读操作和第二次操作之间，另外一个事务对数据进行了修改，这时候两次读取的数据是不一致的。</p>
+<p><strong>幻读</strong>：第一个事务对一定范围的数据进行批量修改，第二个事务在这个范围增加一条数据，这时候第一个事务就会丢失对新增数据的修改。</p>
+<p>总结：</p>
+<ul>
+<li><p>隔离级别越高，越能保证数据的完整性和一致性，但是对并发性能的影响也越大。</p>
+</li>
+<li><p>大多数的数据库默认隔离级别为 <strong>Read Commited</strong>，比如 SqlServer、Oracle</p>
+</li>
+<li><p>少数数据库默认隔离级别为：<strong>Repeatable Read</strong> 比如： MySQL InnoDB</p>
+</li>
+</ul>
+<p><strong>Spring 中的事务隔离级别</strong></p>
+<p><img src="/2021/03/15/%E5%BF%85%E4%BC%9A%E6%A1%86%E6%9E%B6%EF%BC%88%E4%B8%80%EF%BC%89-Spring/framework_10.png" alt="Spring 事务隔离级别"></p>
+<h5 id="事务嵌套（传播机制）"><a href="#事务嵌套（传播机制）" class="headerlink" title="事务嵌套（传播机制）"></a>事务嵌套（传播机制）</h5><ul>
+<li><p><strong>PROPAGATION_REQUIRED</strong> (spring 默认)</p>
+<p>支持当前事务,如果有就加入当前事务中;如果当前方法没有事务,就新建一个事务;</p>
+</li>
+<li><p><strong>PROPAGATION_REQUIRES_NEW</strong></p>
+<p>新建事务,如果当前存在事务,就把当前事务挂起;如果当前方法没有事务,就新建事务;</p>
+<p>他与 <strong>PROPAGATION_REQUIRED</strong> 的事务区别在于事务的回滚程度了。</p>
+</li>
+<li><p><strong>PROPAGATION_NESTED</strong></p>
+<p>如果当前方法有事务,则在嵌套事务内执行;如果当前方法没有事务,则与required操作类似;</p>
+</li>
+<li><p><strong>PROPAGATION_MANATORY</strong></p>
+<p>支持当前事务,如果有就加入当前事务中;如果当前没有事务,就抛出异常;</p>
+</li>
+<li><p><strong>PROPAGATION_SUPPORTS</strong></p>
+<p>支持当前事务,如果有就加入当前事务中;如果当前方法没有事务,就以非事务的方式执行;</p>
+<p>这种时候，内部方法的事务性完全依赖于最外层的事务。</p>
+</li>
+<li><p><strong>PROPAGATION_NOT_SUPPORTED</strong></p>
+<p>以非事务方式执行,如果当前方法存在事务就挂起当前事务;如果当前方法不存在事务,就以非事务方式执行;</p>
+</li>
+<li><p><strong>PROPAGATION_NERVER</strong></p>
+<p>以非事务方式执行,如果当前方法存在事务就抛出异常;如果当前方法不存在事务,就以非事务方式执行;</p>
+</li>
+</ul>
+<h5 id="Transactional-失效原因"><a href="#Transactional-失效原因" class="headerlink" title="@Transactional 失效原因"></a>@Transactional 失效原因</h5><ul>
+<li><p><strong>@Transactional 做用于非public方法上</strong>。</p>
+<p>因为在<strong>Spring AOP</strong>代理时<strong>TransactionInterceptor</strong> （事务拦截器）在目标方法执行前后进行拦截，<strong>DynamicAdvisedInterceptor</strong>（CglibAopProxy 的内部类）的 <strong><em>intercept</em></strong> 方法或 <strong>JdkDynamicAopProxy</strong> 的 <strong><em>invoke</em></strong> 方法会间接调用 <strong>AbstractFallbackTransactionAttributeSource</strong>的 <strong><em>computeTransactionAttribute</em></strong>方法，获取<strong>Transactional</strong> 注解的事务配置信息。其中此方法会检查目标方法的修饰符是否为 <strong>public</strong>，<strong>不是 public则不会获取@Transactional 的属性配置信息</strong>。</p>
+</li>
+</ul>
+<ul>
+<li><p><strong>@Transactional 注解属性 rollbackFor 设置错误</strong>。</p>
+<p><strong>rollbackFor</strong> 可以指定能够触发事务回滚的异常类型。Spring默认抛出了<strong>未检查unchecked异常（继承自 RuntimeException 的异常）或者 Error才回滚事务</strong>。如果需要制定异常回滚，则需配置 rollbackFor ，</p>
+<p><strong>若在目标方法中抛出的异常是 rollbackFor 指定的异常的子类，事务同样会回滚。</strong></p>
+</li>
+</ul>
+<ul>
+<li><p><strong>同一个类中方法调用，导致@Transactional失效</strong>。</p>
+<p>这是由于使用Spring AOP代理造成的，因为只有当事务方法被当前类以外的代码调用时，才会由Spring生成的代理对象来管理。</p>
+<p>解决方法可以是，上层自定义 self() 方法，返回代理对象。调用本类方法时，使用 <strong><em>self().testB()</em></strong> 即可。</p>
+<p>具体实现方法为 ：</p>
+<ol>
+<li><p>自定义 接口  <strong>ProxySelf</strong>：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public interface ProxySelf&lt;T&gt; &#123;</span><br><span class="line">    default T self() &#123;</span><br><span class="line">        return AopContext.currentProxy();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>service 接口继承 ProxySelf ，泛型传入自身接口</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">IUserService</span> <span class="keyword">extends</span> <span class="title">ProxySelf</span>&lt;<span class="title">IUserService</span>&gt;</span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>service 实现类中调用 <strong><em>this.self().testB()</em></strong> 方法即可。</p>
+</li>
+</ol>
+</li>
+</ul>
+<ul>
+<li><p><strong>异常被你的 catch “吃了” 导致@Transactional失效</strong></p>
+</li>
+<li><p><strong>数据库引擎不支持事务</strong>：例如 Mysql 切换 MyISAM 引擎等</p>
+</li>
+</ul>
+<p><strong>更多事务扩展知识</strong>可在<a href="http://blogsea.cn/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/" target="_blank" rel="noopener">分布式架构之事务管理</a>中学习。</p>
 <h3 id="SpringMVC"><a href="#SpringMVC" class="headerlink" title="SpringMVC"></a>SpringMVC</h3><p>在早期 Java Web 的开发中，统一把显示层、控制层、数据层的操作全部交给 JSP 或者 JavaBean 来进行处理，我们称之为 <strong>Model1</strong></p>
 <p><strong>出现的弊端：</strong></p>
 <ul>
@@ -5708,80 +6148,7 @@
 <p><img src="/2021/03/15/%E5%BF%85%E4%BC%9A%E6%A1%86%E6%9E%B6%EF%BC%88%E4%B8%80%EF%BC%89-Spring/framework_08.png" alt="Filter 和 拦截器执行顺序"></p>
 </li>
 </ul>
-<h3 id="SpringData"><a href="#SpringData" class="headerlink" title="SpringData"></a>SpringData</h3><h4 id="JPA（待更新）"><a href="#JPA（待更新）" class="headerlink" title="JPA（待更新）"></a>JPA（待更新）</h4><h4 id="Spring-事务"><a href="#Spring-事务" class="headerlink" title="Spring 事务"></a>Spring 事务</h4><p><strong>Spring事务</strong>的本质其实就是<strong>数据库对事务的支持</strong>，没有数据库的事务支持，spring是无法提供事务功能的。对于纯JDBC操作数据库，想要用到事务，可以按照以下步骤进行：</p>
-<ol>
-<li><strong>获取连接</strong> Connection con = DriverManager.getConnection()</li>
-<li><strong>开启事务</strong>con.setAutoCommit(true/false);</li>
-<li><strong>执行CRUD</strong></li>
-<li><strong>提交事务/回滚事务</strong> con.commit() / con.rollback();</li>
-<li><strong>关闭连接</strong> conn.close();</li>
-</ol>
-<p>使用<strong>Spring</strong>的事务管理功能后，我们可以不再写步骤 2 和 4 的代码，而是由Spirng 自动完成。</p>
-<p><strong>Spring</strong> 事务管理有俩种方式，一种是 <strong>xml 配置</strong>，一种是<strong>注解</strong>方式，这里举例 <strong>注解的方式</strong>配置事务。</p>
-<h5 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h5><p>1、定义事务管理器，传入 数据源对象</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Bean</span> </span><br><span class="line"><span class="function"><span class="keyword">public</span> PlatformTransactionManager <span class="title">transactionManager</span><span class="params">()</span> </span>&#123; </span><br><span class="line"></span><br><span class="line">	JpaTransactionManager transactionManager = <span class="keyword">new</span> JpaTransactionManager(); </span><br><span class="line">	transactionManager.setDataSource(dataSource()); </span><br><span class="line">	<span class="keyword">return</span> transactionManager; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>2、在对应需要事务的类或方法上添加注解 <strong><em>@Transactional</em></strong></p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// @Transactional注解来自org.springframework.transaction.annotation包，而不是javax.transaction。</span></span><br><span class="line"><span class="meta">@Transactional</span> </span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">saveSomething</span><span class="params">(String name)</span> </span>&#123; </span><br><span class="line">    <span class="comment">//数据库操作 </span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h5 id="实现原理"><a href="#实现原理" class="headerlink" title="实现原理"></a><strong>实现原理</strong></h5><ul>
-<li>配置文件开启注解驱动，在相关的类和方法上通过注解<strong><em>@Transactional</em></strong>标识。类上添加<strong><em>@Transactional</em></strong>则代表该类的所有方法都有事务。</li>
-<li><strong>Spring</strong> 在启动的时候会去解析生成相关的bean，这时候会查看拥有相关注解的类和方法，并且为这些类和方法生成<strong>代理</strong>，并根据<strong><em>@Transaction</em></strong>的相关参数进行相关配置注入，这样就在代理中为我们把相关的事务处理掉了（开启正常提交事务，异常回滚事务）。</li>
-<li>真正的数据库层的事务提交和回滚是通过</li>
-<li>或者<strong>redo log</strong>实现的。</li>
-</ul>
-<h5 id="事务机制"><a href="#事务机制" class="headerlink" title="事务机制"></a>事务机制</h5><p><strong>Spring</strong>的事务机制是<strong>用统一的机制来处理不同数据访问技术的事务处理</strong>。<strong>Spring</strong>的事务机制提供了一个<strong><em>PlatformTransactionManager</em></strong>接口，不同的数据访问技术的事务使用不同的接口实现</p>
-<ul>
-<li><strong>JDBC</strong>：DataSourceTransactionManager</li>
-<li><strong>JPA</strong>：JpaTransactionManager</li>
-<li><strong>Hibernate</strong>：HibernateTransactionManager</li>
-<li><strong>JDO</strong>：JdoTransactionManager</li>
-<li><strong>分布式事务</strong>：JtaTransactionManager</li>
-</ul>
-<h5 id="Spring-事务隔离级别"><a href="#Spring-事务隔离级别" class="headerlink" title="Spring 事务隔离级别"></a>Spring 事务隔离级别</h5><p><a href="http://blogsea.cn/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/" target="_blank" rel="noopener">分布式事务</a>课程中，我们学习了<strong>数据库隔离级别</strong></p>
-<p><img src="/2021/03/15/%E5%BF%85%E4%BC%9A%E6%A1%86%E6%9E%B6%EF%BC%88%E4%B8%80%EF%BC%89-Spring/framework_09.png" alt="数据库隔离级别"></p>
-<p><strong>脏读</strong>：一事务对数据进行了增删改，但未提交，另一事务可以读取到未提交的数据。如果第一个事务这时候回滚了，那么第二个事务就读到了脏数据。</p>
-<p><strong>不可重复读</strong>：一个事务中发生了两次读操作，第一次读操作和第二次操作之间，另外一个事务对数据进行了修改，这时候两次读取的数据是不一致的。</p>
-<p><strong>幻读</strong>：第一个事务对一定范围的数据进行批量修改，第二个事务在这个范围增加一条数据，这时候第一个事务就会丢失对新增数据的修改。</p>
-<p>总结：</p>
-<ul>
-<li><p>隔离级别越高，越能保证数据的完整性和一致性，但是对并发性能的影响也越大。</p>
-</li>
-<li><p>大多数的数据库默认隔离级别为 <strong>Read Commited</strong>，比如 SqlServer、Oracle</p>
-</li>
-<li><p>少数数据库默认隔离级别为：<strong>Repeatable Read</strong> 比如： MySQL InnoDB</p>
-</li>
-</ul>
-<p><strong>Spring 中的事务隔离级别</strong></p>
-<p><img src="/2021/03/15/%E5%BF%85%E4%BC%9A%E6%A1%86%E6%9E%B6%EF%BC%88%E4%B8%80%EF%BC%89-Spring/framework_10.png" alt="Spring 事务隔离级别"></p>
-<h5 id="事务嵌套（传播机制）"><a href="#事务嵌套（传播机制）" class="headerlink" title="事务嵌套（传播机制）"></a>事务嵌套（传播机制）</h5><ul>
-<li><p><strong>PROPAGATION_REQUIRED</strong> (spring 默认)</p>
-<p>支持当前事务,如果有就加入当前事务中;如果当前方法没有事务,就新建一个事务;</p>
-</li>
-<li><p><strong>PROPAGATION_REQUIRES_NEW</strong></p>
-<p>新建事务,如果当前存在事务,就把当前事务挂起;如果当前方法没有事务,就新建事务;</p>
-<p>他与 <strong>PROPAGATION_REQUIRED</strong> 的事务区别在于事务的回滚程度了。</p>
-</li>
-<li><p><strong>PROPAGATION_NESTED</strong></p>
-<p>如果当前方法有事务,则在嵌套事务内执行;如果当前方法没有事务,则与required操作类似;</p>
-</li>
-<li><p><strong>PROPAGATION_MANATORY</strong></p>
-<p>支持当前事务,如果有就加入当前事务中;如果当前没有事务,就抛出异常;</p>
-</li>
-<li><p><strong>PROPAGATION_SUPPORTS</strong></p>
-<p>支持当前事务,如果有就加入当前事务中;如果当前方法没有事务,就以非事务的方式执行;</p>
-<p>这种时候，内部方法的事务性完全依赖于最外层的事务。</p>
-</li>
-<li><p><strong>PROPAGATION_NOT_SUPPORTED</strong></p>
-<p>以非事务方式执行,如果当前方法存在事务就挂起当前事务;如果当前方法不存在事务,就以非事务方式执行;</p>
-</li>
-<li><p><strong>PROPAGATION_NERVER</strong></p>
-<p>以非事务方式执行,如果当前方法存在事务就抛出异常;如果当前方法不存在事务,就以非事务方式执行;</p>
-</li>
-</ul>
-<h3 id="SpringBoot"><a href="#SpringBoot" class="headerlink" title="SpringBoot"></a>SpringBoot</h3><p><a href="http://blogsea.cn/2020/04/28/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/" target="_blank" rel="noopener">SpringBoot学习之启动配置原理</a></p>
+<h3 id="SpringData"><a href="#SpringData" class="headerlink" title="SpringData"></a>SpringData</h3><h4 id="JPA（待更新）"><a href="#JPA（待更新）" class="headerlink" title="JPA（待更新）"></a>JPA（待更新）</h4><h3 id="SpringBoot"><a href="#SpringBoot" class="headerlink" title="SpringBoot"></a>SpringBoot</h3><p><a href="http://blogsea.cn/2020/04/28/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/" target="_blank" rel="noopener">SpringBoot学习之启动配置原理</a></p>
 <p><a href="http://blogsea.cn/2020/05/07/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/" target="_blank" rel="noopener">SpringBoot学习之自动配置原理</a></p>
 <p><a href="http://blogsea.cn/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/" target="_blank" rel="noopener">SpringBoot学习之日志管理</a></p>
 <p>另补充<strong>SpringBoot</strong>关键注解：</p>
@@ -6177,7 +6544,7 @@
 <ul>
 <li><strong>取模哈希;</strong></li>
 <li><strong>一致性哈希</strong>;</li>
-<li><strong>区间分布哈希</strong>：实际是一种取模哈希的变种，取模哈希是哈希并取模计算后，按哈希值来分配存储节点，而区间哈希是在哈希计算后，将哈希划分为多个区间，然后将这些区间分配给存储节点。如哈希后分 1024 个哈希点，然后将 0<del>511 作为分片 1，将 512</del>1023 作为分片 2。</li>
+<li><strong>区间分布哈希</strong>：实际是一种取模哈希的变种，取模哈希是哈希并取模计算后，按哈希值来分配存储节点，而区间哈希是在哈希计算后，将哈希划分为多个区间，然后将这些区间分配给存储节点。如哈希后分 1024 个哈希点，然后将 0-511 作为分片 1，将 512-1023 作为分片 2。</li>
 </ul>
 <p><strong>问题：</strong>对于 Client 端分区，由于 Redis 集群有多个 master 分片，同时每个 master 下挂载多个 slave，每个 Redis 节点都有独立的 IP 和端口。如果 master 异常需要切换 master，或读压力过大需要扩展新的 slave，这些都会涉及集群存储节点的变更，需要 Client 端做连接切换。</p>
 <p><strong>解决方案</strong>：为了避免 Client 频繁变更 IP 列表，可以采用 DNS 的方式来管理集群的主从。对 Redis 集群的每个分片的主和从均采用不同 DNS 域名。Client 通过域名解析的方式获取域名下的所有 IP，然后来访问集群节点。</p>
@@ -6367,7 +6734,7 @@
 <p><strong>JMS</strong> 即 <strong>Java消息服务（Java Message Service）应用程序接口</strong>，是一个<a href="https://baike.baidu.com/item/Java平台" target="_blank" rel="noopener">Java平台</a>中关于面向<a href="https://baike.baidu.com/item/消息中间件/5899771" target="_blank" rel="noopener">消息中间件</a>（MOM）的<a href="https://baike.baidu.com/item/API/10154" target="_blank" rel="noopener">API</a>，用于在两个应用程序之间，或<a href="https://baike.baidu.com/item/分布式系统/4905336" target="_blank" rel="noopener">分布式系统</a>中发送消息，进行<a href="https://baike.baidu.com/item/异步通信/2273903" target="_blank" rel="noopener">异步通信</a>。Java消息服务是一个与具体平台无关的API，绝大多数MOM提供商都对JMS提供支持。</p>
 <p>《百度百科》</p>
 </blockquote>
-<p><strong>JMS *<em>只是 *</em>Java EE</strong> 中定义的一组标准 <strong>API</strong>，它自身并不是一个消息服务系统，它是消息传送服务的一个<strong>抽象</strong>，也就是说它定义了消息传送的接口而并没有具体实现。</p>
+<p><strong>JMS</strong>只是 <strong>Java EE</strong> 中定义的一组标准 <strong>API</strong>，它自身并不是一个消息服务系统，它是消息传送服务的一个<strong>抽象</strong>，也就是说它定义了消息传送的接口而并没有具体实现。</p>
 <p>JMS其实就是一个<code>Java</code>业界的<code>标准规范</code>而已，提供了一些编程接口给第三方去实现。包括消息产生、发送、读取、接收等。像<code>ActiveMQ</code>、<code>RocketMQ</code>之类的框架都是针对这个标准去实现的。</p>
 <h3 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h3><ul>
 <li><strong>异步</strong>：规范（标准）指出：消息的发送应该是异步的、非阻塞的。也就是说消息的发送者发送完消息后就直接返回了，不需要等待接收者返回后才能返回，发送者和接收者可以说是互不影响，减轻或消除系统瓶颈，实现系统之间去除耦合，提高系统的整体可伸缩性和灵活性。</li>
@@ -6840,6 +7207,7 @@
 <p>该命令的结果里面有详细的 InnoDB 运行态信息，分段记录的，包括内存、线程、信号、锁、事务等，出现问题时从中能分析出具体原因和解决方案。</p>
 <h4 id="★-单版本控制-锁"><a href="#★-单版本控制-锁" class="headerlink" title="★     单版本控制 - 锁"></a>★     单版本控制 - 锁</h4><p><strong>锁</strong>用独占的方式来保证在只有一个版本的情况下事务之间相互隔离，所以锁可以理解为单版本控制。</p>
 <p>在 MySQL 事务中，锁的实现与隔离级别有关系，在 RR（Repeatable Read）隔离级别下，MySQL 为<strong>了解决幻读的问题，以牺牲并行度为代价，通过 Gap 锁（间隙锁）来防止数据的写入</strong>，而这种锁，因为其并行度不够，冲突很多，经常会引起死锁。现在流行的 Row 模式可以避免很多冲突甚至死锁问题，所以推荐默认使用 Row + RC（Read Committed）模式的隔离级别，可以很大程度上提高数据库的读写并行度。</p>
+<p><strong>间隙锁</strong>，即对于不在区间范围内的数据也加锁，例如满足某一条数据的条数是100条，哪些满足条件，但是不存在的数据称为<strong>间隙</strong>，对其加锁叫<strong>间隙锁</strong>，用于防止事务区间内，其他事务插入数据，造成幻读。</p>
 <p><strong>共享锁与排他锁</strong></p>
 <ul>
 <li>共享锁（读锁）：其他事务可以读，但不能写。</li>
@@ -6951,6 +7319,11 @@
 <p><strong>注意</strong>：MVCC 只在 <strong>读提交（RC，Read Committed）</strong> 和 <strong>可重复读（RR，Repeatable Read）</strong> 两种隔离级别下工作。</p>
 <p><strong>实现机制</strong></p>
 <p><strong>InnoDB</strong>在每行数据都增加两个隐藏字段，一个记录<strong>创建的版本号</strong>，一个记录<strong>删除的版本号</strong>。</p>
+<p>简单来说,是通过在每行记录后面保存<strong>两个隐藏的列</strong>来实现的,这两个列，分别保存了这个行的创建时间，一个保存的是行的删除时间。这里存储的并不是实际的时间值,而是系统版本号(可以理解为事务的ID)，每开始一个新的事务，系统版本号就会自动递增，事务开始时刻的系统版本号会作为事务的ID.</p>
+<ul>
+<li>InnoDB只会查找版本早于当前事务版本的数据行(也就是,行的系统版本号小于或等于事务的系统版本号)，<strong>这样可以确保事务读取的行，要么是在事务开始前已经存在的，要么是事务自身插入或者修改过的.</strong></li>
+<li>行的删除版本要么未定义,要么大于当前事务版本号,<strong>这可以确保事务读取到的行，在事务开始之前未被删除.</strong></li>
+</ul>
 <p>在多版本并发控制中，为了保证数据操作在多线程过程中，保证事务隔离的机制，降低锁竞争的压力，保证较高的并发量。在每开启一个事务时，会生成一个事务的版本号，被操作的数据会生成一条新的数据行（临时），但是在提交前对其他事务是不可见的，对于数据的更新（包括增删改）操作成功，会将这个版本号更新到数据的行中，事务提交成功，将新的版本号更新到此数据行中，这样保证了每个事务操作的数据，都是互不影响的，也不存在锁的问题。</p>
 <h4 id="事务"><a href="#事务" class="headerlink" title="事务"></a>事务</h4><p><strong>事务</strong>是指作为单个逻辑工作单元执行的一系列操作，这些操作要么全做，要么全不做，是一个不可分割的工作单元。</p>
 <p>一个逻辑工作单元要成为事务，在关系型数据库管理系统中，必须满足 4 个特性，即所谓的 <strong>ACID</strong>：</p>
@@ -7104,8 +7477,8 @@
 </ul>
 <p>索引<strong>通常可以分为两大类</strong>：</p>
 <ul>
-<li><p><strong>主键索引（聚簇索引）</strong>：聚簇索引是一种数据存储方式，它表示表中的数据按照主键顺序存储，是索引组织表。InnoDB 的聚簇索引就是按照主键顺序构建 B+Tree，B+Tree 的叶子节点就是行记录，数据行和主键值紧凑地存储在一起。 这也意味着 InnoDB 的主键索引就是数据表本身，它按主键顺序存放了整张表的数据。</p>
-<p>对于没有指定主键的表，InnoDB 会自己<strong>选择合适字段为主键</strong>，顺序为：显式主键；第一个唯一索引（要求唯一索引所有列都非 NULL）；内置的 6 字节 ROWID。</p>
+<li><p><strong>主键索引（聚簇索引）</strong>：<strong>聚簇索引并不是一种单独的索引类型，而是一种数据存储方式</strong>，它表示表中的数据按照主键顺序存储，是索引组织表。InnoDB 的聚簇索引就是按照主键顺序构建 B+Tree，B+Tree 的叶子节点就是行记录，<strong>数据行和主键值紧凑地存储在一起。 这也意味着 InnoDB 的主键索引就是数据表本身，它按主键顺序存放了整张表的数据。</strong></p>
+<p>对于没有指定主键的表，InnoDB 会自己<strong>选择合适字段为主键</strong>，<strong>顺序为：显式主键，第一个唯一索引（要求唯一索引所有列都非 NULL）；内置的 6 字节 ROWID（隐藏列）。</strong></p>
 </li>
 <li><p><strong>辅助索引（非聚簇索引）</strong>：也叫作二级索引，只是根据索引列构建 B+Tree，但在 B+Tree 的每一行都存了主键信息，加速回表操作。 聚簇索引占用的空间就是整个表数据量的大小，而二级索引会比聚簇索引小很多， 通常创建辅助索引就是为了提升查询效率。</p>
 </li>
@@ -7113,7 +7486,7 @@
 <p>根据索引<strong>列个数和功能描述不同</strong>索引也可以分为：</p>
 <ul>
 <li><strong>联合索引</strong>：联合索引是指在多个字段联合组建索引的。</li>
-<li><strong>覆盖索引</strong>：当通过索引即可查询到所有记录，不需要回表到聚簇索引时，这类索引也叫作覆盖索引。主键查询是天然的覆盖索引，联合索引可以是覆盖索引。通常在查看执行计划时， Extra 列为 Using index 则表示优化器使用了覆盖索引。</li>
+<li><strong>覆盖索引</strong>：<strong>一个索引包含了所有需要查询的字段的值，就称为覆盖索引</strong>。当通过索引即可查询到所有记录，不需要回表到聚簇索引时，这类索引也叫作覆盖索引。主键查询是天然的覆盖索引，联合索引可以是覆盖索引。通常在查看执行计划时， Extra 列为 Using index 则表示优化器使用了覆盖索引。</li>
 </ul>
 <p><strong>通常建议优先考虑使用覆盖索引，这是因为如果 SQL 需要查询辅助索引中不包含的数据列时，就需要先通过辅助索引查找到主键值，然后再回表通过主键查询到其他数据列（即回表查询），需要查询两次。而覆盖索引能从索引中直接获取查询需要的所有数据，从⽽避免回表进行二次查找，节省IO，效率较⾼。</strong></p>
 <h4 id="索引基础知识"><a href="#索引基础知识" class="headerlink" title="索引基础知识"></a>索引基础知识</h4><ul>

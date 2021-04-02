@@ -73,7 +73,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">8.5k</span>
+            <span class="post-count">9k</span>
         </span>
     </span>
 
@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">33 min</span>
+            <span class="post-count">34 min</span>
         </span>
     </span>
 </div>
@@ -128,7 +128,7 @@
 <ul>
 <li>继承 <strong>Thread</strong> 类：重写 <strong>run()</strong> 方法，调用 <strong>start()</strong> 方法启动线程。</li>
 <li>实现 <strong>Runnable</strong> 接口：重写 <strong>run()</strong> 方法，调用 <strong>start()</strong> 方法启动线程。</li>
-<li>通过 <strong>Callable</strong> 和 <strong>Future</strong> 创建线程：实现 <strong>call()</strong> 方法（有返回值），使用 <strong>FutureTask</strong> 类来包装 <strong>Callable *<em>对象，调用 *</em>FutureTask</strong> 对象的 <strong>get()</strong> 方法来获得子线程执行结束后的返回值。</li>
+<li>通过 <strong>Callable</strong> 和 <strong>Future</strong> 创建线程：实现 <strong>call()</strong> 方法（有返回值），使用 <strong>FutureTask</strong> 类来包装 <strong>Callable</strong>对象，调用 <strong>FutureTask</strong> 对象的 <strong>get()</strong> 方法来获得子线程执行结束后的返回值。</li>
 </ul>
 <p>优劣对比：接口实现的方式 可以 继承其他类，也可以实现其他接口，对线程类限制较少，Callable 的方式 可以获取返回值。而Thread 类方式创建较为简单。</p>
 <h3 id="线程的生命周期"><a href="#线程的生命周期" class="headerlink" title="线程的生命周期"></a>线程的生命周期</h3><p><strong>线程</strong>是 JVM 执行任务的最小单元，理解线程的状态转换是理解后续多线程问题的基础。在 JVM 运行中，线程一共有 <strong>NEW、RUNNABLE、BLOCKED、WAITING、TIMED_WAITING、TERMINATED</strong> 六种状态，这些状态对应 <strong>Thread.State</strong> 枚举类中的状态。</p>
@@ -187,7 +187,7 @@
 <p><strong>join() 方法</strong></p>
 <p><strong>Thread</strong>的方法 <strong>join()</strong> 让一个线程B“加入”到另外一个线程A的尾部。在A执行完毕之前，B不能工作。</p>
 <p>同时 还支持带超时参数的 方法 <strong>join(long millis)</strong>。</p>
-<h4 id="wait-notify-和-notifyAll"><a href="#wait-notify-和-notifyAll" class="headerlink" title="wait(), notify() 和 notifyAll()"></a>wait(), notify() 和 notifyAll()</h4><p>这三个方法都是定义到<strong>Object</strong>类中，<strong>wait()</strong> 的作用是当当前线程释放它所持有的锁进入等待状态，而 <strong>notify()</strong> 和 <strong>notifyAll()</strong> 则是唤醒当前对象上的等待线程。</p>
+<h4 id="wait-notify-和-notifyAll"><a href="#wait-notify-和-notifyAll" class="headerlink" title="wait(), notify() 和 notifyAll()"></a>wait(), notify() 和 notifyAll()</h4><p>这三个方法都是定义到<strong>Object</strong>类中，<strong>wait()</strong> 的作用是让当前线程释放它所持有的锁进入等待状态，而 <strong>notify()</strong> 和 <strong>notifyAll()</strong> 则是唤醒当前对象上的等待线程。</p>
 <ul>
 <li><p><strong>notify()</strong>： 唤醒在此对象监视器上等待的单个线程。</p>
 </li>
@@ -264,14 +264,16 @@
 <ol>
 <li>首先读取目标对象的 <strong>MarkWord</strong>, 判断是否处于<strong>可偏向</strong>的状态。</li>
 <li>如果为<strong>可偏向状态</strong>, 则尝试用 <strong>CAS</strong> 操作， 将自己的线程 ID 写入<strong>MarkWord</strong>。</li>
-<li>如果<strong>CAS</strong>操作成功，则认为已经获取到该对象的<strong>偏向锁</strong>，执行同步块代码 。一个线程在执行完同步代码块以后， 并不会尝试将 MarkWord 中的 <strong>thread ID</strong> 赋回原值 。如果该线程需要<strong>再次</strong>对这个对象加锁，而这个对象之前一直没有被其他线程尝试获取过锁，依旧停留在可偏向的状态下， 即可在不修改对象头的情况下， 直接认为偏向成功。</li>
+<li>如果<strong>CAS</strong>操作成功，则认为已经获取到该对象的<strong>偏向锁</strong>，执行同步块代码 。一个线程在执行完同步代码块以后， 并不会尝试将 MarkWord 中的 <strong>thread ID</strong> 赋回原值 。如果该线程需要<strong>再次</strong>对这个对象加锁，而这个对象之前一直没有被其他线程尝试获取过锁，依旧停留在可偏向的状态下， 即可在不修改对象头的情况下（即不需要再进行CAS操作，单线程优化，即偏向锁的作用） 直接认为偏向成功。</li>
 <li>如果 是<strong>已偏向状态</strong>，则检测 MarkWord 中存储的 <strong>thread ID</strong> 是否等于当前 <strong>thread ID</strong> 。<ul>
 <li>如果相等， 则证明本线程已经获取到偏向锁， 可以直接继续执行同步代码块</li>
 <li>如果不等， 则证明该对象目前偏向于其他线程， 需要<strong>撤销</strong>偏向锁</li>
 </ul>
 </li>
 </ol>
-<h5 id="轻量级锁的加锁过程"><a href="#轻量级锁的加锁过程" class="headerlink" title="轻量级锁的加锁过程"></a>轻量级锁的加锁过程</h5><p>在偏向锁加锁过程中，如果出现存在超过一个线程竞争某个对象时，会发生偏向锁的撤销操作。偏向锁撤销后，对象可能处于俩种状态：</p>
+<p><strong>偏向锁的作用</strong></p>
+<p>Java偏向锁(Biased Locking)是Java6引入的一项多线程优化。它通过<strong>消除资源无竞争情况下的同步原语</strong>，进一步提高了程序的运行性能。即<strong>在无竞争场景下完全消除同步，连CAS也不执行</strong>(CAS本身仍旧是一种操作系统同步原语，始终要在JVM与OS之间来回，有一定的开销)。</p>
+<h5 id="轻量级锁的加锁过程"><a href="#轻量级锁的加锁过程" class="headerlink" title="轻量级锁的加锁过程"></a>轻量级锁的加锁过程</h5><p>在偏向锁加锁过程中，如果出现存在超过一个线程竞争某个对象时，会发生偏向锁的<strong>撤销</strong>操作。偏向锁撤销后，对象可能处于俩种状态：</p>
 <ul>
 <li>不可偏向的 无锁状态（检测到多线程竞争，升级到轻量级锁的机制）</li>
 <li>不可偏向的 已锁状态（轻量级锁）</li>
@@ -288,7 +290,7 @@
 </li>
 <li><p>在当前线程的<strong>栈桢</strong>（Stack Frame）中创建用于存储<strong>锁记录</strong>（lock record）的空间，并将对象头中的Mark Word复制到锁记录中，官方称为<strong>Displaced Mark Word</strong>。</p>
 </li>
-<li><p>拷贝成功后，虚拟机将使用CAS操作尝试将<strong>对象的Mark Word更新为指向Lock Record的指针</strong>，并将<strong>Lock record里的owner指针指向对象的 mark word</strong>（互相指向）。</p>
+<li><p>拷贝成功后，虚拟机将使用<strong>CAS操作</strong>尝试将<strong>对象的Mark Word更新为指向Lock Record的指针</strong>，并将<strong>Lock record里的owner指针指向对象的 mark word</strong>（互相指向）。</p>
 <img src="/2021/02/08/%E5%B9%B6%E5%8F%91%E4%B8%8E%E5%A4%9A%E7%BA%BF%E7%A8%8B%EF%BC%88%E4%B8%80%EF%BC%89/concurrent_04.png" alt="CAS操作" style="zoom:40%;">
 </li>
 <li><p>如果上述操作成功，则更新标志位 设置为“00”，代表该对象处于轻量级锁状态，如果失败，则膨胀为重量级锁。</p>
@@ -297,7 +299,17 @@
 <h5 id="重量级锁的加锁过程"><a href="#重量级锁的加锁过程" class="headerlink" title="重量级锁的加锁过程"></a>重量级锁的加锁过程</h5><p><strong>Synchronized</strong>是通过对象内部的一个叫做 <strong>监视器锁（Monitor）</strong>来实现的。但是监视器锁本质又是依赖于底层的操作系统的<strong>互斥量 Mutex Lock</strong>来实现的。而操作系统实现线程之间的切换这就需要从<strong>用户态转换到核心态</strong>，这个<strong>成本非常高</strong>，状态之间的转换需要相对比较长的时间，这就是为什么<strong>Synchronized</strong>效率低的原因。因此，这种依赖于操作系统Mutex Lock所实现的锁我们称之为 “<strong>重量级锁</strong>”。</p>
 <img src="/2021/02/08/%E5%B9%B6%E5%8F%91%E4%B8%8E%E5%A4%9A%E7%BA%BF%E7%A8%8B%EF%BC%88%E4%B8%80%EF%BC%89/concurrent_05.png" alt="多线程加锁过程" style="zoom:88%;">
 
-<p>​    </p>
+
+
+<h5 id="自旋优化"><a href="#自旋优化" class="headerlink" title="自旋优化"></a>自旋优化</h5><p>当线程申请一个已经被其他线程占用的锁，就会出现两种情况。一种是没有获得锁的线程会阻塞自己，等到锁被释放后再被唤起，这就是互斥锁（开销大）；另一种是没有获得锁的线程一直循环在那里看是否该锁的保持者已经释放了锁，这就是自旋锁。</p>
+<p><strong>重量级锁在相互竞争的时候，线程先会进入一个自旋</strong>。</p>
+<p><strong>互斥同步进入阻塞状态的开销都很大，应该尽量避免。</strong>许多应用中，共享数据的锁定状态只会持续很短的一段时间。<strong>自旋锁的思想则是让一个线程在请求一个共享数据的锁时执行忙循环（自旋）一段时间，如果这段时间内能够获得锁，就可避免进入阻塞状态。</strong></p>
+<p><strong>优点</strong>：自旋锁适合于共享数据的锁定状态很短的场景。</p>
+<p><strong>缺点</strong>：</p>
+<ol>
+<li>需要进行忙循环操作占用CPU时间，不适合锁定状态很长的场景。　　</li>
+<li>递归死锁：试图递归地获得自旋锁必然会引起死锁：递归程序的持有实例在第二个实例循环，以试图获得相同自旋锁时，不会释放此自旋锁。</li>
+</ol>
 <h4 id="详解-volatile"><a href="#详解-volatile" class="headerlink" title="详解 volatile"></a>详解 volatile</h4><p>前面我们说到并发编程的三个特性：原子性、可见性、有序性：</p>
 <ul>
 <li>原子性：即一个操作或者多个操作 要么全部执行并且执行的过程不会被任何因素打断，要么就都不执行。</li>
@@ -339,7 +351,7 @@
 <p><strong>ThreadLocalMap</strong> 是 <strong>ThreadLocal</strong> 的静态内部类，并没有实现 <strong>Map</strong> 接口，它由一个 <strong>Entry 数组</strong>来存储  Key，Value。<strong>Entry</strong>并不是链表形式, 而是每个<strong>bucket</strong>里面仅仅放一个<strong>Entry</strong>;</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">nextIndex</span><span class="params">(<span class="keyword">int</span> i, <span class="keyword">int</span> len)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> ((i + <span class="number">1</span> &lt; len) ? i + <span class="number">1</span> : <span class="number">0</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">prevIndex</span><span class="params">(<span class="keyword">int</span> i, <span class="keyword">int</span> len)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> ((i - <span class="number">1</span> &gt;= <span class="number">0</span>) ? i - <span class="number">1</span> : len - <span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">set</span><span class="params">(ThreadLocal&lt;?&gt; key, Object value)</span> </span>&#123;</span><br><span class="line">    ThreadLocal.ThreadLocalMap.Entry[] tab = table;</span><br><span class="line">    <span class="keyword">int</span> len = tab.length;</span><br><span class="line">    <span class="comment">//计算索引，上面已经有说过。</span></span><br><span class="line">    <span class="keyword">int</span> i = key.threadLocalHashCode &amp; (len-<span class="number">1</span>);</span><br><span class="line">    <span class="comment">/**根据获取到的索引进行循环，如果当前索引上的table[i]不为空，在没有return的情况下，</span></span><br><span class="line"><span class="comment">    * 就使用nextIndex()获取下一个（上面提到到线性探测法）。*/</span></span><br><span class="line">    <span class="keyword">for</span> (ThreadLocal.ThreadLocalMap.Entry e = tab[i]; e != <span class="keyword">null</span>;</span><br><span class="line">        e = tab[i = nextIndex(i, len)]) &#123;</span><br><span class="line">        ThreadLocal&lt;?&gt; k = e.get();</span><br><span class="line">        <span class="comment">//table[i]上key不为空，并且和当前key相同，更新value</span></span><br><span class="line">        <span class="keyword">if</span> (k == key) &#123;</span><br><span class="line">            e.value = value;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">/**table[i]上的key为空，说明被回收了</span></span><br><span class="line"><span class="comment">         * 说明改table[i]可以重新使用，用新的key-value将其替换,并删除其他无效的entry*/</span></span><br><span class="line">        <span class="keyword">if</span> (k == <span class="keyword">null</span>) &#123;</span><br><span class="line">            replaceStaleEntry(key, value, i);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//不存在也没有旧元素就创建一个</span></span><br><span class="line">    tab[i] = <span class="keyword">new</span> Entry(key, value);</span><br><span class="line">    <span class="keyword">int</span> sz = ++size;</span><br><span class="line">    <span class="keyword">if</span> (!cleanSomeSlots(i, sz) &amp;&amp; sz &gt;= threshold)</span><br><span class="line">        rehash();<span class="comment">//扩容</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>由上面源码可知，<strong>ThreadLocalMap</strong> 在set 值时，如果遇到 hash冲突，解决方法是：这个时候将<strong>index</strong>加<strong>1</strong>，取<strong>table[index + 1]</strong>进行判断，这个时候如果还是冲突则会继续往下，直至最后一个还是冲突则会返回第一个比较，以此类推，直到可以插入。</p>
+<p>由上面源码可知，<strong>ThreadLocalMap</strong> 在set 值时，如果遇到 hash冲突，解决方法是：这个时候将<strong>index</strong>加<strong>1</strong>，取<strong>table[index + 1]</strong>进行判断，这个时候如果还是冲突则会继续往下，直至最后一个还是冲突则会返回第一个比较，以此类推，直到可以插入。（开放定址法）</p>
 <p>这里的 <strong>key.threadLocalHashCode &amp; (len-1)</strong>  ，实际相当于数组长度取模，数组长度 <strong>len</strong> 为 2^n，这在<strong>HashMap</strong>中 详解过原因。</p>
 <p>综上所述，可以把<strong>table</strong>看成一个环形数组。</p>
 <p>如果清理完无用条目(ThreadLocal被回收的条目)、并且<strong>数组中的数据大小 &gt; 阈值</strong>的时候对当前的<strong>Table</strong>进行重新哈希。</p>
@@ -371,9 +383,9 @@
 <p><strong>Java中断机制</strong>是一种协作机制，也就是说通过中断<strong>并不能直接终止另一个线程</strong>，而需要被中断的线程自己处理中断。每个线程对象里都有一个类似<strong>boolean</strong>类型的标识，代表着是否有中断请求（该请求可以来自所有线程，包括被中断的线程本身），当线程<strong>t1</strong>想中断线程<strong>t2</strong>，只需要在线程<strong>t1</strong>中将线程<strong>t2</strong>对象的中断标识置为<strong>true</strong>，然后线程<strong>t2</strong>可以选择在合适的时候处理该中断请求，甚至可以不理会该请求，就像这个线程没有被中断一样。</p>
 <p><strong>java.lang.Thread</strong>类提供了几个方法来操作这个中断状态，这些方法包括：</p>
 <ul>
-<li>public static boolean <strong>interrupted</strong><br>测试当前线程是否已经中断。线程的<em>中断状态</em> 由该方法清除。换句话说，如果连续两次调用该方法，则第二次调用将返回 false（在第一次调用已清除了其中断状态之后，且第二次调用检验完中断状态前，当前线程再次中断的情况除外）。</li>
-<li>public boolean <strong>isInterrupted</strong>()<br>测试线程是否已经中断。线程的<em>中断状态</em>不受该方法的影响。</li>
-<li>public void <strong>interrupt</strong>()<br>中断线程。改变状态位。</li>
+<li>public static boolean <strong>interrupted()</strong><br>测试当前线程是否已经中断。线程的<em>中断状态</em> 由该方法清除。换句话说，如果连续两次调用该方法，则第二次调用将返回 false（在第一次调用已清除了其中断状态之后，且第二次调用检验完中断状态前，当前线程再次中断的情况除外）。</li>
+<li>public boolean <strong>isInterrupted()</strong><br>测试线程是否已经中断。线程的<em>中断状态</em>不受该方法的影响。</li>
+<li>public void <strong>interrupt()</strong><br>中断线程。改变状态位。</li>
 </ul>
 <p><strong>InterruptedException</strong> 异常：</p>
 <p>抛<strong>InterruptedException</strong>的代表方法有：</p>

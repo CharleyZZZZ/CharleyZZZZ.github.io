@@ -188,20 +188,8 @@
 <p>总结Mc 对<strong>命令的处理全过程</strong>：</p>
 <img src="/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%BA%8C%EF%BC%89-Memcached/cache_09.png" alt="Mc命令处理全流程" style="zoom:67%;">
 
-<h3 id="哈希表"><a href="#哈希表" class="headerlink" title="哈希表"></a>哈希表</h3><p><strong>背景</strong></p>
-<p>Mc 将数据存储在 Item 中，然后这些 Item 会被 slabclass 的 4 个 LRU 管理。<strong>这些 LRU 都是通过双向链表实现数据记录的。双向链表在进行增加、删除、修改位置时都非常高效，但其获取定位 key 的性能非常低下，只能通过链表遍历来实现。</strong></p>
-<p>因此，<strong>Mc 还通过 Hashtable，也就是哈希表，来记录管理这些 Item</strong>，通过对 key 进行哈希计算，从而快速定位和读取这些 key/value 所在的 Item。</p>
-<img src="/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%BA%8C%EF%BC%89-Memcached/cache_10.png" alt="HashTable作用" style="zoom:67%;">
 
-<p>哈希表也称散列表，可以通过把 key 映射到哈希表中的一个位置来快速访问记录，定位 key 的时间复杂度只有 O(1)。Mc 的哈希表实际是一个一维指针数组，数组的每个位置称作一个 bucket，即一个桶。性能考虑的需要，Mc 的哈希表的长度设置为 2 的 N 次方。Mc 启动时，默认会构建一个拥有 6.4万 个桶的哈希表，随着新 key 的不断插入，哈希表中的元素超过阀值后，会对哈希表进行扩容，最大可以构建 2 的 32 次方个桶的哈希表。</p>
-<p>用 哈希表就存在<strong>哈希冲突</strong>的问题，这里Mc 是通过<strong>单向链表</strong>解决hash冲突的。</p>
-<p><strong>哈希表扩容</strong></p>
-<p>当 Mc 的哈希表中，Item 数量大于 1.5 倍的哈希桶数量后，Mc 就对哈希表进行扩容处理。</p>
-<p>Mc 的哈希扩容是通过哈希维护线程进行处理的。</p>
-<p>准备开始扩容时，哈希维护线程会首先将所有 IO 工作线程和辅助线程进行<strong>暂停</strong>，其中辅助线程包括 LRU 维护线程、slab 维护线程、LRU 爬虫线程。待这些线程暂停后，哈希维护线程会将当前的主哈希表设为旧哈希表，然后将新的主哈希表<strong>扩容</strong>之前的 2 倍容量。然后，工作线程及辅助线程<strong>继续</strong>工作，同时哈希维护线程开始逐步将 Item 元素从旧哈希表<strong>迁移</strong>到主哈希表。</p>
-<p><strong>锁哈希表</strong></p>
-<p>Mc 在启动时，会根据设置的工作线程数，来构建 一个 Item 锁哈希表，线程越多，构建的锁哈希表越大，Mc 的锁哈希表中，每个桶对应一个 Item 锁，Item 锁哈希表最多有 32k 个桶，所以 Mc 最多只有 32768 个 Item 锁。</p>
-<p>Mc 哈希表在读取、变更以及扩容迁移过程中，先将 key hash 定位到 Item 锁哈希表的锁桶，然后对 Item 锁进行加锁，然后再进行实际操作。实际上，除了在哈希表，在其他任何时候，只要涉及到在对 Item 的操作，都会根据 Item 中的 key，进行 Item 哈希锁桶加锁，以避免 Item 被同时读写而产生脏数据。</p>
+
 <h3 id="LRU淘汰策略"><a href="#LRU淘汰策略" class="headerlink" title="LRU淘汰策略"></a>LRU淘汰策略</h3><p>Mc 作为缓存组件，意味着 Mc 中只能存储访问最频繁的热数据，一旦存入数据超过内存限制，就需要对 Mc 中的冷 key 进行淘汰工作。</p>
 <p>Mc 中的 key 基本都会有过期时间，在 key 过期后，出于性能考虑，<strong>Mc 并不会立即删除过期的 key，而是由维护线程逐步清理，只有这个失效的 key 被访问时，才会进行删除，从而回收存储空间</strong>。</p>
 <p>所以Mc的内存回收工作分为俩阶段：<strong>失效 和 删除</strong></p>
@@ -223,7 +211,7 @@
 <p>在 key 进行读取、插入或变更时，<strong>同步进行 key 淘汰回收</strong>，并不是一种高效的办法，因为淘汰回收操作相比请求处理，也是一个重量级操作，<strong>会导致 Mc 性能大幅下降</strong>。因此 Mc 额外增加了一个 LRU 维护线程，对过期失效 key 进行回收。</p>
 </li>
 </ul>
-<p>前面讲到，Mc 有 64 个 slabclass，其中 1<del>63 号 slabclass 用于存取 Item 数据。实际上，为了管理过期失效数据，**1</del>63 号 slabclass 还分别对应了 4 个 LRU（双向链表），分布是 TEMP、HOT、WARM、COLD LRU。<strong>所以这就总共有 63*4 = 252 个 LRU。</strong>LRU 维护线程，会按策略间断 sleep，待 sleep 结束，就开始对 4 个 LRU 进行队尾清理工作。**</p>
+<p>前面讲到，Mc 有 64 个 slabclass，其中 1-63 号 slabclass 用于存取 Item 数据。实际上，为了管理过期失效数据，<strong>1-63 号 slabclass 还分别对应了 4 个 LRU（双向链表），分布是 TEMP、HOT、WARM、COLD LRU。所以这就总共有 63*4 = 252 个 LRU。LRU 维护线程，会按策略间断 sleep，待 sleep 结束，就开始对 4 个 LRU 进行队尾清理工作。</strong></p>
 <p><strong>四种 LRU 回收和迁移的要点如下：</strong></p>
 <ul>
 <li>Mc 在新写入 key 时，如果 key 的过期时间小于 61s，就会直接插入到 TEMP LRU 中，大于61s，就会直接插入到 HOT LRU。</li>
@@ -295,6 +283,20 @@
 <li><strong>存入LRU</strong>：然后这个 Item 还会被存入 LRU，Mc 会根据这个 key 的过期时间进行判断，如果过期时间小于 61s，则存入 TEMP LRU，否则存入 HOT LRU。</li>
 </ul>
 <p>如果最终分配失败，则会回复一个 <strong>SERVER_ERROR</strong> 响应，通知 <strong>client</strong> 存储失败。</p>
+<h3 id="哈希表"><a href="#哈希表" class="headerlink" title="哈希表"></a>哈希表</h3><p><strong>背景</strong></p>
+<p>Mc 将数据存储在 Item 中，然后这些 Item 会被 slabclass 的 4 个 LRU 管理。<strong>这些 LRU 都是通过双向链表实现数据记录的。双向链表在进行增加、删除、修改位置时都非常高效，但其获取定位 key 的性能非常低下，只能通过链表遍历来实现。</strong></p>
+<p>因此，<strong>Mc 还通过 Hashtable，也就是哈希表，来记录管理这些 Item</strong>，通过对 key 进行哈希计算，从而快速定位和读取这些 key/value 所在的 Item。</p>
+<img src="/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%BA%8C%EF%BC%89-Memcached/cache_10.png" alt="HashTable作用" style="zoom:67%;">
+
+<p>哈希表也称散列表，可以通过把 key 映射到哈希表中的一个位置来快速访问记录，定位 key 的时间复杂度只有 O(1)。Mc 的哈希表实际是一个一维指针数组，数组的每个位置称作一个 bucket，即一个桶。性能考虑的需要，Mc 的哈希表的长度设置为 2 的 N 次方。Mc 启动时，默认会构建一个拥有 6.4万 个桶的哈希表，随着新 key 的不断插入，哈希表中的元素超过阀值后，会对哈希表进行扩容，最大可以构建 2 的 32 次方个桶的哈希表。</p>
+<p>用 哈希表就存在<strong>哈希冲突</strong>的问题，这里Mc 是通过<strong>单向链表</strong>解决hash冲突的。</p>
+<p><strong>哈希表扩容</strong></p>
+<p>当 Mc 的哈希表中，Item 数量大于 1.5 倍的哈希桶数量后，Mc 就对哈希表进行扩容处理。</p>
+<p>Mc 的哈希扩容是通过哈希维护线程进行处理的。</p>
+<p>准备开始扩容时，哈希维护线程会首先将所有 IO 工作线程和辅助线程进行<strong>暂停</strong>，其中辅助线程包括 LRU 维护线程、slab 维护线程、LRU 爬虫线程。待这些线程暂停后，哈希维护线程会将当前的主哈希表设为旧哈希表，然后将新的主哈希表<strong>扩容</strong>之前的 2 倍容量。然后，工作线程及辅助线程<strong>继续</strong>工作，同时哈希维护线程开始逐步将 Item 元素从旧哈希表<strong>迁移</strong>到主哈希表。</p>
+<p><strong>锁哈希表</strong></p>
+<p>Mc 在启动时，会根据设置的工作线程数，来构建 一个 Item 锁哈希表，线程越多，构建的锁哈希表越大，Mc 的锁哈希表中，每个桶对应一个 Item 锁，Item 锁哈希表最多有 32k 个桶，所以 Mc 最多只有 32768 个 Item 锁。</p>
+<p>Mc 哈希表在读取、变更以及扩容迁移过程中，先将 key hash 定位到 Item 锁哈希表的锁桶，然后对 Item 锁进行加锁，然后再进行实际操作。实际上，除了在哈希表，在其他任何时候，只要涉及到在对 Item 的操作，都会根据 Item 中的 key，进行 Item 哈希锁桶加锁，以避免 Item 被同时读写而产生脏数据。</p>
 <h2 id="Mc协议"><a href="#Mc协议" class="headerlink" title="Mc协议"></a>Mc协议</h2><h3 id="异常错误响应"><a href="#异常错误响应" class="headerlink" title="异常错误响应"></a>异常错误响应</h3><p>首先看一下Mc在发现异常后，如何进行异常错误响应的，这里是<strong>返回三种错误信息</strong>：</p>
 <ul>
 <li><strong>协议错误</strong>：一个”ERROR\r\n”的字符串。表明 client 发送了一个非法命令。</li>

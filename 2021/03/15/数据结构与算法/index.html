@@ -73,7 +73,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">10.4k</span>
+            <span class="post-count">11k</span>
         </span>
     </span>
 
@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">37 min</span>
+            <span class="post-count">40 min</span>
         </span>
     </span>
 </div>
@@ -476,6 +476,25 @@
 <p>特点：每一轮都需要做不同的决策，而每次的决策又依赖上一轮决策的结果。</p>
 <p><strong>动态规划问题没有标准化的解题方法，但它有一些宏观层面通用的方法论</strong></p>
 <p>（有点复杂，暂时不能理解，后续弄懂后再补充）</p>
+<h4 id="回溯法"><a href="#回溯法" class="headerlink" title="回溯法"></a>回溯法</h4><p>回溯法非常<strong>适合解决由多个步骤组成，并且每个步骤都有多个选项的问题</strong>。 当我们在某一步选择了其中一个选项后，就进入下一步，然后又面临新的选项。就这样重复选择，直至最终的状态。</p>
+<p>可以用树结构（解空间树）来表示用回溯法解决的问题的所有选项。在某一步有 n  个可能的选项，那么该步骤就可以看成是树结构中的一个节点，每个选项看成树中节点的连接线，经过这些连接线到达该节点的 n 个子节点。<strong>叶节点则对应着最终的状态</strong>：</p>
+<ul>
+<li><p>如果在叶节点的状态满足题目的约束条件，那我们就找到了一个问题的解；</p>
+</li>
+<li><p>如果在叶节点的状态不满足约束条件，那就回溯到它的上一个节点尝试其它的选项；</p>
+</li>
+<li><p>如果上一个节点所有可能的选项都已经试过，则再回溯到它的上一个节点，直至所有节点的所有选项都尝试过；</p>
+</li>
+<li><p>如果所有节点的所有选项都已经尝试过却没有找到满足约束条件的最终状态，说明该问题无解。</p>
+</li>
+</ul>
+<p>所以，用回溯法求解问题的过程，就是搜索整个解空间树的过程。当搜索至任一节点时，先判断该节点是否包含问题的解，如果不包含，则跳过该节点的子节点的搜索，避免无效搜索，这个过程叫作 “<strong>剪枝</strong>”。</p>
+<p><strong>示例</strong>：数组 [1, 2, 3] 排列组合情况，输出并打印。</p>
+<img src="/2021/03/15/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/algorithm_08.png" alt="回溯法" style="zoom:80%;">
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">class Solution &#123;</span><br><span class="line">    public List&lt;List&lt;Integer&gt;&gt; permute(int[] nums) &#123;</span><br><span class="line">        List&lt;List&lt;Integer&gt;&gt; list &#x3D; new ArrayList&lt;&gt;();</span><br><span class="line">        backTrack(list, new ArrayList&lt;Integer&gt;(), nums);</span><br><span class="line">        return list;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void backTrack(List&lt;List&lt;Integer&gt;&gt; list, List&lt;Integer&gt; tempList, int[] nums)&#123;</span><br><span class="line">        if(tempList.size() &#x3D;&#x3D; nums.length)&#123;</span><br><span class="line">            list.add(new ArrayList&lt;&gt;(tempList));</span><br><span class="line">        &#125;else&#123;</span><br><span class="line">            for(int i &#x3D; 0; i &lt; nums.length; i++)&#123;</span><br><span class="line">            	&#x2F;&#x2F; 已经使用过的数字就不能再用了，continue跳出本次循环，进行下一次循环</span><br><span class="line">                if(tempList.contains(nums[i]))</span><br><span class="line">                    continue;</span><br><span class="line">                tempList.add(nums[i]);</span><br><span class="line">                backTrack(list, tempList, nums);</span><br><span class="line">                &#x2F;&#x2F; 回溯</span><br><span class="line">                tempList.remove(tempList.size() - 1);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>类似题目：数字的全排列（有重复数字）、矩阵中的路径、子集问题、电话号码的字母组合</p>
 <h3 id="解题步骤"><a href="#解题步骤" class="headerlink" title="解题步骤"></a>解题步骤</h3><ul>
 <li>明确目标</li>
 <li>定位问题</li>
@@ -501,6 +520,7 @@
 </ul>
 <blockquote>
 <p>笔记来源：公瑾 老师的《重学数据结构与算法》课程</p>
+<p>回溯法：<a href="https://blog.csdn.net/weixin_45594025/article/details/105005464" target="_blank" rel="noopener">https://blog.csdn.net/weixin_45594025/article/details/105005464</a></p>
 </blockquote>
 
       

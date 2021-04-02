@@ -116,12 +116,12 @@
 <li><strong>易用性 API 接口；</strong></li>
 <li><strong>对数据协议、序列化的支持。</strong></li>
 </ul>
-<h4 id="Java-NIO-的演变"><a href="#Java-NIO-的演变" class="headerlink" title="Java NIO 的演变"></a><strong>Java NIO 的演变</strong></h4><p>在 JDK 1.4 投入使用之前，只有 <strong>BIO</strong> 一种模式。开发过程相对简单。新来一个连接就会创建一个新的线程处理。随着请求并发度的提升，<strong>BIO</strong> 很快遇到了性能瓶颈。</p>
+<h4 id="Java-NIO-的演变"><a href="#Java-NIO-的演变" class="headerlink" title="Java NIO 的演变"></a>Java NIO 的演变</h4><p>在 JDK 1.4 投入使用之前，只有 <strong>BIO</strong> 一种模式。开发过程相对简单。新来一个连接就会创建一个新的线程处理。随着请求并发度的提升，<strong>BIO</strong> 很快遇到了性能瓶颈。</p>
 <p>JDK 1.4 以后开始引入了 <strong>NIO</strong> 技术，支持 <strong>select</strong> 和 <strong>poll</strong>；</p>
 <p>JDK 1.5 支持了 <strong>epoll</strong>；</p>
 <p>JDK 1.7 发布了 <strong>NIO2</strong>，支持 <strong>AIO</strong> 模型。</p>
 <p>虽然 <strong>Java NIO</strong> 已经升级的足够成熟，但是 <strong>Netty</strong> 相比其还是有很多优点。</p>
-<h4 id="Netty-相比-Java-NIO-的优点"><a href="#Netty-相比-Java-NIO-的优点" class="headerlink" title="Netty 相比 *Java NIO *的优点"></a><strong>Netty</strong> 相比 *<em>Java NIO *</em>的优点</h4><ul>
+<h4 id="Netty-相比-Java-NIO-的优点"><a href="#Netty-相比-Java-NIO-的优点" class="headerlink" title="Netty 相比  Java NIO 的优点"></a><strong>Netty</strong> 相比  Java NIO 的优点</h4><ul>
 <li><p><strong>易用性。</strong> 我们使用 <strong>JDK NIO</strong> 编程需要了解很多复杂的概念，比如 <strong>Channels</strong>、<strong>Selectors、Sockets、Buffers</strong> 等。<strong>Netty</strong> 在 <strong>NIO</strong> 基础上进行了更高层次的封装，屏蔽了 <strong>NIO</strong> 的复杂性；</p>
 <p><strong>Netty</strong> 封装了更加人性化的 API，统一的 API（阻塞/非阻塞） 大大降低了开发者的上手难度；与此同时，<strong>Netty</strong> 提供了很多开箱即用的工具，例如常用的行解码器、长度域解码器等，而这些在 <strong>JDK NIO</strong> 中都需要你自己实现。</p>
 </li>
