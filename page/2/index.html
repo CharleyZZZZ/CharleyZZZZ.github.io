@@ -1605,7 +1605,7 @@
 
 
 
-<h4 id="工厂方法模式（接口）"><a href="#工厂方法模式（接口）" class="headerlink" title="工厂方法模式（接口）"></a>工厂方法模式（接口）</h4><p><strong>工厂方法模式</strong>是指，定义一个创建对象的接口，但让实现这个接口的类来决定实例化哪个类，工厂方法让类的实例化推迟到子类中进行。属于创建型设计模式。</p>
+<h4 id="工厂方法模式（接口）"><a href="#工厂方法模式（接口）" class="headerlink" title="工厂方法模式（接口）"></a>工厂方法模式（接口）</h4><p><strong>工厂方法模式</strong>是指，定义一个创建对象的接口，但让<strong>实现这个接口的类</strong>来决定实例化哪个类，工厂方法让类的实例化推迟到子类中进行。属于创建型设计模式。</p>
 <ul>
 <li>创建对象需要大量的重复代码。客户端(应用层)不依赖于产品类实例如何被创建、实现等细节。一个类通过其子类来指定创建哪个对象。</li>
 <li>用户只需要关心所需产品对应的工厂，无需关键创建细节。</li>
@@ -1680,7 +1680,19 @@
 <p><img src="/2021/01/26/Java%E8%AF%AD%E8%A8%80%E7%89%B9%E6%80%A7%E4%B8%8E%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%EF%BC%88%E4%BA%8C%EF%BC%89/design_patterns_03.png" alt="对象适配器模式"></p>
 <h4 id="接口适配器模式"><a href="#接口适配器模式" class="headerlink" title="接口适配器模式"></a>接口适配器模式</h4><h5 id="原理-2"><a href="#原理-2" class="headerlink" title="原理"></a>原理</h5><p><strong>接口适配器模式（缺省适配模式</strong>）的思想是，为一个接口提供缺省实现，这样子类可以从这个缺省实现进行扩展，而不必从原有接口进行扩展。</p>
 <p>即为<strong>目标（Target）</strong>接口提供一个实现类，实现其全部方法， <strong>适配器（Adapter）</strong>继承其实现类，实现部分方法（这里是只需要使用的方法）。这样不必再把每个方法都实现一遍，代码看起来简洁多了。</p>
-<h3 id="观察者模式"><a href="#观察者模式" class="headerlink" title="观察者模式"></a>观察者模式</h3><blockquote>
+<h3 id="观察者模式"><a href="#观察者模式" class="headerlink" title="观察者模式"></a>观察者模式</h3><p>在对象之间定义了一对多的依赖，这样一来，<strong>当一个对象改变状态，依赖它的对象会收到通知并自动更新。</strong></p>
+<p>观察者模式所涉及的角色有：</p>
+<ul>
+<li><p><strong>抽象主题(Subject)角色：</strong>抽象主题角色把所有对观察者对象的引用保存在一个聚集（比如ArrayList对象）里，每个主题都可以有任何数量的观察者。抽象主题提供一个接口，可以增加和删除观察者对象，抽象主题角色又叫做抽象被观察者(Observable)角色。</p>
+</li>
+<li><p><strong>具体主题(ConcreteSubject)角色：</strong>将有关状态存入具体观察者对象；在具体主题的内部状态改变时，给所有登记过的观察者发出通知。具体主题角色又叫做具体被观察者(Concrete Observable)角色。</p>
+</li>
+<li><p><strong>抽象观察者(Observer)角色：</strong>为所有的具体观察者定义一个接口，在得到主题的通知时更新自己，这个接口叫做更新接口。</p>
+</li>
+<li><p><strong>具体观察者(ConcreteObserver)角色：</strong>存储与主题的状态自恰的状态。具体观察者角色实现抽象观察者角色所要求的更新接口，以便使本身的状态与主题的状态 像协调。如果需要，具体观察者角色可以保持一个指向具体主题对象的引用。</p>
+</li>
+</ul>
+<blockquote>
 <p>笔记来源：</p>
 <p><a href="https://www.cnblogs.com/binaway/p/8889184.html" target="_blank" rel="noopener">https://www.cnblogs.com/binaway/p/8889184.html</a></p>
 <p><a href="https://blog.csdn.net/qq_36629833/article/details/90764881" target="_blank" rel="noopener">https://blog.csdn.net/qq_36629833/article/details/90764881</a></p>
