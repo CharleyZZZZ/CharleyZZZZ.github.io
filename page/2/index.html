@@ -1569,7 +1569,126 @@
 <li><p>–    列举设计模式使用场景（框架）</p>
 </li>
 </ul>
-<h3 id="单例模式"><a href="#单例模式" class="headerlink" title="单例模式"></a>单例模式</h3><h3 id="工厂模式"><a href="#工厂模式" class="headerlink" title="工厂模式"></a>工厂模式</h3><h3 id="代理模式"><a href="#代理模式" class="headerlink" title="代理模式"></a>代理模式</h3><h3 id="构造者模式"><a href="#构造者模式" class="headerlink" title="构造者模式"></a>构造者模式</h3><h3 id="责任链模式"><a href="#责任链模式" class="headerlink" title="责任链模式"></a>责任链模式</h3><h3 id="适配器模式"><a href="#适配器模式" class="headerlink" title="适配器模式"></a>适配器模式</h3><h3 id="观察者模式"><a href="#观察者模式" class="headerlink" title="观察者模式"></a>观察者模式</h3>
+<h3 id="单例模式"><a href="#单例模式" class="headerlink" title="单例模式"></a>单例模式</h3><p>单例模式，是一种常用的软件设计模式。在它的核心结构中只包含一个被称为单例的特殊类。<strong>通过单例模式可以保证系统中，应用该模式的类一个类只有一个实例。即一个类只有一个对象实例。</strong></p>
+<p>（1）将<strong>构造方法私有化</strong>，使其不能在类的外部通过new关键字实例化该类对象。</p>
+<p>（2）在该类<strong>内部产生一个唯一的实例化对象，并且将其封装为private static类型</strong>。</p>
+<p>（3）<strong>定义一个静态方法返回这个唯一对象</strong>。</p>
+<p><strong>四种代理实现</strong></p>
+<ul>
+<li>饿汉模式</li>
+<li>懒汉模式</li>
+<li>线程安全的懒汉模式</li>
+<li>DCL双检查锁机制（double check locking）</li>
+</ul>
+<h4 id="饿汉模式"><a href="#饿汉模式" class="headerlink" title="饿汉模式"></a>饿汉模式</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 将自身实例化对象设置为一个属性，并用static、final修饰</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Singleton instance = <span class="keyword">new</span> Singleton();</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 构造方法私有化</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Singleton</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 静态方法返回该实例</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> instance;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="懒汉模式"><a href="#懒汉模式" class="headerlink" title="懒汉模式"></a>懒汉模式</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 将自身实例化对象设置为一个属性，并用static修饰</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Singleton instance;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 构造方法私有化</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Singleton</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 静态方法返回该实例</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">            instance = <span class="keyword">new</span> Singleton();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> instance;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="线程安全的“懒汉模式”"><a href="#线程安全的“懒汉模式”" class="headerlink" title="线程安全的“懒汉模式”"></a>线程安全的“懒汉模式”</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 将自身实例化对象设置为一个属性，并用static修饰</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Singleton instance;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 构造方法私有化</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Singleton</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 静态方法返回该实例，加synchronized关键字实现同步</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">synchronized</span> Singleton <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">            instance = <span class="keyword">new</span> Singleton();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> instance;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>多线程情形下，<strong>synchronized方法</strong>通常效率低，因此这不是最佳的实现方案。</p>
+<h4 id="DCL双检查锁机制"><a href="#DCL双检查锁机制" class="headerlink" title="DCL双检查锁机制"></a>DCL双检查锁机制</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 将自身实例化对象设置为一个属性，并用static修饰</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">volatile</span> Singleton instance;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 构造方法私有化</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">Singleton</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 静态方法返回该实例</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 第一次检查instance是否被实例化出来，如果没有进入if块</span></span><br><span class="line">        <span class="keyword">if</span>(instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">synchronized</span> (Singleton<span class="class">.<span class="keyword">class</span>) </span>&#123;</span><br><span class="line">                <span class="comment">// 某个线程取得了类锁，实例化对象前第二次检查instance是否已经被实例化出来，如果没有，才最终实例出对象</span></span><br><span class="line">                <span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">                    instance = <span class="keyword">new</span> Singleton();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> instance;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>DCL（双端检锁）机制就是在进来和出去的时候进行检测，这种方式也不一定是线程安全的，原因是有指令重排的存在，所以需要加入volatile禁止指令重排。</strong></p>
+<h3 id="工厂模式"><a href="#工厂模式" class="headerlink" title="工厂模式"></a>工厂模式</h3><ul>
+<li>简单工厂模式</li>
+<li>工厂方法模式</li>
+<li>抽象工厂模式</li>
+</ul>
+<h4 id="简单工厂模式"><a href="#简单工厂模式" class="headerlink" title="简单工厂模式"></a>简单工厂模式</h4><p><strong>简单工厂模式</strong>是指一个工厂对象决定创建那种产品类的实例。</p>
+<ul>
+<li>只需传入一个正确的参数就能获取你需要的对象，无须知道具体的细节。</li>
+<li>工厂类的职责相对过重，增加新的产品时需要修改工厂类的判断逻辑，违背开闭原则。<br>不易于扩展过于复杂的产品结构。</li>
+</ul>
+<p><strong>示例：Calendar.java</strong> 的 <strong><em>getInstance()</em></strong>方法的初始化用到的简单工厂模式。根据不同的<strong>Local</strong>时区，创建不同的<strong>Calendar</strong>对象。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (aLocale.hasExtensions()) &#123;</span><br><span class="line">   String caltype = aLocale.getUnicodeLocaleType(<span class="string">"ca"</span>);</span><br><span class="line">   <span class="keyword">if</span> (caltype != <span class="keyword">null</span>) &#123;</span><br><span class="line">       <span class="keyword">switch</span> (caltype) &#123;</span><br><span class="line">       <span class="keyword">case</span> <span class="string">"buddhist"</span>:</span><br><span class="line">       cal = <span class="keyword">new</span> BuddhistCalendar(zone, aLocale);</span><br><span class="line">           <span class="keyword">break</span>;</span><br><span class="line">       <span class="keyword">case</span> <span class="string">"japanese"</span>:</span><br><span class="line">           cal = <span class="keyword">new</span> JapaneseImperialCalendar(zone, aLocale);</span><br><span class="line">           <span class="keyword">break</span>;</span><br><span class="line">       <span class="keyword">case</span> <span class="string">"gregory"</span>:</span><br><span class="line">           cal = <span class="keyword">new</span> GregorianCalendar(zone, aLocale);</span><br><span class="line">           <span class="keyword">break</span>;</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="工厂方法模式（接口）"><a href="#工厂方法模式（接口）" class="headerlink" title="工厂方法模式（接口）"></a>工厂方法模式（接口）</h4><p><strong>工厂方法模式</strong>是指，定义一个创建对象的接口，但让实现这个接口的类来决定实例化哪个类，工厂方法让类的实例化推迟到子类中进行。属于创建型设计模式。</p>
+<ul>
+<li>创建对象需要大量的重复代码。客户端(应用层)不依赖于产品类实例如何被创建、实现等细节。一个类通过其子类来指定创建哪个对象。</li>
+<li>用户只需要关心所需产品对应的工厂，无需关键创建细节。</li>
+<li>加入新产品符合开闭原则，提高系统的可扩展性。</li>
+<li>类的个数容易过多，增加了代码结构的复杂度。也增加了系统的抽象性和理解难度。</li>
+</ul>
+<h4 id="抽象工厂模式（抽象类）"><a href="#抽象工厂模式（抽象类）" class="headerlink" title="抽象工厂模式（抽象类）"></a>抽象工厂模式（抽象类）</h4><p>抽象工厂模式是指提供一个创建一系列相关或相互依赖对象的接口，无需指定他们具体的类。属于创建型设计模式。</p>
+<ul>
+<li>客户端(应用层)不依赖于产品类实例如何被创建、实现等细节。</li>
+<li>强调一系列相关的产品对象(属于同一产品族)一起使用创建对象需要大量复用的代码。</li>
+<li>提供一个产品类库，所有的产品以同样的接口形式出现，从而使客户端不依赖于具体实现。</li>
+<li>具体产品在应用层代码隔离，无须关心创建细节，将一个系列的产品族统一到一起创建。</li>
+<li>规定了所有可能被创建的产品集合，产品族中扩展新的产品困难，需要修改抽象工厂的接口<br>增加了抽象工厂的抽象性和理解难度。</li>
+</ul>
+<h3 id="代理模式"><a href="#代理模式" class="headerlink" title="代理模式"></a>代理模式</h3><p><strong>代理模式</strong>使得客户端在使用目标对象的时候间接通过操作代理对象进行，代理对象是对目标对象的增强。</p>
+<p>代理模式包含如下几个角色：</p>
+<ul>
+<li><strong>客户端</strong>：客户端面向接口编程，使用代理角色完成某项功能。</li>
+<li><strong>抽象主题</strong>：一般实现为接口，是对(被代理对象的)行为的抽象。</li>
+<li><strong>被代理角色(目标类)</strong>：直接实现上述接口，是抽象主题的具体实现。</li>
+<li><strong>代理角色(代理类)</strong>：实现上述接口，是对被代理角色的增强。</li>
+</ul>
+<p>代理模式又分为<strong>静态代理</strong>和<strong>动态代理</strong>俩种类型。</p>
+<h4 id="静态代理"><a href="#静态代理" class="headerlink" title="静态代理"></a>静态代理</h4><p>静态代理的实现模式一般是</p>
+<ol>
+<li>首先创建一个<strong>接口</strong>；</li>
+<li>然后创建具体<strong>实现类</strong>来实现这个接口，实现类的方法中需要将接口中定义的方法的业务逻辑功能实现；</li>
+<li>然后再创建一个<strong>代理类</strong>同样实现这个接口，不同之处在于，代理类中的方法只要调用具体实现类中的对应方法即可；</li>
+<li>这样我们在需要使用接口中的某个方法的功能时直接调用代理类的方法即可，将具体的实现类隐藏在底层。</li>
+</ol>
+<h4 id="动态代理"><a href="#动态代理" class="headerlink" title="动态代理"></a>动态代理</h4><p>动态代理可以在程序运行期间根据需要动态的创建代理类及其实例来完成具体的功能。</p>
+<p>详见：<a href="http://blogsea.cn/2021/01/20/Java%E8%AF%AD%E8%A8%80%E7%89%B9%E6%80%A7%E4%B8%8E%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%EF%BC%88%E4%B8%80%EF%BC%89/#%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86%E4%B8%8E%E5%8F%8D%E5%B0%84" target="_blank" rel="noopener">Java 语言特性之动态代理</a></p>
+<h3 id="构造者模式"><a href="#构造者模式" class="headerlink" title="构造者模式"></a>构造者模式</h3><p>构造者模式,又称之为建造者模式,建造者模式。将一个复杂对象的<strong>构建</strong>与它的<strong>表示</strong>分离，使得同样的构建过程可以创建不同的表示。</p>
+<p><strong>应用场景</strong>：当一个类有多个重载的构造器时，考虑使用构造者模式。</p>
+<p><strong>特点</strong>：</p>
+<ul>
+<li>在用户不知道对象的建造过程和细节的情况下就可以直接创建复杂的对象。</li>
+<li>用户只需要给出指定复杂对象的类型和内容，建造者模式负责按顺序创建复杂对象（把内部的建造过程和细节隐藏起来）</li>
+<li>代码复用性 &amp; 封装性（将对象构建过程和细节进行封装 &amp; 复用）</li>
+<li>与工厂模式的区别是：建造者模式更加关注与零件装配的顺序，一般用来创建更为复杂的对象</li>
+</ul>
+<p><strong>主要分为俩类</strong>：</p>
+<ul>
+<li>通过Client、Director、Builder和Product形成的建造者模式。例如 Mybatis 中的 SqlSessionFactoryBuilder。</li>
+<li>通过静态内部类方式实现零件无序装配话构造。例如 SpringSecurity 中 Http 拦截设置。</li>
+</ul>
+<h3 id="责任链模式"><a href="#责任链模式" class="headerlink" title="责任链模式"></a>责任链模式</h3><p><strong>责任链模式</strong>指使多个对象都有机会处理请求，从而避免请求的发送者和接受者之间的耦合关系， 将这个对象连成一条链，并沿着这条链传递该请求，直到有一个对象处理他为止。</p>
+<p>举例：</p>
+<ul>
+<li>servlet 中的 filter。</li>
+<li>dubbo 中的 filter。</li>
+<li>mybatis 中的 plugin 。</li>
+</ul>
+<h3 id="适配器模式"><a href="#适配器模式" class="headerlink" title="适配器模式"></a>适配器模式</h3><p>适配器模式是一种<strong>结构型</strong>设计模式。适配器模式的思想是：<strong>把一个类的接口变换成客户端所期待的另一种接口，从而使原本因接口不匹配而无法在一起工作的两个类能够在一起工作</strong>。</p>
+<p>适配器模式涉及3个角色：</p>
+<ul>
+<li><strong>源（Adaptee）</strong>：需要被适配的对象或类型，相当于插头。</li>
+<li><strong>适配器（Adapter）</strong>：连接目标和源的中间对象，相当于插头转换器。</li>
+<li><strong>目标（Target）</strong>：期待得到的目标，相当于插座。</li>
+</ul>
+<p>适配器模式可以分为三种类型：</p>
+<ul>
+<li>类适配器模式</li>
+<li>对象适配器模式</li>
+<li>接口适配器模式</li>
+</ul>
+<h4 id="类适配器模式"><a href="#类适配器模式" class="headerlink" title="类适配器模式"></a>类适配器模式</h4><h5 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h5><p><strong>源（Adaptee）</strong> 实现 <code>methodA()</code> , 但是目标接口 需要实现 <code>methodA()</code> 和 <code>methodB()</code> ，</p>
+<p>则实现方式为 <strong>适配器（Adapter）</strong> 继承 <strong>源（Adaptee）</strong>并实现 <strong>目标（Target）</strong>接口，内部补充实现 <code>methodB()</code>方法。</p>
+<p><strong>Adapter 与 Adaptee 是继承关系</strong>，这决定了这是一个<strong>类适配器模式</strong>。</p>
+<p><img src="/2021/01/26/Java%E8%AF%AD%E8%A8%80%E7%89%B9%E6%80%A7%E4%B8%8E%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%EF%BC%88%E4%BA%8C%EF%BC%89/design_patterns_02.png" alt="类适配器模式"></p>
+<h4 id="对象适配器模式"><a href="#对象适配器模式" class="headerlink" title="对象适配器模式"></a>对象适配器模式</h4><h5 id="原理-1"><a href="#原理-1" class="headerlink" title="原理"></a>原理</h5><p><strong>适配器（Adapter）</strong>实现<strong>目标（Target）</strong>接口， 构造器中传入 <strong>源（Adaptee）</strong> 对象作为属性变量，内部提供的方法实现为 调用 <strong>源（Adaptee）</strong> 对象方法增强。</p>
+<p><img src="/2021/01/26/Java%E8%AF%AD%E8%A8%80%E7%89%B9%E6%80%A7%E4%B8%8E%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%EF%BC%88%E4%BA%8C%EF%BC%89/design_patterns_03.png" alt="对象适配器模式"></p>
+<h4 id="接口适配器模式"><a href="#接口适配器模式" class="headerlink" title="接口适配器模式"></a>接口适配器模式</h4><h5 id="原理-2"><a href="#原理-2" class="headerlink" title="原理"></a>原理</h5><p><strong>接口适配器模式（缺省适配模式</strong>）的思想是，为一个接口提供缺省实现，这样子类可以从这个缺省实现进行扩展，而不必从原有接口进行扩展。</p>
+<p>即为<strong>目标（Target）</strong>接口提供一个实现类，实现其全部方法， <strong>适配器（Adapter）</strong>继承其实现类，实现部分方法（这里是只需要使用的方法）。这样不必再把每个方法都实现一遍，代码看起来简洁多了。</p>
+<h3 id="观察者模式"><a href="#观察者模式" class="headerlink" title="观察者模式"></a>观察者模式</h3><blockquote>
+<p>笔记来源：</p>
+<p><a href="https://www.cnblogs.com/binaway/p/8889184.html" target="_blank" rel="noopener">https://www.cnblogs.com/binaway/p/8889184.html</a></p>
+<p><a href="https://blog.csdn.net/qq_36629833/article/details/90764881" target="_blank" rel="noopener">https://blog.csdn.net/qq_36629833/article/details/90764881</a></p>
+<p><a href="https://blog.csdn.net/justloveyou_/article/details/74203025" target="_blank" rel="noopener">https://blog.csdn.net/justloveyou_/article/details/74203025</a></p>
+<p><a href="https://www.jianshu.com/p/47329a94f5dc" target="_blank" rel="noopener">https://www.jianshu.com/p/47329a94f5dc</a></p>
+<p><a href="https://blog.csdn.net/mrkohaku/article/details/79087688" target="_blank" rel="noopener">https://blog.csdn.net/mrkohaku/article/details/79087688</a></p>
+</blockquote>
+
       
       <!-- reward -->
       
