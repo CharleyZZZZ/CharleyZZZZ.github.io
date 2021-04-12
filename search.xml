@@ -2377,9 +2377,13 @@
 <p>Java语言是一个面向对象的语言，但是Java中的基本数据类型却不是对象，在实际使用时存在很多的不便，为了解决这个不足，在设计类时java为每个基本数据类型设计了一个对应的类，这些类统称为<strong>包装类</strong>（Wrapper Class），对于包装类说，他们的用途主要包含两种：</p>
 <p>  1.作为和基本数据类型对应的类类型存在，方便涉及到对象的操作；</p>
 <p>  2.包含每种基本数据类型的相关属性如最大值、最小值等，以及相关的操作方法；</p>
-<h4 id="装箱和拆箱"><a href="#装箱和拆箱" class="headerlink" title="装箱和拆箱"></a>装箱和拆箱</h4><p>​    <strong>装箱</strong>：就是自动将基本数据类型转换为包装类</p>
-<p>　<strong>拆箱</strong>：就是自动将包装类转换为基本数据类型</p>
-<p><strong>问题1</strong>：通过阅读源码可知<strong>Integer、Short、Byte、Character</strong> 有缓存机制，Double 和 Float 没有缓存机制，其中Integer类型会缓存 -128~127  以内的数字，就有以下情况：</p>
+<h4 id="装箱和拆箱"><a href="#装箱和拆箱" class="headerlink" title="装箱和拆箱"></a>装箱和拆箱</h4><ul>
+<li><p><strong>装箱</strong>：就是自动将基本数据类型转换为包装类</p>
+</li>
+<li><p><strong>拆箱</strong>：就是自动将包装类转换为基本数据类型</p>
+</li>
+</ul>
+<p><strong>问题1</strong>：通过阅读源码可知<strong>Integer、Short、Byte、Character</strong> 有缓存机制，<strong>Double</strong> 和 <strong>Float</strong> 没有缓存机制，其中<strong>Integer</strong>类型会缓存 <strong>-128~127</strong>  以内的数字，就有以下情况：</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Integer a = <span class="number">100</span>;</span><br><span class="line">Integer b = <span class="number">100</span>;</span><br><span class="line">Integer c = <span class="number">300</span>;</span><br><span class="line">Integer d = <span class="number">300</span>;</span><br><span class="line">Integer e = <span class="keyword">new</span> Integer(<span class="number">100</span>);</span><br><span class="line"></span><br><span class="line">a == b;  <span class="comment">// 使用缓存，所以为true</span></span><br><span class="line">c == d;  <span class="comment">// 大于128 所以新new Integer()</span></span><br><span class="line">a == e;</span><br><span class="line"></span><br><span class="line">结果为： <span class="keyword">true</span>、<span class="keyword">false</span>、<span class="keyword">false</span></span><br></pre></td></tr></table></figure>
 
 <p><strong>问题2</strong>：java常用数据类型比较大小</p>
@@ -2814,7 +2818,7 @@
 </li>
 <li><p><strong>@Inherited</strong> 允许子类继承父类中的注解。</p>
 </li>
-<li><p>*<em>@Repeatable *</em>标识某注解可以在同一个声明上使用多次</p>
+<li><p><strong>@Repeatable</strong>标识某注解可以在同一个声明上使用多次</p>
 </li>
 </ul>
 <h4 id="自定义注解"><a href="#自定义注解" class="headerlink" title="自定义注解"></a>自定义注解</h4><p>第一步：创建注解</p>
@@ -2921,6 +2925,22 @@
 <p><strong>举例：</strong></p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 使用forEach()结合Lambda表达式迭代</span></span><br><span class="line">ArrayList&lt;String&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;(Arrays.asList(<span class="string">"I"</span>, <span class="string">"love"</span>, <span class="string">"you"</span>, <span class="string">"too"</span>));</span><br><span class="line">list.forEach( str -&gt; &#123;</span><br><span class="line">        <span class="keyword">if</span>(str.length()&gt;<span class="number">3</span>)</span><br><span class="line">            System.out.println(str);</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用removeIf()结合Lambda表达式实现</span></span><br><span class="line">ArrayList&lt;String&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;(Arrays.asList(<span class="string">"I"</span>, <span class="string">"love"</span>, <span class="string">"you"</span>, <span class="string">"too"</span>));</span><br><span class="line">list.removeIf(str -&gt; str.length()&gt;<span class="number">3</span>); <span class="comment">// 删除长度大于3的元素</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用Lambda表达式实现</span></span><br><span class="line">ArrayList&lt;String&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;(Arrays.asList(<span class="string">"I"</span>, <span class="string">"love"</span>, <span class="string">"you"</span>, <span class="string">"too"</span>));</span><br><span class="line">list.replaceAll(str -&gt; &#123;</span><br><span class="line">    <span class="keyword">if</span>(str.length()&gt;<span class="number">3</span>)</span><br><span class="line">        <span class="keyword">return</span> str.toUpperCase();</span><br><span class="line">    <span class="keyword">return</span> str;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// List.sort()方法结合Lambda表达式</span></span><br><span class="line">ArrayList&lt;String&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;(Arrays.asList(<span class="string">"I"</span>, <span class="string">"love"</span>, <span class="string">"you"</span>, <span class="string">"too"</span>));</span><br><span class="line">list.sort((str1, str2) -&gt; str1.length()-str2.length());</span><br></pre></td></tr></table></figure>
 
+<p><strong>拓展知识点：</strong></p>
+<p>《阿里巴巴Java开发手册》中提到 谨慎使用 <strong>Arrays.asList</strong> 和 <strong>ArrayList 的 subList方法</strong>，原因如下：</p>
+<ol>
+<li><p><strong>Arrays.asList</strong> 方法 返回的 <strong>ArrayList</strong> 是 <strong>Arrays</strong> 的内部类（也叫<strong>ArrayList</strong>），但并非<code>java.util</code>包下的 <strong>ArrayList</strong>，其并未重写 <strong>add</strong> 方法，使用 <strong>add</strong> 方法添加元素时 ,会抛出 <strong>UnsupportedOperationException</strong> 异常。</p>
+<p>不过在某些场景下可以使用，例如声明后不调用<strong>add</strong>方法的场景，比如 <strong>contains</strong> 判断是否包含某一元素的场景，因为其重写了 <strong>contains</strong> 方法。</p>
+<p>改进方法，可以使用   <code>new ArrayList&lt;&gt;(Arrays.asList(&quot;I&quot;, &quot;love&quot;, &quot;you&quot;, &quot;too&quot;));</code> 新建一个 <strong>ArrayList</strong>对象。</p>
+</li>
+<li><p><strong>ArrayList 的 subList方法</strong> 返回的 是<strong>ArrayList</strong>的部分视图，并非返回一个新的<strong>ArrayList</strong> ，所以会造成以下问题：</p>
+<ol>
+<li>修改原集合元素的值，会影响子集合</li>
+<li>修改原集合的结构，会引起 <strong>ConcurrentModificationException</strong> 异常</li>
+<li>修改子集合元素的值，会影响原集合</li>
+<li>修改子集合的结构，会影响原集合</li>
+</ol>
+</li>
+</ol>
 <h4 id="Stream-API"><a href="#Stream-API" class="headerlink" title="Stream API"></a>Stream API</h4><p><strong>Stream</strong> 是<strong>Java8</strong>中处理集合的关键抽象概念，它可以对集合进行非常复杂的<strong>查找、过滤、筛选</strong>等操作。</p>
 <p>使用 <strong>Stream API</strong>对集合数据进行操作就类似于使用<strong>SQL</strong>进行数据库查询；</p>
 <p>简而言之，<strong>Stream API</strong> 提供了一种高效且易于使用的数据处理方式。</p>
@@ -7805,6 +7825,51 @@
         <tag>面试复习</tag>
         <tag>Mysql</tag>
         <tag>数据库</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Java中一致性hash的实现</title>
+    <url>/2021/04/12/Java%E4%B8%AD%E4%B8%80%E8%87%B4%E6%80%A7hash%E7%9A%84%E5%AE%9E%E7%8E%B0/</url>
+    <content><![CDATA[<h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>前面在《缓存-基础概念》的学习中，关于<a href="http://blogsea.cn/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%B8%80%EF%BC%89-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/#%E6%95%B0%E6%8D%AE%E5%88%86%E5%B8%83%E8%AE%BE%E8%AE%A1" target="_blank" rel="noopener"><strong>数据分布设计</strong></a>一节，提到关于数据分布算法，通常采用<strong>取模</strong>或者<strong>一致性hash分布</strong>。随后在  <strong>Memcached</strong> 和 <strong>Redis</strong> 章节，也确切提到 例如<strong>Memcached 分拆缓存池</strong>采用一致性<strong>hash</strong>，<strong>Redis</strong> Client 分区方案数据分布方案 采用一致性hash算法等。</p>
+<p>那么 一致性hash 算法是如何实现的呢，一起来学习一下。</p>
+<h3 id="常规取模哈希"><a href="#常规取模哈希" class="headerlink" title="常规取模哈希"></a>常规取模哈希</h3><p>通常我们所说的最简单的hash算法即为 取模hash （或者 HashMap 中位运算）。</p>
+<ul>
+<li>第一步通过jdk内置hash方法对请求参数hash运算，得到一个整数</li>
+<li>第二步将该整数 i 对服务器台数 n 取模，将请求分散到不同的服务器上</li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<p>当<strong>增减</strong>服务器时，会造成部分数据丢失。例如作为缓存场景来说，新增一台服务器导致变更后取模与变更前取模命中服务器不一致，降低缓存命中率。</p>
+<h3 id="一致性哈希算法"><a href="#一致性哈希算法" class="headerlink" title="一致性哈希算法"></a>一致性哈希算法</h3><p>为了解决以上问题，前辈们设计了一致性哈希算法。</p>
+<p>hash算法出来的整数有个范围，我们在这个范围内布置三台服务器（范围具体是多少看前面的hash算法）。假设hash的范围是1~300，每台负责一段范围内的请求，比如一台负责(1-100]，一台负责(100-200]，一台负责(200-1]。<strong>这三台server收尾相接覆盖/闭环了所有请求，称为哈希环</strong>。</p>
+<p><img src="/2021/04/12/Java%E4%B8%AD%E4%B8%80%E8%87%B4%E6%80%A7hash%E7%9A%84%E5%AE%9E%E7%8E%B0/hash_01.png" alt="哈希环"></p>
+<p>如何实现一台服务器接收一个范围的请求？这个时候不用取模了，而是将server也按照hash算法计算一个id值，比如按照他们的ip+port+name拼成的串计算，假设正好分别是 1，100，200，将他们放进一个treeMap里，</p>
+<p>Map&lt;Inetger,Node&gt; ，其中Node代表server节点，是自定义的数据结构，比如是一个类，包含ip，port，name等属性。</p>
+<p>一个请求过来hash得到的值必属于这三个server的范围，比如一个请求id=N，那么从map里get(N)去找server，</p>
+<ul>
+<li><p>找到直接转发，</p>
+</li>
+<li><p>找不到进行如下运算：treemap里有个关键的api，tailMap()，这个接口能够<strong>返回id比N大的map的子集</strong>，然后取子集的第一个节点，就是id=100的节点，通常称为顺时针查找。</p>
+<p>当然如果子集为空，这意味着N&gt;200，就取整个map的第一个节点，完成闭环。</p>
+</li>
+</ul>
+<p><strong>优点：</strong></p>
+<p>从实现可以看出，如果一个节点挂了，他的流量会顺时针（逆时针实现也是一样的）“导流”到下一个节点，其他节点不受影响。</p>
+<p><strong>缺点：</strong></p>
+<p>假设各台服务器性能差不多，此时流量突增，一台server由于流量过载而挂掉，那么它的下一台因为承载了2倍的流量，很有可能也会挂掉，依此类推，最后所有的节点都会挂掉，造成“雪崩”！</p>
+<h3 id="虚拟节点改进"><a href="#虚拟节点改进" class="headerlink" title="虚拟节点改进"></a>虚拟节点改进</h3><p>如何解决上述问题，可<strong>在其基础上使用hash算法将每台服务器节点分散分布环中</strong>。即每台机器虚拟出多个节点，分散分布于闭环中。</p>
+<p><img src="/2021/04/12/Java%E4%B8%AD%E4%B8%80%E8%87%B4%E6%80%A7hash%E7%9A%84%E5%AE%9E%E7%8E%B0/hash_02.png" alt="虚节点改进"></p>
+<p>如图，那么当一台服务器挂掉时，其流量将分摊到下一台机器上，（理论上下一台机器存在为同一台机器的可能，但是概率非常小，可将分片数扩大），有效的降低节点雪崩的风险。</p>
+<p>综上，一致性哈希算法并不是强一致性，也不是高可用方案，如果server挂了数据丢了就是丢了，除非有恢复手段，它只是一种减少由扩缩容引起的命中率下降的手段。</p>
+<blockquote>
+<p>笔记参考：<a href="https://blog.csdn.net/flyfeifei66/article/details/82458618" target="_blank" rel="noopener">https://blog.csdn.net/flyfeifei66/article/details/82458618</a></p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>技术学习</category>
+      </categories>
+      <tags>
+        <tag>一致性hash</tag>
+        <tag>hash</tag>
       </tags>
   </entry>
 </search>

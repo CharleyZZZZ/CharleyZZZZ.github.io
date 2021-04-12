@@ -9,7 +9,7 @@
     
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>
-    categories |  Hello World !
+    Java中一致性hash的实现 |  Hello World !
   </title>
   <meta name="generator" content="hexo-theme-ayer">
   
@@ -41,37 +41,249 @@
   <div id="app">
     <main class="content on">
       <section class="outer">
+  <article id="post-Java中一致性hash的实现" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Java中一致性hash的实现
+</h1>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/04/12/Java%E4%B8%AD%E4%B8%80%E8%87%B4%E6%80%A7hash%E7%9A%84%E5%AE%9E%E7%8E%B0/" class="article-date">
+  <time datetime="2021-04-12T15:12:28.000Z" itemprop="datePublished">2021-04-12</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0/">技术学习</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> Word count:</span>
+            <span class="post-count">976</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> Reading time≈</span>
+            <span class="post-count">3 min</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>前面在《缓存-基础概念》的学习中，关于<a href="http://blogsea.cn/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%B8%80%EF%BC%89-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/#%E6%95%B0%E6%8D%AE%E5%88%86%E5%B8%83%E8%AE%BE%E8%AE%A1" target="_blank" rel="noopener"><strong>数据分布设计</strong></a>一节，提到关于数据分布算法，通常采用<strong>取模</strong>或者<strong>一致性hash分布</strong>。随后在  <strong>Memcached</strong> 和 <strong>Redis</strong> 章节，也确切提到 例如<strong>Memcached 分拆缓存池</strong>采用一致性<strong>hash</strong>，<strong>Redis</strong> Client 分区方案数据分布方案 采用一致性hash算法等。</p>
+<p>那么 一致性hash 算法是如何实现的呢，一起来学习一下。</p>
+<h3 id="常规取模哈希"><a href="#常规取模哈希" class="headerlink" title="常规取模哈希"></a>常规取模哈希</h3><p>通常我们所说的最简单的hash算法即为 取模hash （或者 HashMap 中位运算）。</p>
+<ul>
+<li>第一步通过jdk内置hash方法对请求参数hash运算，得到一个整数</li>
+<li>第二步将该整数 i 对服务器台数 n 取模，将请求分散到不同的服务器上</li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<p>当<strong>增减</strong>服务器时，会造成部分数据丢失。例如作为缓存场景来说，新增一台服务器导致变更后取模与变更前取模命中服务器不一致，降低缓存命中率。</p>
+<h3 id="一致性哈希算法"><a href="#一致性哈希算法" class="headerlink" title="一致性哈希算法"></a>一致性哈希算法</h3><p>为了解决以上问题，前辈们设计了一致性哈希算法。</p>
+<p>hash算法出来的整数有个范围，我们在这个范围内布置三台服务器（范围具体是多少看前面的hash算法）。假设hash的范围是1~300，每台负责一段范围内的请求，比如一台负责(1-100]，一台负责(100-200]，一台负责(200-1]。<strong>这三台server收尾相接覆盖/闭环了所有请求，称为哈希环</strong>。</p>
+<p><img src="/2021/04/12/Java%E4%B8%AD%E4%B8%80%E8%87%B4%E6%80%A7hash%E7%9A%84%E5%AE%9E%E7%8E%B0/hash_01.png" alt="哈希环"></p>
+<p>如何实现一台服务器接收一个范围的请求？这个时候不用取模了，而是将server也按照hash算法计算一个id值，比如按照他们的ip+port+name拼成的串计算，假设正好分别是 1，100，200，将他们放进一个treeMap里，</p>
+<p>Map&lt;Inetger,Node&gt; ，其中Node代表server节点，是自定义的数据结构，比如是一个类，包含ip，port，name等属性。</p>
+<p>一个请求过来hash得到的值必属于这三个server的范围，比如一个请求id=N，那么从map里get(N)去找server，</p>
+<ul>
+<li><p>找到直接转发，</p>
+</li>
+<li><p>找不到进行如下运算：treemap里有个关键的api，tailMap()，这个接口能够<strong>返回id比N大的map的子集</strong>，然后取子集的第一个节点，就是id=100的节点，通常称为顺时针查找。</p>
+<p>当然如果子集为空，这意味着N&gt;200，就取整个map的第一个节点，完成闭环。</p>
+</li>
+</ul>
+<p><strong>优点：</strong></p>
+<p>从实现可以看出，如果一个节点挂了，他的流量会顺时针（逆时针实现也是一样的）“导流”到下一个节点，其他节点不受影响。</p>
+<p><strong>缺点：</strong></p>
+<p>假设各台服务器性能差不多，此时流量突增，一台server由于流量过载而挂掉，那么它的下一台因为承载了2倍的流量，很有可能也会挂掉，依此类推，最后所有的节点都会挂掉，造成“雪崩”！</p>
+<h3 id="虚拟节点改进"><a href="#虚拟节点改进" class="headerlink" title="虚拟节点改进"></a>虚拟节点改进</h3><p>如何解决上述问题，可<strong>在其基础上使用hash算法将每台服务器节点分散分布环中</strong>。即每台机器虚拟出多个节点，分散分布于闭环中。</p>
+<p><img src="/2021/04/12/Java%E4%B8%AD%E4%B8%80%E8%87%B4%E6%80%A7hash%E7%9A%84%E5%AE%9E%E7%8E%B0/hash_02.png" alt="虚节点改进"></p>
+<p>如图，那么当一台服务器挂掉时，其流量将分摊到下一台机器上，（理论上下一台机器存在为同一台机器的可能，但是概率非常小，可将分片数扩大），有效的降低节点雪崩的风险。</p>
+<p>综上，一致性哈希算法并不是强一致性，也不是高可用方案，如果server挂了数据丢了就是丢了，除非有恢复手段，它只是一种减少由扩缩容引起的命中率下降的手段。</p>
+<blockquote>
+<p>笔记参考：<a href="https://blog.csdn.net/flyfeifei66/article/details/82458618" target="_blank" rel="noopener">https://blog.csdn.net/flyfeifei66/article/details/82458618</a></p>
+</blockquote>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://charleyzzzz.github.io/2021/04/12/Java%E4%B8%AD%E4%B8%80%E8%87%B4%E6%80%A7hash%E7%9A%84%E5%AE%9E%E7%8E%B0/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/hash/" rel="tag">hash</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%B8%80%E8%87%B4%E6%80%A7hash/" rel="tag">一致性hash</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
   
-    <h1 class="page-type-title">Categories</h1>
-    <!-- <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0/">技术学习</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">环境搭建</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%94%9F%E6%B4%BB/">生活</a></li></ul> -->
-    <ul class="category-list">
-      
-         
-          <a class="category-list-link" href="/categories/技术学习/" title="技术学习">
-            <li class="category-list-item">
-            技术学习<i>27</i>
-            </li>
-          </a>
-        
-      
-         
-          <a class="category-list-link" href="/categories/环境搭建/" title="环境搭建">
-            <li class="category-list-item">
-            环境搭建<i>1</i>
-            </li>
-          </a>
-        
-      
-         
-          <a class="category-list-link" href="/categories/生活/" title="生活">
-            <li class="category-list-item">
-            生活<i>1</i>
-            </li>
-          </a>
-        
-      
-      </ul>
   
+  <nav class="article-nav">
+    
+    
+      <a href="/2021/03/15/%E8%AF%A6%E8%A7%A3Mysql%EF%BC%88%E4%BA%8C%EF%BC%89/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">详解Mysql（二）</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: 'fV6hp5I755QPrJ9W3gpD596M-gzGzoHsz',
+        app_key: '2BLVrJEhiPxBOjTvEyjpXD2c',
+        path: window.location.pathname,
+        notify: 'false',
+        verify: 'false',
+        avatar: 'monsterid',
+        placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+  
+  
+
+</article>
 </section>
       <footer class="footer">
   <div class="outer">
@@ -223,6 +435,23 @@
 </script>
 
 <!-- Tocbot -->
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto'
+  });
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">

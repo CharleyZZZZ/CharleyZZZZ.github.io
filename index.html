@@ -80,6 +80,110 @@
     
     
     
+    <article id="post-Java中一致性hash的实现" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/04/12/Java%E4%B8%AD%E4%B8%80%E8%87%B4%E6%80%A7hash%E7%9A%84%E5%AE%9E%E7%8E%B0/"
+    >Java中一致性hash的实现</a> 
+</h2>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/04/12/Java%E4%B8%AD%E4%B8%80%E8%87%B4%E6%80%A7hash%E7%9A%84%E5%AE%9E%E7%8E%B0/" class="article-date">
+  <time datetime="2021-04-12T15:12:28.000Z" itemprop="datePublished">2021-04-12</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0/">技术学习</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>前面在《缓存-基础概念》的学习中，关于<a href="http://blogsea.cn/2021/03/15/%E7%BC%93%E5%AD%98%EF%BC%88%E4%B8%80%EF%BC%89-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5/#%E6%95%B0%E6%8D%AE%E5%88%86%E5%B8%83%E8%AE%BE%E8%AE%A1" target="_blank" rel="noopener"><strong>数据分布设计</strong></a>一节，提到关于数据分布算法，通常采用<strong>取模</strong>或者<strong>一致性hash分布</strong>。随后在  <strong>Memcached</strong> 和 <strong>Redis</strong> 章节，也确切提到 例如<strong>Memcached 分拆缓存池</strong>采用一致性<strong>hash</strong>，<strong>Redis</strong> Client 分区方案数据分布方案 采用一致性hash算法等。</p>
+<p>那么 一致性hash 算法是如何实现的呢，一起来学习一下。</p>
+<h3 id="常规取模哈希"><a href="#常规取模哈希" class="headerlink" title="常规取模哈希"></a>常规取模哈希</h3><p>通常我们所说的最简单的hash算法即为 取模hash （或者 HashMap 中位运算）。</p>
+<ul>
+<li>第一步通过jdk内置hash方法对请求参数hash运算，得到一个整数</li>
+<li>第二步将该整数 i 对服务器台数 n 取模，将请求分散到不同的服务器上</li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<p>当<strong>增减</strong>服务器时，会造成部分数据丢失。例如作为缓存场景来说，新增一台服务器导致变更后取模与变更前取模命中服务器不一致，降低缓存命中率。</p>
+<h3 id="一致性哈希算法"><a href="#一致性哈希算法" class="headerlink" title="一致性哈希算法"></a>一致性哈希算法</h3><p>为了解决以上问题，前辈们设计了一致性哈希算法。</p>
+<p>hash算法出来的整数有个范围，我们在这个范围内布置三台服务器（范围具体是多少看前面的hash算法）。假设hash的范围是1~300，每台负责一段范围内的请求，比如一台负责(1-100]，一台负责(100-200]，一台负责(200-1]。<strong>这三台server收尾相接覆盖/闭环了所有请求，称为哈希环</strong>。</p>
+<p><img src="/2021/04/12/Java%E4%B8%AD%E4%B8%80%E8%87%B4%E6%80%A7hash%E7%9A%84%E5%AE%9E%E7%8E%B0/hash_01.png" alt="哈希环"></p>
+<p>如何实现一台服务器接收一个范围的请求？这个时候不用取模了，而是将server也按照hash算法计算一个id值，比如按照他们的ip+port+name拼成的串计算，假设正好分别是 1，100，200，将他们放进一个treeMap里，</p>
+<p>Map&lt;Inetger,Node&gt; ，其中Node代表server节点，是自定义的数据结构，比如是一个类，包含ip，port，name等属性。</p>
+<p>一个请求过来hash得到的值必属于这三个server的范围，比如一个请求id=N，那么从map里get(N)去找server，</p>
+<ul>
+<li><p>找到直接转发，</p>
+</li>
+<li><p>找不到进行如下运算：treemap里有个关键的api，tailMap()，这个接口能够<strong>返回id比N大的map的子集</strong>，然后取子集的第一个节点，就是id=100的节点，通常称为顺时针查找。</p>
+<p>当然如果子集为空，这意味着N&gt;200，就取整个map的第一个节点，完成闭环。</p>
+</li>
+</ul>
+<p><strong>优点：</strong></p>
+<p>从实现可以看出，如果一个节点挂了，他的流量会顺时针（逆时针实现也是一样的）“导流”到下一个节点，其他节点不受影响。</p>
+<p><strong>缺点：</strong></p>
+<p>假设各台服务器性能差不多，此时流量突增，一台server由于流量过载而挂掉，那么它的下一台因为承载了2倍的流量，很有可能也会挂掉，依此类推，最后所有的节点都会挂掉，造成“雪崩”！</p>
+<h3 id="虚拟节点改进"><a href="#虚拟节点改进" class="headerlink" title="虚拟节点改进"></a>虚拟节点改进</h3><p>如何解决上述问题，可<strong>在其基础上使用hash算法将每台服务器节点分散分布环中</strong>。即每台机器虚拟出多个节点，分散分布于闭环中。</p>
+<p><img src="/2021/04/12/Java%E4%B8%AD%E4%B8%80%E8%87%B4%E6%80%A7hash%E7%9A%84%E5%AE%9E%E7%8E%B0/hash_02.png" alt="虚节点改进"></p>
+<p>如图，那么当一台服务器挂掉时，其流量将分摊到下一台机器上，（理论上下一台机器存在为同一台机器的可能，但是概率非常小，可将分片数扩大），有效的降低节点雪崩的风险。</p>
+<p>综上，一致性哈希算法并不是强一致性，也不是高可用方案，如果server挂了数据丢了就是丢了，除非有恢复手段，它只是一种减少由扩缩容引起的命中率下降的手段。</p>
+<blockquote>
+<p>笔记参考：<a href="https://blog.csdn.net/flyfeifei66/article/details/82458618" target="_blank" rel="noopener">https://blog.csdn.net/flyfeifei66/article/details/82458618</a></p>
+</blockquote>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/hash/" rel="tag">hash</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%B8%80%E8%87%B4%E6%80%A7hash/" rel="tag">一致性hash</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+  
+  
+
+</article>
+    
     <article id="post-详解Mysql（二）" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -3851,243 +3955,6 @@
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spring/" rel="tag">Spring</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%9D%A2%E8%AF%95%E5%A4%8D%E4%B9%A0/" rel="tag">面试复习</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-  
-  
-
-</article>
-    
-    <article id="post-常用工具集" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/03/15/%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7%E9%9B%86/"
-    >常用工具集</a> 
-</h2>
- 
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/03/15/%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7%E9%9B%86/" class="article-date">
-  <time datetime="2021-03-15T07:20:43.000Z" itemprop="datePublished">2021-03-15</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0/">技术学习</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h1 id="常用工具集"><a href="#常用工具集" class="headerlink" title="常用工具集"></a>常用工具集</h1><ul>
-<li>团队协作：Ant、<strong>Maven</strong>、Gradle、<strong>Git</strong>、<strong>SVN</strong></li>
-<li>质量保证：CheckStyle、<strong>FindBugs</strong>、<strong>SonarQube</strong></li>
-<li>压测：<strong>JMeter</strong>、JMH、AB、LoadRunner</li>
-<li>容器与代理：<strong>Tomcat</strong>、<strong>Jetty、Nginx</strong>、Envoy、</li>
-<li>CI/CD: <strong>Gitlab-CI</strong>、<strong>Jenkins</strong>、Travls、CircleCI</li>
-<li>JVM工具：JMC、jstack、jmap、jstat、jinfo、jcmd、btrace、MAT</li>
-<li>系统分析：vmstat、lostat &amp; lotop、ifstat &amp; iftop 、netstat、dstat、strace、GDB、losf、tcpdump、traceroute</li>
-<li>文档管理：<strong>javaDoc</strong>、<strong>Swagger</strong></li>
-<li>网络工具：<strong>PostMan</strong>、WireShark、Fiddler、Charles</li>
-</ul>
-<p><strong>Ant+ivy</strong>、<strong>Maven</strong>、<strong>Gradle</strong> 都是用来构建项目、管理依赖的工具。</p>
-<p>其中 <strong>Ant</strong> 通过直接引用 <strong>jar</strong> 文件来进行依赖管理，通过脚本来描述，执行不同的构建目标。</p>
-<p>目前 <strong>Ant</strong> 使用得已经比较少，<strong>Maven</strong> 是比较主流的项目管理工具。<br><strong>Gradle</strong>是一个自动化的构建工具，<strong>Gradle</strong>属于结合以上两个的优点，它继承了<strong>Ant</strong>的灵活和<strong>Maven</strong>的生命周期管理，它最后被google作为了Android御用管理工具。</p>
-<p>它最大的区别是不用 <code>XML</code> 作为配置文件格式，采用了 <code>DSL</code> 格式，使得脚本更加简洁。<strong>Gradle</strong>引入了基于<strong>Groovy</strong>语言的 <code>DSL</code> 语法来代替 <code>XML</code> 配置，因此它的配置文件是一个<strong>Groovy</strong>文件。</p>
-<p><strong>Ant</strong> 由于出现较早，可结合项目复习，不再赘述。</p>
-<h3 id="Maven"><a href="#Maven" class="headerlink" title="Maven"></a>Maven</h3><h5 id="构建的各个环节"><a href="#构建的各个环节" class="headerlink" title="构建的各个环节"></a>构建的各个环节</h5><p>　　[1] 清理clean：将以前编译得到的旧文件class字节码文件删除</p>
-<p>　　[2] 编译compile：将java源程序编译成class字节码文件</p>
-<p>　　[3] 测试test：自动测试，自动调用junit程序</p>
-<p>　　[4] 报告report：测试程序执行的结果</p>
-<p>　　[5] 打包package：动态Web工程打War包，java工程打jar包</p>
-<p>　　[6] 安装install：Maven特定的概念—–将打包得到的文件复制到“仓库”中的指定位置</p>
-<p>　　[7] 部署deploy：将动态Web工程生成的war包复制到Servlet容器下，使其可以运行</p>
-<h5 id="常用maven命令"><a href="#常用maven命令" class="headerlink" title="常用maven命令"></a>常用maven命令</h5><p>　　[1] mvn clean：清理 </p>
-<p>　　[2] mvn compile：编译主程序</p>
-<p>　　[3] mvn test-compile：编译测试程序</p>
-<p>　　[4] mvn test：执行测试 </p>
-<p>　　[5] mvn package：打包</p>
-<p>　　[6] mvn install：安装</p>
-<p>　　执行maven命令必须进入到pom.xml的目录中进行执行</p>
-<h5 id="scope（依赖的范围）"><a href="#scope（依赖的范围）" class="headerlink" title="scope（依赖的范围）"></a>scope（依赖的范围）</h5><p>　　1、compile，默认值，适用于所有阶段（开发、测试、部署、运行），本jar会一直存在所有阶段。 </p>
-<p>　　2、provided，只在开发、测试阶段使用，目的是不让Servlet容器和你本地仓库的jar包冲突 。如servlet.jar。 </p>
-<p>　　3、runtime，只在运行时使用，如JDBC驱动，适用运行和测试阶段。 </p>
-<p>　　4、test，只在测试时使用，用于编译和运行测试代码。不会随项目发布。 </p>
-<p>　　5、system，类似provided，需要显式提供包含依赖的jar，Maven不会在Repository中查找它。</p>
-<h5 id="maven-聚合管理"><a href="#maven-聚合管理" class="headerlink" title="maven 聚合管理"></a>maven 聚合管理</h5><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">modules</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">module</span>&gt;</span>../mvc-core<span class="tag">&lt;/<span class="name">module</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">module</span>&gt;</span>../mvc-dao<span class="tag">&lt;/<span class="name">module</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">module</span>&gt;</span>../mvc-service<span class="tag">&lt;/<span class="name">module</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">module</span>&gt;</span>../mvc-log<span class="tag">&lt;/<span class="name">module</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">modules</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<h5 id="Maven-配置依赖管理"><a href="#Maven-配置依赖管理" class="headerlink" title="Maven 配置依赖管理"></a>Maven 配置依赖管理</h5><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependencyManagement</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>junit<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>junit<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;junit-version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">scope</span>&gt;</span>test<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    ...</span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencyManagement</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<h5 id="maven-配置继承关系"><a href="#maven-配置继承关系" class="headerlink" title="maven 配置继承关系"></a>maven 配置继承关系</h5><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">parent</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.example.demo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>demo-parent<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>0.0.1-SNAPSHOT<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">relativePath</span>&gt;</span>../demo-parent/pom.xml<span class="tag">&lt;/<span class="name">relativePath</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">parent</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Git"><a href="#Git" class="headerlink" title="Git"></a>Git</h3><h5 id="Git-常用命令"><a href="#Git-常用命令" class="headerlink" title="Git 常用命令"></a>Git 常用命令</h5><ul>
-<li>设置用户名：git config –global user.name 【git用户名】</li>
-<li>设置邮箱：git config –global user.email 【邮箱地址】</li>
-<li>查看当前用户信息：git config –list </li>
-<li>初始化git仓库：git init</li>
-<li>将工作目录中的文件全部添加到暂存区：git add .</li>
-<li>查看文件状态：git status</li>
-<li>向本地仓库中提交代码：git commit -m  【提交时的描述】</li>
-<li>用暂存区中的文件覆盖工作目录中的文件：git checkout  【文件名】</li>
-<li>将文件从暂存区中删除：git rm –cached 【文件名】</li>
-<li>将 git 仓库中指定的更新记录恢复出来，并且覆盖暂存区和工作目录：git rest –hard commitID</li>
-<li>查看提交记录：git log</li>
-<li>克隆远程仓库文件到本地仓库：git clone 【 仓库地址】</li>
-<li>把本地仓库的文件提交到远程仓库：git push 【仓库地址】【分支名称】 </li>
-<li>git push  -u【仓库地址】【分支名称】<br>-u 记住推送地址及分支，下次推送只需要输入git push即可</li>
-<li>设置仓库别名：git remote add 【自定义仓库别名】【远程仓库地址】</li>
-<li>拉取远程仓库中最新的版本到本地仓库：git pull 【仓库地址】【分支名称】</li>
-<li>查看分支：git branch</li>
-<li>创建分支：git branch 【分支名称】</li>
-<li>切换分支：git checkout 【分支名称】</li>
-<li>合并某分支到当前分支：git merge 【分支名称】</li>
-<li>删除分支：git branch -d 【分支名称】（分支被合并后才允许删除）（-D 强制删除）</li>
-</ul>
-<h5 id="Git撤销-amp-回滚操作-git-reset-和-get-revert"><a href="#Git撤销-amp-回滚操作-git-reset-和-get-revert" class="headerlink" title="Git撤销&amp;回滚操作 (git reset 和 get revert)"></a>Git撤销&amp;回滚操作 (git reset 和 get revert)</h5><p>概念：</p>
-<ul>
-<li><p><strong>工作区</strong>：即自己当前分支所修改的代码，<strong>git add xx 之前的代码</strong>；</p>
-</li>
-<li><p><strong>暂存区</strong>：git add xxx 之后，git commit xxx 之前的。</p>
-</li>
-<li><p><strong>本地分支</strong>：已经git commit -m xxx 提交到本地分支的。</p>
-</li>
-</ul>
-<p><strong>工作区（未add）</strong></p>
-<ul>
-<li><strong>git checkout – a.txt</strong>  # 丢弃某个文件，或者</li>
-<li><strong>git checkout – .</strong>    # 丢弃全部，包含新增的会删除，删除的会还原</li>
-</ul>
-<p><strong>暂存区（已add,未commit）</strong></p>
-<ul>
-<li><strong>git reset HEAD .</strong>   # 将所有暂存区文件丢弃到工作区</li>
-<li><strong>git reset HEAD a.txt</strong>   #将制定文件丢弃到工作区</li>
-</ul>
-<p><strong>本地分支（已commit，未push）</strong></p>
-<p><strong>git log</strong> # 得到你需要回退一次提交的commit id</p>
-<ul>
-<li><strong>git reset –hard <commit_id></commit_id></strong>  # 回到其中你想要的某个版本</li>
-<li><strong>git reset –hard HEAD^</strong>  # 回到最新的一次提交</li>
-<li><strong>git reset HEAD^</strong>  # 此时代码保留，回到 git add 之前</li>
-</ul>
-<p>– soft ：回到暂存区</p>
-<p>– mixd：回到工作区</p>
-<p>– hard：彻底回滚，找不回</p>
-<p><strong>远程分支（已push）</strong></p>
-<ul>
-<li><p>通过git reset是直接删除指定的commit</p>
-<p>git log # 得到你需要回退一次提交的commit id<br>git reset –hard <commit_id><br>git push origin HEAD –force # 强制提交一次，之前错误的提交就从远程仓库删除</commit_id></p>
-</li>
-<li><p>通过git revert是用一次新的commit来回滚之前的commit</p>
-<p>git log # 得到你需要回退一次提交的commit id<br>git revert <commit_id>  # 撤销指定的版本，撤销也会作为一次提交进行保存</commit_id></p>
-</li>
-<li><p>git revert 和 git reset的区别</p>
-<ul>
-<li>git revert是用一次新的commit来回滚之前的commit，此次提交之前的commit都会被保留；</li>
-<li>git reset是回到某次提交，提交及之前的commit都会被保留，但是此commit id之后的修改都会被删除</li>
-</ul>
-</li>
-</ul>
-<h5 id="Git-工作流"><a href="#Git-工作流" class="headerlink" title="Git 工作流"></a>Git 工作流</h5><p>目前常用工作流分别是以下三种：</p>
-<ul>
-<li><strong>Git Flow</strong></li>
-<li><strong>GitHub Flow</strong></li>
-<li><strong>GitLab Flow</strong></li>
-</ul>
-<p><strong>Git Flow</strong></p>
-<table>
-<thead>
-<tr>
-<th>分支</th>
-<th>描述</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>master</td>
-<td>主分支，最新的稳定版本的已部署到生产环境的代码分支，用于发布官方的大版本</td>
-</tr>
-<tr>
-<td>develop</td>
-<td>开发分支，最新的处于开发测试阶段的稳定版本，用来记录新功能开发的代码节点</td>
-</tr>
-<tr>
-<td>feature</td>
-<td>功能分支，基于develop分支的新功能分支。feature分支不能和master分支有直接的交互</td>
-</tr>
-<tr>
-<td>release</td>
-<td>预发分支，基于develop分支的满足发布条件的分支，最终会合并到master分支</td>
-</tr>
-<tr>
-<td>hotfix</td>
-<td>补丁分支，基于master分支的紧急修复分支，最终会被并入develop和master分支</td>
-</tr>
-</tbody></table>
-<p>首先，项目存在两个长期分支。<strong>主分支master 和开发分支 develop；</strong></p>
-<p>前者用于存放对外发布的版本，任何时候在这个分支拿到的，都是稳定的分布版；后者用于日常开发，存放的开发版。</p>
-<p>其次，项目存在三种短期分支。<strong>功能分支（feature branch）、补丁分支（hotfix branch）、预发分支（release branch）。</strong></p>
-<p>一旦完成开发，它们就会被合并进develop或master，然后被删除。</p>
-<p><strong>优缺点</strong>：</p>
-<ul>
-<li>优点：清晰可控</li>
-<li>缺点：复杂，分支多，切换出错</li>
-</ul>
-<p><strong>GitHub Flow</strong></p>
-<p>Github flow 是Git flow的简化版，专门配合”持续发布”。它是 Github.com 使用的工作流程。</p>
-<p>它<strong>只有一个长期分支，就是master</strong>，因此用起来非常简单。</p>
-<p>每次新版本 一个 feature 分支，开发完成向 master 合并，适合 持续交付类项目。</p>
-<p><strong>Gitlab Flow</strong></p>
-<p><strong>Gitlab flow 是 Git flow 与 Github flow 的综合。</strong>它吸取了两者的优点，既有适应不同开发环境的弹性，又有单一主分支的简单和便利。</p>
-<p>Gitlab flow 的较大原则叫做”<strong>上游优先</strong>”（upsteam first），即只存在一个主分支master，它是所有其他分支的”上游”。只有上游分支采纳的代码变化，才能应用到其他分支。</p>
-<p>对于”持续发布”的项目，它建议在master分支以外，再<strong>建立不同的环境分支</strong>。比如，”开发环境”的分支是master，”预发环境”的分支是pre-production，”生产环境”的分支是production。</p>
-<p>开发分支是预发分支的”上游”，预发分支又是生产分支的”上游”。<strong>代码的变化，必须由”上游”向”下游”发展</strong>。比如，生产环境出现了bug，这时就要新建一个功能分支，先把它合并到master，确认没有问题，再cherry-pick到pre-production，这一步也没有问题，才进入production。</p>
-<p><strong>只有紧急情况，才允许跳过上游，直接合并到下游分支。</strong></p>
-<blockquote>
-<p>参考：<a href="https://blog.csdn.net/cvvface/article/details/81216462" target="_blank" rel="noopener">https://blog.csdn.net/cvvface/article/details/81216462</a></p>
-<p><a href="http://www.duozhishidai.com/article-113700-1.html" target="_blank" rel="noopener">http://www.duozhishidai.com/article-113700-1.html</a></p>
-</blockquote>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B7%A5%E5%85%B7/" rel="tag">工具</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%9D%A2%E8%AF%95%E5%A4%8D%E4%B9%A0/" rel="tag">面试复习</a></li></ul>
 
 
     </footer>
