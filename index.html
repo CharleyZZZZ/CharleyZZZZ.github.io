@@ -80,6 +80,120 @@
     
     
     
+    <article id="post-布隆过滤器" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/04/13/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/"
+    >布隆过滤器</a> 
+</h2>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/04/13/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/" class="article-date">
+  <time datetime="2021-04-13T13:15:15.000Z" itemprop="datePublished">2021-04-13</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0/">技术学习</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="布隆过滤器"><a href="#布隆过滤器" class="headerlink" title="布隆过滤器"></a>布隆过滤器</h3><p><strong>布隆过滤器</strong>本质上是一种<strong>数据结构</strong>，比较巧妙的<strong>概率型数据结构（probabilistic data structure）</strong></p>
+<ul>
+<li><p><strong>优点</strong>：高效地插入和查询，可以用来告诉你 <strong>“某样东西一定不存在或者可能存在”</strong>。</p>
+<p>相比于传统的 List、Set、Map 等数据结构，它更高效、占用空间更少。</p>
+</li>
+<li><p><strong>缺点</strong>：是其返回的<strong>结果是概率性</strong>的，而不是确切的。</p>
+</li>
+</ul>
+<h3 id="实现原理"><a href="#实现原理" class="headerlink" title="实现原理"></a>实现原理</h3><p>通常判断某个元素是否存在的方式：</p>
+<p>可以将值映射到 <strong>HashMap</strong> 的 Key，然后可以在 O(1) 的时间复杂度内返回结果，效率高。但是 HashMap 的实现也有缺点，例如<strong>存储容量占比高</strong>，考虑到负载因子的存在，通常<strong>空间是不能被用满</strong>的，而一旦你的值很多例如上亿的时候，那 HashMap 占据的内存大小就变得很大了。</p>
+<p>即：<strong>内存占用大，利用率低。</strong></p>
+<p><strong>布隆过滤器数据结构</strong></p>
+<p><strong>布隆过滤器</strong>是一个 bit 向量或者说 bit 数组：</p>
+<p><img src="/2021/04/13/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/bulong_filter_01.jpg" alt="布隆过滤器"></p>
+<p>如果我们要映射一个值到布隆过滤器中，我们需要使用<strong>多个不同的哈希函数</strong>生成<strong>多个哈希值，</strong>并对每个生成的哈希值指向的 bit 位置置成 1。</p>
+<p><strong>例如：</strong></p>
+<p>针对值 “baidu” 和三个不同的哈希函数分别生成了哈希值 1、4、7，则在1、4、7 位置置成1。</p>
+<p>这时，我们再存一个值 “tencent”，假如哈希函数返回 3、4、8 的话，3、4、8 位置置成1。值得注意的是，4 这个 bit 位由于两个值的哈希函数都返回了这个 bit 位，因此它被覆盖了。</p>
+<p>现在我们如果想查询 “ali” 这个值是否存在，哈希函数返回了 1、5、8三个值，结果我们发现 5 这个 bit 位上的值为 0，<strong>说明没有任何一个值映射到这个 bit 位上</strong>，因此我们可以<strong>很确定</strong>地说 “ali” 这个值不存在。</p>
+<p>但是，如果现在有一个值经过n次哈希函数后，得到的值的位置都为1，那么该值一定存在吗？不一定。</p>
+<p><strong>综上：</strong></p>
+<p><strong>布隆过滤器可以判断某一个值一定不存在，不一定能判断某一个值一定存在，只能说可能存在。</strong></p>
+<p>这个可能的准确性，取决于<strong>哈希函数的个数</strong> 和 <strong>布隆过滤器的长度</strong>。</p>
+<p><strong>扩展</strong>：传统的布隆过滤器并不支持删除操作。但是名为 Counting Bloom filter 的变种可以用来<strong>测试元素计数个数是否绝对小于某个阈值</strong>，它支持元素删除。</p>
+<h3 id="如何选择哈希函数个数和布隆过滤器长度"><a href="#如何选择哈希函数个数和布隆过滤器长度" class="headerlink" title="如何选择哈希函数个数和布隆过滤器长度"></a>如何选择哈希函数个数和布隆过滤器长度</h3><p><img src="/2021/04/13/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/bulong_filter_02.jpg" alt="布隆过滤器参数选择"></p>
+<p>k 为哈希函数个数，m 为布隆过滤器长度，n 为插入的元素个数，p 为误报率。</p>
+<p>由图可见，<strong>哈希函数个数越多，布隆过滤器越长，误报率越低。</strong></p>
+<p>如何选择适合业务的 k 和 m 值，这里直接贴一个公式：</p>
+<p><img src="/2021/04/13/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/bulong_filter_03.jpg" alt="参数计算公式"></p>
+<p>具体公式推导过程，可自行上网查询。</p>
+<h3 id="最佳实践"><a href="#最佳实践" class="headerlink" title="最佳实践"></a>最佳实践</h3><ul>
+<li><p>利用布隆过滤器减少磁盘 IO 或者网络请求，<strong>一旦一个值必定不存在的话，我们可以不用进行后续昂贵的查询请求。</strong></p>
+</li>
+<li><p>使用布隆过滤器来加速查找和判断是否存在，那么性能很低的哈希函数不是个好选择，推荐 MurmurHash、Fnv 这些。</p>
+</li>
+<li><p>Redis 因其支持 setbit 和 getbit 操作，且纯内存性能高等特点，因此天然就可以作为布隆过滤器来使用。但是布隆过滤器的不当使用极易产生大 Value，增加 Redis 阻塞风险，因此生成环境中建议对体积庞大的布隆过滤器进行拆分。拆分的形式方法多种多样，但是本质是不要将 Hash(Key) 之后的请求分散在多个节点的多个小 bitmap 上，而是应该拆分成多个小 bitmap 之后，对一个 Key 的所有哈希函数都落在这一个小 bitmap 上。</p>
+</li>
+</ul>
+<blockquote>
+<p>笔记来源：</p>
+<p><a href="https://zhuanlan.zhihu.com/p/43263751" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/43263751</a></p>
+<p><a href="https://www.cnblogs.com/liyulong1982/p/6013002.html" target="_blank" rel="noopener">https://www.cnblogs.com/liyulong1982/p/6013002.html</a></p>
+</blockquote>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/" rel="tag">布隆过滤器</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+  
+  
+
+</article>
+    
     <article id="post-Java中一致性hash的实现" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -3187,774 +3301,6 @@
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Netty/" rel="tag">Netty</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/RPC/" rel="tag">RPC</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%9D%A2%E8%AF%95%E5%A4%8D%E4%B9%A0/" rel="tag">面试复习</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-  
-  
-
-</article>
-    
-    <article id="post-必会框架（一）-Spring" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/03/15/%E5%BF%85%E4%BC%9A%E6%A1%86%E6%9E%B6%EF%BC%88%E4%B8%80%EF%BC%89-Spring/"
-    >必会框架（一）- Spring</a> 
-</h2>
- 
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/03/15/%E5%BF%85%E4%BC%9A%E6%A1%86%E6%9E%B6%EF%BC%88%E4%B8%80%EF%BC%89-Spring/" class="article-date">
-  <time datetime="2021-03-15T07:22:38.000Z" itemprop="datePublished">2021-03-15</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0/">技术学习</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h1 id="必会框架（一）-Spring"><a href="#必会框架（一）-Spring" class="headerlink" title="必会框架（一）-  Spring"></a>必会框架（一）-  Spring</h1><ul>
-<li>Spring Framework  ：spring架构组成、Ioc容器、context、Spring初始化、事件机制、DI、AOP</li>
-<li>SpringMVC：工作原理，流程，组件，优缺点</li>
-<li>SpringData：JDBC、Redis、MonggoDB等相关数据源操作</li>
-<li>SpringBoot：常用注解、自动配置、约定大于配置</li>
-<li>SpringCloud：微服务解决方案 </li>
-</ul>
-<h3 id="Spring-Framework"><a href="#Spring-Framework" class="headerlink" title="Spring Framework"></a>Spring Framework</h3><blockquote>
-<p><strong>Spring</strong>框架是一个<a href="https://baike.baidu.com/item/开放源代码/114160" target="_blank" rel="noopener">开放源代码</a>的<a href="https://baike.baidu.com/item/J2EE/110838" target="_blank" rel="noopener">J2EE</a>应用程序框架，由[Rod Johnson](<a href="https://baike.baidu.com/item/Rod" target="_blank" rel="noopener">https://baike.baidu.com/item/Rod</a> Johnson/1423612)发起，是针对bean的生命周期进行管理的轻量级容器（lightweight container）。 Spring解决了开发者在J2EE开发中遇到的许多常见的问题，提供了功能强大IOC、<a href="https://baike.baidu.com/item/AOP/1332219" target="_blank" rel="noopener">AOP</a>及Web MVC等功能。Spring可以单独应用于构筑应用程序，也可以和Struts、Webwork、Tapestry等众多Web框架组合使用，并且可以与 Swing等<a href="https://baike.baidu.com/item/桌面应用程序/2331979" target="_blank" rel="noopener">桌面应用程序</a>AP组合。因此， Spring不仅仅能应用于JEE应用程序之中，也可以应用于桌面应用程序以及小应用程序之中。Spring框架主要由七部分组成，分别是 Spring Core、 Spring AOP、 Spring ORM、 Spring DAO、Spring Context、 Spring Web和 Spring Web MVC。《百度百科》</p>
-</blockquote>
-<p><strong>特点</strong>：</p>
-<ul>
-<li><strong>轻量</strong>：从大小和开销俩各方面<strong>Spring</strong> 都是轻量的。</li>
-<li><strong>控制反转</strong>（<strong>Ioc</strong>）：一个对象的依赖不是通过自己创建，而是通过被动的方式传递进来。具体表现为<strong>Spring</strong>中<strong>Bean</strong>都是需要注册到<strong>Bean</strong>工厂中，将<strong>Bean</strong> 的初始化和生命周期管理交由工厂实现管理，而调用者只需知道<strong>Bean</strong>的名字就可以在容器中获得<strong>Bean</strong>的实例。</li>
-<li><strong>面向切面</strong>（<strong>AOP</strong>）：<strong>Spring</strong>提供了面向切面编程的支持。允许通过分离应用的业务逻辑与系统级服务（例如审计（auditing）和事务管理）进行内聚性的开发。</li>
-<li><strong>容器：Spring</strong> 作为一个容器，可以管理对象的生命周期、对象与对象之间的依赖关系。可以通过配置文件来定义对象，以及设置其他对象的依赖关系。</li>
-<li><strong>低侵入式设计，代码污染极低</strong>，独立于各种应用服务器，基于Spring框架的应用，可以真正实现<strong>Write Once,Run Anywhere</strong>。</li>
-<li><strong>集成能力强</strong>：集成多种优秀的开源框架。</li>
-</ul>
-<img src="/2021/03/15/%E5%BF%85%E4%BC%9A%E6%A1%86%E6%9E%B6%EF%BC%88%E4%B8%80%EF%BC%89-Spring/framework_02.png" alt="Spring framework架构提" style="zoom:75%;">
-
-
-
-<h4 id="核心容器（Core-Container）"><a href="#核心容器（Core-Container）" class="headerlink" title="核心容器（Core Container）"></a>核心容器（Core Container）</h4><p>如图所示，<strong>Spring</strong>的核心容器是其他模块建立的基础，有<strong>Spring-core、Spring-beans、Spring-context、Spring-context-support和Spring-expression（String表达式语言）</strong>等模块组成。</p>
-<ul>
-<li><strong>Spring-core模块</strong>：提供了框架的基本组成部分，包括<strong>控制反转</strong>（Inversion of Control，<strong>IOC</strong>）和<strong>依赖注入</strong>（Dependency Injection，<strong>DI</strong>）功能。</li>
-<li><strong>Spring-beans模块</strong>：提供了<strong>BeanFactory</strong>，是<strong>工厂模式</strong>的一个经典实现，Spring将管理对象称为<strong>Bean</strong>。</li>
-<li><strong>Spring-context模块</strong>：建立在Core和Beans模块的基础之上，提供一个<strong>框架式的对象访问方式</strong>，是访问定义和配置的任何对象的媒介。<strong>ApplicationContext</strong>接口是Context模块的焦点。</li>
-<li><strong>Spring-context-support模块</strong>：支持整合第三方库到Spring应用程序上下文，特别是用于高速缓存（EhCache、JCache）和任务调度（CommonJ、Quartz）的支持。</li>
-<li><strong>Spring-expression模块</strong>：提供了强大的表达式语言去支持运行时查询和操作对象图。</li>
-</ul>
-<h5 id="spring-core"><a href="#spring-core" class="headerlink" title="spring-core"></a>spring-core</h5><p>如图显示，<strong>spring-core</strong> 目录模块（参考Spring5.x）:</p>
-<ul>
-<li><p><strong>asm</strong>：字节码框架，能动态改变字节码文件。（<strong>Java</strong>是静态语言，一旦编译完成无法修改，无法像动态语言例如 <strong>JS</strong> 那样在执行器可以随意添加方法、属性）；</p>
-</li>
-<li><p><strong>cglib</strong>：动态代理，代码生成库；</p>
-</li>
-<li><p><strong>core</strong>：核心包：注解和元注解、别名注册和属性访问、encode和decode输入流、转换器服务包、环境配置（profiles）、日志类、序列化和反序列化类、代码风格、可执行任务类等；</p>
-</li>
-<li><p><strong>lang</strong>：部分注解：@NonNull、@NonNullApi、@Nullable等；</p>
-</li>
-<li><p><strong>objenesis</strong>：objenesis是一个小型java类库用来实例化一个特定class的对象（非构造器）；</p>
-</li>
-<li><p><strong>util</strong>：工具类包，常用<strong>ObjectUtils</strong>、<strong>ClassUtils</strong>等。</p>
-</li>
-</ul>
-<img src="/2021/03/15/%E5%BF%85%E4%BC%9A%E6%A1%86%E6%9E%B6%EF%BC%88%E4%B8%80%EF%BC%89-Spring/framework_03.png" alt="spring-core目录结构" style="zoom:50%;">
-
-<h5 id="Ioc-容器"><a href="#Ioc-容器" class="headerlink" title="Ioc 容器"></a>Ioc 容器</h5><p><strong>Spring</strong> 容器是 <strong>Spring</strong> 框架的核心。容器将创建对象，把它们连接在一起，配置它们，并管理他们的整个生命周期从创建到销毁。<strong>Spring</strong> 容器使用<strong>依赖注入（DI）</strong>来管理组成一个应用程序的组件。这些对象被称为 <strong>Spring Beans</strong>。</p>
-<p><strong>Bean</strong>是<strong>Spring</strong>框架中<strong>最核心</strong>的概念之一.</p>
-<blockquote>
-<p>In Spring, the objects that form the backbone of your application and that are managed by the Spring IoC container are called beans. A bean is an object that is instantiated, assembled, and otherwise managed by a Spring IoC container.</p>
-<p>在 <strong>Spring</strong> 中，构成应用程序<strong>主干</strong>并由<strong>Spring IoC容器</strong>管理的<strong>对象</strong>称为<strong>bean</strong>。<strong>bean</strong>是一个由<strong>Spring IoC</strong>容器实例化、组装和管理的<strong>对象</strong>。</p>
-</blockquote>
-<p><strong>BeanFactory</strong></p>
-<p><strong>Bean</strong>的创建是典型的工厂模式，顶级接口为 <strong><em>BeanFactory</em></strong> ；</p>
-<p><strong>Spring</strong> 使用 <strong>BeanFactory</strong> 来实例化、配置和管理 <strong>Bean</strong>；</p>
-<p><strong>BeanFactory</strong> 只能管理单例（Singleton）<strong>Bean</strong> 的生命周期。它不能管理原型 (prototype, 非单例) <strong>Bean</strong> 的生命周期；</p>
-<p><strong>BeanFactory</strong> 有着庞大的继承、实现体系，有众多的子接口、实现类。</p>
-<img src="/2021/03/15/%E5%BF%85%E4%BC%9A%E6%A1%86%E6%9E%B6%EF%BC%88%E4%B8%80%EF%BC%89-Spring/framework_04.png" alt="BeanFactory基本类体系结构" style="zoom:80%;">
-
-<ul>
-<li><p>一级接口：<strong>BeanFactory</strong> 作为主接口，不继承任何接口。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.springframework.beans.factory;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.springframework.beans.BeansException;</span><br><span class="line"><span class="keyword">import</span> org.springframework.core.ResolvableType;</span><br><span class="line"><span class="keyword">import</span> org.springframework.lang.Nullable;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">BeanFactory</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 工厂Bean前缀</span></span><br><span class="line">	String FACTORY_BEAN_PREFIX = <span class="string">"&amp;"</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取Bean 的方法</span></span><br><span class="line">	<span class="function">Object <span class="title">getBean</span><span class="params">(String name)</span> <span class="keyword">throws</span> BeansException</span>;</span><br><span class="line">	&lt;T&gt; <span class="function">T <span class="title">getBean</span><span class="params">(String name, @Nullable Class&lt;T&gt; requiredType)</span> <span class="keyword">throws</span> BeansException</span>;</span><br><span class="line">	<span class="function">Object <span class="title">getBean</span><span class="params">(String name, Object... args)</span> <span class="keyword">throws</span> BeansException</span>;</span><br><span class="line">	&lt;T&gt; <span class="function">T <span class="title">getBean</span><span class="params">(Class&lt;T&gt; requiredType)</span> <span class="keyword">throws</span> BeansException</span>;</span><br><span class="line">	&lt;T&gt; <span class="function">T <span class="title">getBean</span><span class="params">(Class&lt;T&gt; requiredType, Object... args)</span> <span class="keyword">throws</span> BeansException</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 判断：是否包含，是否是单例，是否是属性，类型是否匹配</span></span><br><span class="line">	<span class="function"><span class="keyword">boolean</span> <span class="title">containsBean</span><span class="params">(String name)</span></span>;</span><br><span class="line">	<span class="function"><span class="keyword">boolean</span> <span class="title">isSingleton</span><span class="params">(String name)</span> <span class="keyword">throws</span> NoSuchBeanDefinitionException</span>;</span><br><span class="line">	<span class="function"><span class="keyword">boolean</span> <span class="title">isPrototype</span><span class="params">(String name)</span> <span class="keyword">throws</span> NoSuchBeanDefinitionException</span>;</span><br><span class="line">	<span class="function"><span class="keyword">boolean</span> <span class="title">isTypeMatch</span><span class="params">(String name, ResolvableType typeToMatch)</span> <span class="keyword">throws</span> NoSuchBeanDefinitionException</span>;</span><br><span class="line">	<span class="function"><span class="keyword">boolean</span> <span class="title">isTypeMatch</span><span class="params">(String name, @Nullable Class&lt;?&gt; typeToMatch)</span> <span class="keyword">throws</span> NoSuchBeanDefinitionException</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取类型</span></span><br><span class="line">	<span class="meta">@Nullable</span></span><br><span class="line">	Class&lt;?&gt; getType(String name) <span class="keyword">throws</span> NoSuchBeanDefinitionException;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取别名</span></span><br><span class="line">	String[] getAliases(String name);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>二级接口：<strong><em>ListableBeanFactory</em></strong>、<strong><em>AutowireCapableBeanFactory</em></strong>、<strong><em>HierarchicalBeanFactory</em></strong> 三个接口继承了 <strong>BeanFactory</strong> ，功能上得到了增强。</p>
-</li>
-<li><p>三级接口：<strong><em>ConfigurableBeanFactory</em></strong> 对 二级接口 <strong><em>HierarchicalBeanFactory</em></strong> 再次增强，此外还继承了 <strong><em>SingletonBeanRegistry</em></strong> 接口。</p>
-</li>
-<li><p>四级接口：<strong><em>ConfigurableListableBeanFactory</em></strong> 继承了以上所有接口，功能最为强大。</p>
-</li>
-<li><p>一级抽象类：<strong><em>AbstractBeanFactory</em></strong> 实现了 三级接口  <strong><em>ConfigurableBeanFactory</em></strong> 的功能。</p>
-</li>
-<li><p>二级抽象类：<strong><em>AbstractAutowireCapableBeanFactory</em></strong> 继承自 <strong><em>AbstractBeanFactory</em></strong> 抽象类，并实现了二级接口 <strong><em>AutowireCapableBeanFactory</em></strong> 的功能。</p>
-</li>
-<li><p>实现类：<strong><em>DefaultListableBeanFactory</em></strong> 并非抽象类，其继承了二级抽象类 <strong><em>AbstractAutowireCapableBeanFactory</em></strong> ，并且实现了四级接口 <strong><em>ConfigurableListableBeanFactory</em></strong> 的功能。</p>
-</li>
-<li><p>实现类：<strong><em>XmlBeanFactory</em></strong> 继承自 <strong><em>DefaultListableBeanFactory</em></strong>，重写了部分功能，可以从<strong>classpath</strong>或文件系统等获取资源。</p>
-</li>
-</ul>
-<p><strong>几点说明：</strong></p>
-<ul>
-<li><strong>XmlBeanFactory</strong>通过 <strong>Resource</strong> 装载 <strong>Spring</strong> 配置信息并启动 <strong>IoC</strong> 容器，然后就可以通过<strong><em>factory.getBean</em></strong>从 <strong>IoC</strong> 容器中获取 <strong>Bean</strong> 了。</li>
-<li><strong>BeanFactroy</strong>采用的是延迟加载形式来注入<strong>Bean</strong>的，通过<strong>BeanFactory</strong>启动<strong>IoC</strong>容器时，并不会初始化配置文件中定义的<strong>Bean</strong>，初始化动作发生在第一个调用时。（即只有在使用到某个<strong>Bean</strong>时(调用<strong><em>getBean()</em></strong>)，才对该<strong>Bean</strong>进行加载实例化）（<strong><em>ApplicationContext</em></strong> 与之相反，在容器启动时，一次性创建了所有的<strong>Bean</strong>。这样，在容器启动时，就可以发现<strong>Spring</strong>中存在的配置错误。但缺点是占用更多内存，当配置<strong>Bean</strong>较多时，程序启动较慢，可以通过配置懒加载的方式提升启动速度。）</li>
-<li>对于单实例（singleton）的<strong>Bean</strong>来说，<strong>BeanFactory</strong>会缓存<strong>Bean</strong>实例，所以第二次使用<strong>getBean</strong>时直接从<strong>IoC</strong>容器缓存中获取<strong>Bean</strong>。</li>
-<li><strong><em>BeanFactory</em></strong> 主要面对的是<strong>Spring</strong> 框架的基础设施，通常开发者使用的则是 <strong><em>ApplicationContext</em></strong>。</li>
-</ul>
-<p><strong>ApplicationContext</strong></p>
-<p><strong>ApplicationContext</strong> 由 <strong>BeanFactory</strong> 派生而来，提供了更多面向实际应用的功能。</p>
-<ul>
-<li>访问应用程序组件的<strong>Bean</strong>工厂方法。继承自  <strong><em>ListableBeanFactory</em></strong> 、<strong><em>HierarchicalBeanFactory</em></strong> 接口；</li>
-<li>以通用方式加载文件资源的能力。继承自 <strong><em>ResourceLoader</em></strong> 接口；</li>
-<li>向注册侦听器发布事件的能力。继承自 <strong><em>ApplicationEventPublisher</em></strong> 接口；</li>
-<li>解析消息的能力，支持国际化。继承自 <strong>MessageSource</strong> 接口；</li>
-<li>从父上下文继承。后代上下文中的定义总是优先。单个父上下文可以被整个<strong>web</strong>应用程序使用，而每个<strong>servlet</strong>都有自己独立于任何其他<strong>servlet</strong>的子上下文。</li>
-</ul>
-<p>常用子类（接口）包括：</p>
-<ul>
-<li><p><strong>ConfigurableApplicationContext</strong></p>
-<ul>
-<li><p><strong>ClassPathXmlApplicationContext</strong> 从<strong>classpath</strong>的<strong><em>xml</em></strong>配置文件创建，可以从<strong><em>jar</em></strong>包中读取配置文件。ClassPathXmlApplicationContext 编译路径总有三种方式</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ApplicationContext factory = <span class="keyword">new</span> ClassPathXmlApplicationContext(<span class="string">"classpath:applicationContext.xml"</span>);</span><br><span class="line">ApplicationContext factory = <span class="keyword">new</span> ClassPathXmlApplicationContext(<span class="string">"applicationContext.xml"</span>); </span><br><span class="line">ApplicationContext factory = <span class="keyword">new</span> ClassPathXmlApplicationContext(<span class="string">"file:E:/demo/applicationContext.xml"</span>);</span><br></pre></td></tr></table></figure>
-</li>
-<li><p><strong>FileSystemXmlApplicationContext</strong> 从文件系统或者<strong><em>url</em></strong>指定的<strong><em>xml</em></strong>配置文件创建，参数为配置文件名或文件名数组，有相对路径与绝对路径。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ApplicationContext factory=<span class="keyword">new</span> FileSystemXmlApplicationContext(<span class="string">"src/applicationContext.xml"</span>);</span><br><span class="line">ApplicationContext factory=<span class="keyword">new</span> FileSystemXmlApplicationContext(<span class="string">"E:/demo/applicationContext.xml"</span>);</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-</li>
-<li><p><strong>WebApplicationContext</strong></p>
-<ul>
-<li><p><strong>XmlWebApplicationContext</strong> 从<strong><em>web</em></strong>应用的根目录读取配置文件，需要先在<strong><em>web.xml</em></strong>中配置，可以配置<strong>监听器</strong>或者<strong>servlet</strong>来实现：</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- listener --&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">listener</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">listener-class</span>&gt;</span>org.springframework.web.context.ContextLoaderListener<span class="tag">&lt;/<span class="name">listener-class</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">listener</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 或者 servlet --&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">servlet</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">servlet-name</span>&gt;</span>context<span class="tag">&lt;/<span class="name">servlet-name</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">servlet-class</span>&gt;</span>org.springframework.web.context.ContextLoaderServlet<span class="tag">&lt;/<span class="name">servlet-class</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">load-on-startup</span>&gt;</span>1<span class="tag">&lt;/<span class="name">load-on-startup</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">servlet</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>以上两种方式都默认配置文件为<strong><em>WEB-INF/applicationContext.xml</em></strong>，也可使用<strong><em>context-param</em></strong>指定配置文件:</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">context-param</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">param-name</span>&gt;</span>contextConfigLocation<span class="tag">&lt;/<span class="name">param-name</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">param-value</span>&gt;</span>/WEB-INF/myApplicationContext.xml<span class="tag">&lt;/<span class="name">param-value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">context-param</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-
-
-</li>
-</ul>
-</li>
-</ul>
-<h4 id="Spring-初始化"><a href="#Spring-初始化" class="headerlink" title="Spring 初始化"></a>Spring 初始化</h4><h5 id="Bean-的定义"><a href="#Bean-的定义" class="headerlink" title="Bean 的定义"></a>Bean 的定义</h5><p><strong>Bean</strong> 是一个被实例化，组装，并通过 <strong>Spring IoC 容器</strong>所管理的对象，这些 <strong>bean</strong> 是由用容器提供的配置元数据创建的。</p>
-<p>元数据包含：</p>
-<ul>
-<li>如何创建一个 bean；</li>
-<li>bean 的生命周期的详细信息；</li>
-<li>bean 的依赖关系。</li>
-</ul>
-<p>具体对应属性如下：</p>
-<ul>
-<li><strong>class</strong>：指定用来创建 <strong>bean</strong> 的 <strong>bean</strong> 类。</li>
-<li><strong>name</strong>：用来指定唯一的 <strong>bean</strong> 标识符；例如基于<strong><em>xml</em></strong>配置的元数据中，使用 <strong>id</strong> 或 <strong>name</strong> 属性定义 <strong>Bean</strong> 标识符；基于注解方式时， <strong>@Component、@Service</strong> 等可以指定名称，或类型的首字母小写。  </li>
-<li><strong>scope</strong>：对象 做用域 ；</li>
-<li><strong>constructor-arg</strong>：构造器参数；</li>
-<li><strong>properties</strong>：属性；</li>
-<li><strong>autowiring mode</strong>: 自动注入模式；</li>
-<li><strong>lazy-initialization mode</strong>: 懒加载模式；</li>
-<li><strong>initialization 方法</strong>：初始化方法；</li>
-<li><strong>destruction 方法</strong>：摧毁方法。</li>
-</ul>
-<p><strong>Spring 配置 元数据</strong></p>
-<ul>
-<li>基于 XML 的配置文件。例如：classpath:applicationContext.xml</li>
-<li>基于 注解的配置。例如：@Component、@Controller、@Service、@Repository 等</li>
-<li>基于 Java 的配置。例如：@Bean 注解的方法里面 通过构造方法或者 构造者模式等构建bean返回。</li>
-</ul>
-<h5 id="Bean-的做用域"><a href="#Bean-的做用域" class="headerlink" title="Bean 的做用域"></a>Bean 的做用域</h5><table>
-<thead>
-<tr>
-<th align="left">作用域</th>
-<th align="left">描述</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left"><strong>singleton</strong></td>
-<td align="left">该作用域将 <strong>bean</strong> 的定义的限制在每一个 <strong>Spring IoC</strong> 容器中的一个单一实例(默认)。</td>
-</tr>
-<tr>
-<td align="left"><strong>prototype</strong></td>
-<td align="left">该作用域将单一 <strong>bean</strong> 的定义限制在任意数量的对象实例。</td>
-</tr>
-<tr>
-<td align="left"><strong>request</strong></td>
-<td align="left">该作用域将 <strong>bean</strong> 的定义限制为 <strong>HTTP</strong> 请求。只在 <strong>web-aware Spring ApplicationContext</strong> 的上下文中有效。</td>
-</tr>
-<tr>
-<td align="left"><strong>session</strong></td>
-<td align="left">该作用域将 <strong>bean</strong> 的定义限制为 <strong>HTTP</strong> 会话。 只在<strong>web-aware Spring ApplicationContext</strong>的上下文中有效。</td>
-</tr>
-<tr>
-<td align="left"><strong>global-session</strong></td>
-<td align="left">该作用域将 <strong>bean</strong> 的定义限制为全局 <strong>HTTP</strong> 会话。只在 <strong>web-aware Spring ApplicationContext</strong> 的上下文中有效。</td>
-</tr>
-</tbody></table>
-<ul>
-<li><strong>singleton 作用域</strong></li>
-</ul>
-<p>如果作用域设置为 <strong>singleton</strong>，那么 <strong>Spring IoC</strong> 容器刚好创建一个由该 <strong>bean</strong> 定义的对象的实例。该单一实例将存储在这种单例 <strong>bean</strong> 的高速缓存中，以及针对该 <strong>bean</strong> 的所有后续的请求和引用都返回缓存对象。</p>
-<ul>
-<li><strong>prototype 作用域</strong></li>
-</ul>
-<p>如果作用域设置为 <strong>prototype</strong>，那么每次特定的 <strong>bean</strong> 发出请求时 <strong>Spring IoC</strong> 容器就创建对象的新的 <strong>Bean</strong> 实例。一般说来，满状态的 <strong>bean</strong> 使用 <strong>prototype</strong> 作用域和没有状态的 <strong>bean</strong> 使用 <strong>singleton</strong> 作用域。</p>
-<h5 id="Bean-的生命周期"><a href="#Bean-的生命周期" class="headerlink" title="Bean 的生命周期"></a>Bean 的生命周期</h5><p>​    前面说到当客户端通过显示或者隐式的方式调用 <strong>BeanFactory</strong> 的 <strong>getBean()</strong> 方法来请求某个实例对象的时候，会触发相应 <strong>bean</strong> 的实例化进程，（使用 <strong>ApplicationContext</strong> 容器时，该容器启动的时候会立刻调用注册到该容器所有 <strong>bean</strong> 定义的实例化方法。其次对于<strong>signleton</strong> 类型的 <strong>bean</strong>，该类型的 <strong>bean</strong> 只会在第一次调用 <strong>getBean()</strong> 的时候才会触发，而后续的调用则会直接返回容器<strong>缓存</strong>中的实例对象。）</p>
-<p><strong>getBean</strong>() 只是 <strong>bean</strong> 实例化进程的入口，真正的实现逻辑其实是在 <strong>AbstractAutowireCapableBeanFactory</strong> 的 <strong>doCreateBean</strong>() 实现：</p>
-<img src="/2021/03/15/%E5%BF%85%E4%BC%9A%E6%A1%86%E6%9E%B6%EF%BC%88%E4%B8%80%EF%BC%89-Spring/framework_05.png" alt="Bean的实例化过程" style="zoom:65%;">
-
-<p>原来我们采用 <strong>new</strong> 的方式创建对象，用完对象在其脱离作用域后就会被回收，对于后续操作我们无权也没法干涉，但是采用 <strong>Spring</strong> 容器后，<strong>Spring</strong> 容器将会对其所有管理的 <strong>Bean</strong> 对象全部给予一个统一的生命周期管理，同时在这个阶段我们也可以对其进行干涉（比如对 <strong>bean</strong> 进行<strong>增强处理</strong>，对 <strong>bean</strong> 进行篡改等）</p>
-<p>观察 源码 <strong>doCreateBean</strong>() 可知，核心的方法如下：</p>
-<ul>
-<li><strong>createBeanInstance()</strong> 创建Bean 实例；</li>
-<li><strong>populateBean()</strong> 填充 bean 里面的属性值，包括 @AutoWired、@Resource、@Value 标记的属性；</li>
-<li><strong>initializeBean()</strong> 对 Bean 进行初始化操作，包括一些初始化方法的执行。</li>
-</ul>
-<p><strong>激活 Aware 接口</strong></p>
-<p>当 <strong>Spring</strong> 完成 <strong>bean 对象实例化</strong>并且<strong>设置完相关属性和依赖</strong>后，则会开始 <strong>bean</strong> 的初始化进程<strong><em>initializeBean()</em></strong>，初始化第一个阶段是检查当前 <strong>bean</strong> 对象是否实现了一系列以 <strong>Aware</strong> 结尾的的接口。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">   <span class="function"><span class="keyword">protected</span> Object <span class="title">initializeBean</span><span class="params">(<span class="keyword">final</span> String beanName, <span class="keyword">final</span> Object bean, @Nullable RootBeanDefinition mbd)</span> </span>&#123;</span><br><span class="line">       <span class="keyword">if</span> (System.getSecurityManager() != <span class="keyword">null</span>) &#123;</span><br><span class="line">           AccessController.doPrivileged((PrivilegedAction&lt;Object&gt;) () -&gt; &#123;</span><br><span class="line">               invokeAwareMethods(beanName, bean);</span><br><span class="line">               <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">           &#125;, getAccessControlContext());</span><br><span class="line">       &#125;</span><br><span class="line">       <span class="keyword">else</span> &#123;</span><br><span class="line">           invokeAwareMethods(beanName, bean);</span><br><span class="line">       &#125;</span><br><span class="line">       ...</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 判断是否实现Aware接口</span></span><br><span class="line"><span class="comment">// 在初始化阶段主要是感知 BeanNameAware、BeanClassLoaderAware、BeanFactoryAware</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">invokeAwareMethods</span><span class="params">(<span class="keyword">final</span> String beanName, <span class="keyword">final</span> Object bean)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">if</span> (bean <span class="keyword">instanceof</span> Aware) &#123;</span><br><span class="line">		<span class="keyword">if</span> (bean <span class="keyword">instanceof</span> BeanNameAware) &#123;</span><br><span class="line">			((BeanNameAware) bean).setBeanName(beanName);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> (bean <span class="keyword">instanceof</span> BeanClassLoaderAware) &#123;</span><br><span class="line">			ClassLoader bcl = getBeanClassLoader();</span><br><span class="line">			<span class="keyword">if</span> (bcl != <span class="keyword">null</span>) &#123;</span><br><span class="line">				((BeanClassLoaderAware) bean).setBeanClassLoader(bcl);</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> (bean <span class="keyword">instanceof</span> BeanFactoryAware) &#123;</span><br><span class="line">			((BeanFactoryAware) bean).setBeanFactory(AbstractAutowireCapableBeanFactory.<span class="keyword">this</span>);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><strong>BeanNameAware</strong>：对该 <strong>bean</strong> 对象定义的 <strong>beanName</strong> 设置到当前对象实例中</li>
-<li><strong>BeanClassLoaderAware</strong>：将当前 <strong>bean</strong> 对象相应的 <strong>ClassLoader</strong> 注入到当前对象实例</li>
-<li><strong>BeanFactoryAware：BeanFactory</strong> 容器会将自身注入到当前对象实例中，这样当前对象就会拥有一个 <strong>BeanFactory</strong> 容器的引用。</li>
-</ul>
-<p>除此之外还有一些其他的 <strong>Aware</strong> 接口：</p>
-<ul>
-<li><p><strong>LoadTimeWeaverAware</strong>：加载Spring Bean时织入第三方模块，如AspectJ</p>
-</li>
-<li><p><strong>BootstrapContextAware</strong>：资源适配器BootstrapContext，如JCA,CCI</p>
-</li>
-<li><p><strong>ResourceLoaderAware</strong>：底层访问资源的加载器</p>
-</li>
-<li><p><strong>PortletConfigAware</strong>：PortletConfig</p>
-</li>
-<li><p><strong>PortletContextAware</strong>：PortletContext</p>
-</li>
-<li><p><strong>ServletConfigAware</strong>：ServletConfig</p>
-</li>
-<li><p><strong>ServletContextAware</strong>：ServletContext</p>
-</li>
-<li><p><strong>MessageSourceAware</strong>：国际化</p>
-</li>
-<li><p><strong>ApplicationEventPublisherAware</strong>：应用事件</p>
-</li>
-<li><p><strong>NotificationPublisherAware</strong>：JMX通知</p>
-</li>
-</ul>
-<p><strong>BeanPostProcessor</strong></p>
-<p><strong><em>BeanPostProcessor</em></strong> 会处理当前容器内所有符合条件的实例化后的 <strong>bean</strong> 对象。并对该对象进行有效的扩展，允许 <strong>Spring</strong> 在初始化 <strong>bean</strong> 阶段对其进行定制化修改，如处理标记接口或者为其提供代理实现等。</p>
-<p><strong>BeanPostProcessor</strong> 接口提供了两个方法，在不同的时机执行，分别对应上图的前置处理和后置处理。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">BeanPostProcessor</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Nullable</span></span><br><span class="line">     <span class="function"><span class="keyword">default</span> Object <span class="title">postProcessBeforeInitialization</span><span class="params">(Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> bean;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Nullable</span></span><br><span class="line">     <span class="function"><span class="keyword">default</span> Object <span class="title">postProcessAfterInitialization</span><span class="params">(Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> bean;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p><strong>InitializingBean 和 init-method</strong></p>
-<ul>
-<li><p><strong>InitializingBean</strong> 是一个接口，它为 <strong>Spring Bean</strong> 的初始化提供了一种方式，它有一个 <strong>afterPropertiesSet</strong>() 方法。</p>
-</li>
-<li><p><strong>init-method</strong> 是初始化方法，在对象定义时指定，例如：</p>
-<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;bean <span class="class"><span class="keyword">class</span></span>=<span class="string">"com.example.demo.dto.UserDTO"</span> id=<span class="string">"user"</span> init-method=<span class="string">"init"</span>&gt;</span><br><span class="line">    &lt;property name="name" value="张三"&gt;&lt;/property&gt;</span><br><span class="line">&lt;/bean&gt;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p><strong>bean</strong> 的初始化进程中会判断先当前 <strong>bean</strong> 是否实现了 <strong>InitializingBean</strong>，如果实现了则调用 <strong>afterPropertiesSet</strong>() 进行初始化工作。然后再检查是否也指定了 <strong>init-method()</strong>，如果指定了则通过反射机制调用指定的 <strong>init-method()</strong>。</p>
-</li>
-<li><p>推荐使用 <strong>init-method()</strong> 方式，因为实现接口会污染应用程序，造成一定代码入侵。</p>
-</li>
-</ul>
-<p><strong>DisposableBean 和 destroy-method</strong></p>
-<p>与 <strong>InitializingBean</strong> 和 <strong>init-method</strong> 用于对象的自定义初始化工作相似，<strong>DisposableBean</strong>和 <strong>destroy-method</strong> 则用于对象的自定义销毁工作。</p>
-<p>当一个 <strong>bean</strong> 对象经历了实例化、设置属性、初始化阶段,那么该 <strong>bean</strong> 对象就可以供容器使用了（调用的过程）。当完成调用后，如果是 <strong>singleton</strong> 类型的 <strong>bean</strong> ，则会看当前 <strong>bean</strong> 是否应实现了 <strong>DisposableBean</strong> 接口或者配置了 <strong>destroy-method</strong> 属性，如果是的话，则会为该实例注册一个用于对象销毁的回调方法，便于在这些 <strong>singleton</strong> 类型的 <strong>bean</strong> 对象销毁之前执行销毁逻辑。</p>
-<p>但是，并不是对象完成调用后就会立刻执行销毁方法，因为这个时候 <strong>Spring</strong> 容器还处于运行阶段，只有<strong>当 Spring 容器关闭的时候才会去调用</strong>。但是， <strong>Spring</strong> 容器不会这么聪明会自动去调用这些销毁方法，而是需要我们主动去告知 <strong>Spring</strong> 容器。</p>
-<ul>
-<li>对于 <strong>BeanFactory</strong> 容器而言，我们需要主动调用 <strong>destroySingletons()</strong> 通知 <strong>BeanFactory</strong> 容器去执行相应的销毁方法。</li>
-<li>对于 <strong>ApplicationContext</strong> 容器而言调用 <strong>registerShutdownHook</strong>() 方法。</li>
-</ul>
-<p>拓展：<strong>InstantiationAwareBeanPostProcessor</strong></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">InstantiationAwareBeanPostProcessor</span> <span class="keyword">extends</span> <span class="title">BeanPostProcessor</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="function">Object <span class="title">postProcessBeforeInstantiation</span><span class="params">(Class&lt;?&gt; beanClass, String beanName)</span> <span class="keyword">throws</span> BeansException</span>;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">boolean</span> <span class="title">postProcessAfterInstantiation</span><span class="params">(Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException</span>;</span><br><span class="line"></span><br><span class="line">	<span class="function">PropertyValues <span class="title">postProcessPropertyValues</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">			PropertyValues pvs, PropertyDescriptor[] pds, Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>由源码可知，<strong>InstantiationAwareBeanPostProcessor</strong> 接口继承自 <strong><em>BeanPostProcessor</em></strong> 接口，但其内部还有三个额外方法：</p>
-<ul>
-<li><strong>postProcessBeforeInstantiation</strong>： 自身方法，是最先执行的方法，它在目标对象实例化之前调用，该方法的返回值类型是Object，我们可以返回任何类型的值。由于这个时候目标对象还未实例化，所以这个返回值可以用来代替原本该生成的目标对象的实例(比如代理对象)。如果该方法的返回值代替原本该生成的目标对象，后续只有<strong>postProcessAfterInitialization</strong>方法会调用，其它方法不再调用；否则按照正常的流程走。</li>
-<li><strong>postProcessAfterInstantiation</strong>：在目标对象实例化之后调用，这个时候对象已经被实例化，但是该实例的属性还未被设置，都是null。因为它的返回值是决定要不要调用 <strong>postProcessPropertyValues</strong>方法的其中一个因素（因为还有一个因素是<strong><em>mbd.getDependencyCheck()</em></strong>）；如果该方法返回<strong>false</strong>,并且不需要<strong>check</strong>，那么<strong>postProcessPropertyValues</strong>就会被忽略不执行；如果返回<strong>true</strong>，<strong>postProcessPropertyValues</strong>就会被执行。</li>
-<li><strong>postProcessPropertyValues</strong>：对属性值进行修改，如果<strong>postProcessAfterInstantiation</strong>方法返回<strong>false</strong>，该方法可能不会被调用。可以在该方法内对属性值进行修改。</li>
-</ul>
-<p>示例：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line">**</span><br><span class="line"> * 自定义处理器</span><br><span class="line"> * <span class="meta">@author</span> dengp</span><br><span class="line"> *</span><br><span class="line"> */</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyInstantiationAwareBeanPostProcessor</span> <span class="keyword">implements</span> <span class="title">InstantiationAwareBeanPostProcessor</span></span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * BeanPostProcessor接口中的方法</span></span><br><span class="line"><span class="comment">     * 在Bean的自定义初始化方法之前执行</span></span><br><span class="line"><span class="comment">     * Bean对象已经存在了</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">postProcessBeforeInitialization</span><span class="params">(Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"》》》初始化前：postProcessBeforeInitialization"</span>);</span><br><span class="line">        <span class="keyword">return</span> bean;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * BeanPostProcessor接口中的方法</span></span><br><span class="line"><span class="comment">     * 在Bean的自定义初始化方法执行完成之后执行</span></span><br><span class="line"><span class="comment">     * Bean对象已经存在了</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">postProcessAfterInitialization</span><span class="params">(Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"》》》初始化后：postProcessAfterInitialization"</span>);</span><br><span class="line">        <span class="keyword">return</span> bean;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * InstantiationAwareBeanPostProcessor中自定义的方法</span></span><br><span class="line"><span class="comment">     * 在方法实例化之前执行  Bean对象还没有</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">postProcessBeforeInstantiation</span><span class="params">(Class&lt;?&gt; beanClass, String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"》》》实例化前：postProcessBeforeInstantiation"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * InstantiationAwareBeanPostProcessor中自定义的方法</span></span><br><span class="line"><span class="comment">     * 在方法实例化之后执行  Bean对象已经创建出来了</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">postProcessAfterInstantiation</span><span class="params">(Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"》》》实例化后：postProcessAfterInstantiation"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * InstantiationAwareBeanPostProcessor中自定义的方法</span></span><br><span class="line"><span class="comment">     * 可以用来修改Bean中属性的内容</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> PropertyValues <span class="title">postProcessPropertyValues</span><span class="params">(PropertyValues pvs, PropertyDescriptor[] pds, Object bean,</span></span></span><br><span class="line"><span class="function"><span class="params">                                                    String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"》》》设置属性：postProcessPropertyValues"</span>);</span><br><span class="line">        <span class="keyword">return</span> pvs;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>UserDTO 对象</strong>：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserDTO</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">UserDTO</span><span class="params">()</span></span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"》》》DTO 内对象被实例化..."</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">()</span></span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"》》》DTO 内自定义初始化的方法...."</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String age;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> name; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"》》》DTO 内set方法属性设置："</span>+ name);</span><br><span class="line">        <span class="keyword">this</span>.name = name; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getAge</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> age; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setAge</span><span class="params">(String age)</span> </span>&#123; <span class="keyword">this</span>.age = age; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"UserDTO&#123;"</span> +</span><br><span class="line">                <span class="string">"name='"</span> + name + <span class="string">'\''</span> +</span><br><span class="line">                <span class="string">", age='"</span> + age + <span class="string">'\''</span> +</span><br><span class="line">                <span class="string">'&#125;'</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>applicationContext.xml</strong></p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">beans</span> <span class="attr">xmlns</span>=<span class="string">"http://www.springframework.org/schema/beans"</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xsi:schemaLocation</span>=<span class="string">"http://www.springframework.org/schema/beans</span></span></span><br><span class="line"><span class="tag"><span class="string"> http://www.springframework.org/schema/beans/spring-beans.xsd"</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=<span class="string">"com.example.demo.dto.UserDTO"</span> <span class="attr">id</span>=<span class="string">"user"</span> <span class="attr">init-method</span>=<span class="string">"start"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"name"</span> <span class="attr">value</span>=<span class="string">"张三"</span>&gt;</span><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- 注册InstantiationAwareBeanPostProcessor对象 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=<span class="string">"com.example.demo.beanpost.MyInstantiationAwareBeanPostProcessor"</span>&gt;</span><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">beans</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>Test 调用：</strong></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">getBeanPostProcessorTest</span><span class="params">()</span></span>&#123;</span><br><span class="line">    ClassPathXmlApplicationContext ac = <span class="keyword">new</span> ClassPathXmlApplicationContext(<span class="string">"applicationContext.xml"</span>);</span><br><span class="line">    UserDTO user = ac.getBean(UserDTO<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">    <span class="comment">// 打印</span></span><br><span class="line">    System.out.println(user);</span><br><span class="line">    <span class="comment">// 关闭销毁</span></span><br><span class="line">    ac.registerShutdownHook();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>日志打印：</strong></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">》》》实例化前：postProcessBeforeInstantiation</span><br><span class="line">》》》DTO 内对象被实例化...</span><br><span class="line">》》》实例化后：postProcessAfterInstantiation</span><br><span class="line">》》》设置属性：postProcessPropertyValues</span><br><span class="line">》》》DTO 内set方法属性设置：张三</span><br><span class="line">》》》初始化前：postProcessBeforeInitialization</span><br><span class="line"><span class="comment">// 如果该 bean 实现了 InitializingBean 接口，则调用 .afterPropertiesSet() 方法</span></span><br><span class="line">》》》DTO 内自定义初始化的方法....</span><br><span class="line">》》》初始化后：postProcessAfterInitialization</span><br><span class="line"><span class="comment">// 对象完成初始化，开始方法调用。</span></span><br><span class="line"><span class="comment">// 在容器进行关闭之前，如果该 bean 实现了 DisposableBean 接口，则调用 destroy() 方法。</span></span><br><span class="line"><span class="comment">// 在容器进行关闭之前，如果该 bean 配置了 destroy-mehod，则调用其指定的方法。</span></span><br><span class="line"></span><br><span class="line">UserDTO&#123;name=<span class="string">'张三'</span>, age=<span class="string">'null'</span>&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h4 id="Spring-事件机制"><a href="#Spring-事件机制" class="headerlink" title="Spring 事件机制"></a>Spring 事件机制</h4><p><strong>Spring</strong>事件机制分为：</p>
-<ul>
-<li>事件发布器(<strong>EventPublisher</strong>)</li>
-<li>事件监听器(<strong>EventListener</strong>)</li>
-<li>事件多播器(<strong>ApplicationEventMulticaster</strong>)。</li>
-</ul>
-<p><strong>Spring</strong> 事件机制对应常用设计模式之<strong>观察者模式</strong>，主要就是用来解耦。<br><strong>Spring</strong> 的 <strong>ApplicationContext</strong> 提供了支持事件和代码中监听器的功能。我们可以创建 <strong>bean</strong> 用来监听在 <strong>ApplicationContext</strong> 中发布的事件。如果一个 <strong>bean</strong> 实现了 <strong>ApplicationListener</strong> 接口，当一个 <strong>ApplicationEvent</strong> 被发布以后，<strong>bean</strong> 会自动被通知。</p>
-<p><strong>事件发布器 （EventPublisher）</strong></p>
-<p>事件发布对象实现 <strong>ApplicationEventPublisherAware</strong> 这个<strong>Aware</strong> 接口，<strong>广播事件</strong>动作需要利用到<strong><em>applicationEventPublisher</em></strong>，所以 事件发布器中需要注入该对象。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 自定义事件发布器，实现ApplicationEventPublisherAware 接口</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyEventPublish</span> <span class="keyword">implements</span> <span class="title">ApplicationEventPublisherAware</span> </span>&#123;</span><br><span class="line">   <span class="keyword">private</span> ApplicationEventPublisher applicationEventPublisher;</span><br><span class="line"></span><br><span class="line">   <span class="meta">@Override</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setApplicationEventPublisher</span><span class="params">(ApplicationEventPublisher applicationEventPublisher)</span> </span>&#123;</span><br><span class="line">       <span class="keyword">this</span>.applicationEventPublisher = applicationEventPublisher;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doSomething</span><span class="params">(String msg)</span></span>&#123;</span><br><span class="line">       <span class="comment">// 发布事件，这里非 ApplicationEvent 对象，会被封装成 PayloadApplicationEvent&lt;String&gt;</span></span><br><span class="line">       applicationEventPublisher.publishEvent(msg);</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>事件对象：</strong></p>
-<ul>
-<li><strong>ApplicationEvent</strong> 为事件本身，用户可以继承该对象向实现自定义<strong>Event</strong></li>
-<li>也可以 是<strong>Object</strong> 对象（如上面的<strong>String</strong>），但是如果<strong>event</strong>真实类型不是<strong>ApplicationEvent</strong>的话，那么<strong>event</strong>会被封装成<strong>PayloadApplicationEvent</strong></li>
-</ul>
-<p><strong>事件监听器（EventListener）</strong></p>
-<p>事件监听者需要实现<strong>ApplicationListener</strong>接口，也可以 在方法上使用 <strong><em>@EventListener</em></strong> 注解（原理是通过扫描这个注解来创建监听器并自动添加到<strong>ApplicationContext</strong>中.）</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 这里事件为String，所以监听器泛型为封装的 PayloadApplicationEvent&lt;String&gt; 对象</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">StringListener</span> <span class="keyword">implements</span> <span class="title">ApplicationListener</span>&lt;<span class="title">PayloadApplicationEvent</span>&lt;<span class="title">String</span>&gt;&gt; </span>&#123;</span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onApplicationEvent</span><span class="params">(PayloadApplicationEvent event)</span> </span>&#123;</span><br><span class="line">       String msg =(String) event.getPayload();</span><br><span class="line">       System.out.println(<span class="string">"ListenerA receive:"</span> + msg);</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>指定事件（<strong>ApplicationEvent</strong> 类型实现类和 <strong>PayloadApplicationEvent</strong><Object>）监听器可以监听到指定的事件。</Object></p>
-</li>
-<li><p>发布的事件类型是<strong>ApplicationEvent</strong>的实现类<strong>A</strong>，那么所有监听者的<strong>onApplicationEvent</strong>的参数类型是<strong>A</strong>或者<strong>A的子类</strong>都会收到事件。</p>
-</li>
-</ul>
-<p><strong>事件多播器（ApplicationEventMulticaster）</strong></p>
-<p><strong>ApplicationEventMulticaster</strong> 接口可以管理多个<strong>ApplicationListener</strong>对象。并将事件发布给这些监听器。</p>
-<p><strong>ApplicationContext</strong>正是通过<strong>ApplicationEventMulticaster</strong>对象来发布事件给监听器。</p>
-<p><strong>Spring</strong> 在创建默认的事件多播器 <strong>SimpleApplicationEventMulticaster</strong> 时，<strong>taskExecutor</strong> 属性默认是<strong>null</strong>，所以默认情况下所有的监听器的 <strong>onApplicationEvent</strong> 是直接在<strong>当前线程</strong>(事件发布者所在线程)中调用。如果 <strong>onApplicationEvent</strong> 有阻塞操作也会导致事件发布者被阻塞，后续的其他监听器也会被阻塞无法调用。<br>我们可以为默认事件多播器设置 <strong>taskExecutor</strong> 属性，从而达到异步监听的目的。</p>
-<p><strong>XML方式配置：</strong></p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"executorService"</span> <span class="attr">class</span>=<span class="string">"java.util.concurrent.Executors"</span> <span class="attr">factory-method</span>=<span class="string">"newScheduledThreadPool"</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"applicationEventMulticaster"</span> <span class="attr">class</span>=<span class="string">"org.springframework.context.event.SimpleApplicationEventMulticaster"</span>&gt;</span></span><br><span class="line">       <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"taskExecutor"</span> <span class="attr">ref</span>=<span class="string">"executorService"</span>&gt;</span></span><br><span class="line">       <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>在<strong><em>AbstractApplicationContext.refresh()</em></strong> 方法中进行刷新时有调用 <strong><em>initApplicationEventMulticaster</em></strong> 方法进行初始化容器事件广播器，并放入至上下文的<strong><em>applicationEventMulticaster</em></strong> 属性中</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">initApplicationEventMulticaster</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="comment">//获取beanFactory</span></span><br><span class="line">	ConfigurableListableBeanFactory beanFactory = getBeanFactory();</span><br><span class="line">	<span class="comment">//从beanFactory中获取事件广播器</span></span><br><span class="line">	<span class="keyword">if</span> (beanFactory.containsLocalBean(APPLICATION_EVENT_MULTICASTER_BEAN_NAME)) &#123;</span><br><span class="line">		<span class="comment">//如果有，则赋值给applicationEventMulticaster</span></span><br><span class="line">		<span class="keyword">this</span>.applicationEventMulticaster =</span><br><span class="line">				beanFactory.getBean(APPLICATION_EVENT_MULTICASTER_BEAN_NAME, ApplicationEventMulticaster<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">		<span class="keyword">if</span> (logger.isTraceEnabled()) &#123;</span><br><span class="line">			logger.trace(<span class="string">"Using ApplicationEventMulticaster ["</span> + <span class="keyword">this</span>.applicationEventMulticaster + <span class="string">"]"</span>);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span> &#123;</span><br><span class="line">		<span class="comment">//如果没有，则创建一个SimpleApplicationEventMulticaster</span></span><br><span class="line">		<span class="keyword">this</span>.applicationEventMulticaster = <span class="keyword">new</span> SimpleApplicationEventMulticaster(beanFactory);</span><br><span class="line">		<span class="comment">//将创建的SimpleApplicationEventMulticaster注册到beanFactory中</span></span><br><span class="line">		beanFactory.registerSingleton(APPLICATION_EVENT_MULTICASTER_BEAN_NAME, <span class="keyword">this</span>.applicationEventMulticaster);</span><br><span class="line">		<span class="keyword">if</span> (logger.isTraceEnabled()) &#123;</span><br><span class="line">			logger.trace(<span class="string">"No '"</span> + APPLICATION_EVENT_MULTICASTER_BEAN_NAME + <span class="string">"' bean, using "</span> +</span><br><span class="line">					<span class="string">"["</span> + <span class="keyword">this</span>.applicationEventMulticaster.getClass().getSimpleName() + <span class="string">"]"</span>);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>在 <strong>IOC</strong> 容器初始化完成后，<strong>事件多播器</strong>也初始化完成。我们就可以直接调用 <strong>publishEvent</strong> 进行发布事件：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">publishEvent</span><span class="params">(Object event)</span> </span>&#123;</span><br><span class="line">	publishEvent(event, <span class="keyword">null</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">publishEvent</span><span class="params">(Object event, @Nullable ResolvableType eventType)</span> </span>&#123;</span><br><span class="line">	Assert.notNull(event, <span class="string">"Event must not be null"</span>);</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 判断事件类型是否为ApplicationEvent，如果不是则封装成PayloadApplicationEvent</span></span><br><span class="line">	ApplicationEvent applicationEvent;</span><br><span class="line">	<span class="keyword">if</span> (event <span class="keyword">instanceof</span> ApplicationEvent) &#123;</span><br><span class="line">		applicationEvent = (ApplicationEvent) event;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span> &#123;</span><br><span class="line">		applicationEvent = <span class="keyword">new</span> PayloadApplicationEvent&lt;&gt;(<span class="keyword">this</span>, event);</span><br><span class="line">		<span class="keyword">if</span> (eventType == <span class="keyword">null</span>) &#123;</span><br><span class="line">			eventType = ((PayloadApplicationEvent&lt;?&gt;) applicationEvent).getResolvableType();</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 在 IOC 初始化过程中的早期事件需要立即进行发布</span></span><br><span class="line">	<span class="keyword">if</span> (<span class="keyword">this</span>.earlyApplicationEvents != <span class="keyword">null</span>) &#123;</span><br><span class="line">		<span class="keyword">this</span>.earlyApplicationEvents.add(applicationEvent);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span> &#123;</span><br><span class="line">		<span class="comment">//使用默认多播器进行事件发布</span></span><br><span class="line">		getApplicationEventMulticaster().multicastEvent(applicationEvent, eventType);</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="comment">//调用父类上下文进行发布事件</span></span><br><span class="line">	<span class="keyword">if</span> (<span class="keyword">this</span>.parent != <span class="keyword">null</span>) &#123;</span><br><span class="line">		<span class="keyword">if</span> (<span class="keyword">this</span>.parent <span class="keyword">instanceof</span> AbstractApplicationContext) &#123;</span><br><span class="line">			((AbstractApplicationContext) <span class="keyword">this</span>.parent).publishEvent(event, eventType);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">else</span> &#123;</span><br><span class="line">			<span class="keyword">this</span>.parent.publishEvent(event);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>关注 <strong>ApplicationEventMulticaster</strong> 的 multicastEvent 方法：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">multicastEvent</span><span class="params">(ApplicationEvent event)</span> </span>&#123;</span><br><span class="line">	<span class="comment">//将给定的应用程序事件多播到适当的侦听器</span></span><br><span class="line">	multicastEvent(event, resolveDefaultEventType(event));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">multicastEvent</span><span class="params">(<span class="keyword">final</span> ApplicationEvent event, @Nullable ResolvableType eventType)</span> </span>&#123;</span><br><span class="line">	<span class="comment">// 获取到事件对应的分解类型</span></span><br><span class="line">	ResolvableType type = (eventType != <span class="keyword">null</span> ? eventType : resolveDefaultEventType(event));</span><br><span class="line">	<span class="comment">// 获取到多播器的当前线程池</span></span><br><span class="line">	Executor executor = getTaskExecutor();</span><br><span class="line">	<span class="comment">// 获取当前应用中与给定事件类型匹配的ApplicationListeners的监听器集合，不符合的监听器会被排除在外。再循环执行</span></span><br><span class="line">	<span class="keyword">for</span> (ApplicationListener&lt;?&gt; listener : getApplicationListeners(event, type)) &#123;</span><br><span class="line">		<span class="comment">// 如果线程池不为空，则通过线程池异步执行</span></span><br><span class="line">		<span class="keyword">if</span> (executor != <span class="keyword">null</span>) &#123;</span><br><span class="line">			executor.execute(() -&gt; invokeListener(listener, event));</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">else</span> &#123;</span><br><span class="line">			<span class="comment">// 否则由当前线程执行</span></span><br><span class="line">			invokeListener(listener, event);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">invokeListener</span><span class="params">(ApplicationListener&lt;?&gt; listener, ApplicationEvent event)</span> </span>&#123;</span><br><span class="line">	ErrorHandler errorHandler = getErrorHandler();</span><br><span class="line">	<span class="keyword">if</span> (errorHandler != <span class="keyword">null</span>) &#123;</span><br><span class="line">		<span class="keyword">try</span> &#123;</span><br><span class="line">			doInvokeListener(listener, event);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">catch</span> (Throwable err) &#123;</span><br><span class="line">			errorHandler.handleError(err);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span> &#123;</span><br><span class="line">		doInvokeListener(listener, event);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@SuppressWarnings</span>(&#123;<span class="string">"rawtypes"</span>, <span class="string">"unchecked"</span>&#125;)</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">doInvokeListener</span><span class="params">(ApplicationListener listener, ApplicationEvent event)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">try</span> &#123;</span><br><span class="line">		<span class="comment">// 实际监听器接受该事件并处理</span></span><br><span class="line">		listener.onApplicationEvent(event);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">catch</span> (ClassCastException ex) &#123;</span><br><span class="line">		String msg = ex.getMessage();</span><br><span class="line">		<span class="keyword">if</span> (msg == <span class="keyword">null</span> || matchesClassCastMessage(msg, event.getClass())) &#123;</span><br><span class="line">			Log logger = LogFactory.getLog(getClass());</span><br><span class="line">			<span class="keyword">if</span> (logger.isTraceEnabled()) &#123;</span><br><span class="line">				logger.trace(<span class="string">"Non-matching event type for listener: "</span> + listener, ex);</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">else</span> &#123;</span><br><span class="line">			<span class="keyword">throw</span> ex;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>流程步骤如下：</strong></p>
-<ol>
-<li>初始化事件多播器</li>
-<li>事件发布器发布事件</li>
-<li>事件多播器接收到事件后，检索监听器集合得到需要执行事件处理的监听器</li>
-<li>循环调用具体监听器方法处理事件</li>
-</ol>
-<p><strong>Spring 提供的五种标准事件：</strong></p>
-<ul>
-<li>上下文更新事件（<strong>ContextRefreshedEvent</strong>）：在调用<strong>ConfigurableApplicationContext</strong> 接口中的<strong><em>refresh()</em></strong>方法时被触发。</li>
-<li>上下文开始事件（<strong>ContextStartedEvent</strong>）：当容器调用<strong>ConfigurableApplicationContext</strong>的<strong><em>start()</em></strong>方法开始/重新开始容器时触发该事件。</li>
-<li>上下文停止事件（<strong>ContextStoppedEvent</strong>）：当容器调用<strong>ConfigurableApplicationContext</strong>的<strong><em>stop()</em></strong>方法停止容器时触发该事件。</li>
-<li>上下文关闭事件（<strong>ContextClosedEvent</strong>）：当<strong>ApplicationContext</strong>被关闭时触发该事件。容器被关闭时，其管理的所有单例<strong>Bean</strong>都被销毁。</li>
-<li>请求处理事件（<strong>RequestHandledEvent</strong>）：在<strong>Web</strong>应用中，当一个<strong>http</strong>请求（<strong>request</strong>）结束触发该事件。</li>
-</ul>
-<h4 id="依赖注入（DI）"><a href="#依赖注入（DI）" class="headerlink" title="依赖注入（DI）"></a>依赖注入（DI）</h4><p>将依赖关系的管理交给 <strong>Spring</strong> 维护，在当前类需要用到其他类的对象，由 <strong>Spring</strong> 为我们提供，只需要在配置文件中说明关系的维护。</p>
-<p><strong>能够注入的数据：</strong></p>
-<ul>
-<li>基本类型和 <strong>String</strong></li>
-<li>其他 <strong>Bean</strong> 类型（配置文件或者注解配置过的类）</li>
-<li>复杂集合类型</li>
-</ul>
-<p><strong>注入方式</strong></p>
-<ul>
-<li><p>基于构造函数的依赖注入</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">    <span class="comment">&lt;!--</span></span><br><span class="line"><span class="comment">      构造函数注入：</span></span><br><span class="line"><span class="comment">      使用的标签：constructor-arg</span></span><br><span class="line"><span class="comment">      标签出现的位置：bean标签内部</span></span><br><span class="line"><span class="comment">      标签的属性</span></span><br><span class="line"><span class="comment">           type:用于指定要注入的数据的数据类型，该数据构造函数中某个或某些参数类型</span></span><br><span class="line"><span class="comment">           index:用于指定要注入的数据给构造函数中指定索引位置的参数赋值，索引位置从0开始</span></span><br><span class="line"><span class="comment">           name:用于指定给构造函数中指定名称的参数赋值（常用）</span></span><br><span class="line"><span class="comment">           =================以上用于指定个给构造函数中那个参数赋值==========</span></span><br><span class="line"><span class="comment">           value:用于提供基本类型和string类型数据</span></span><br><span class="line"><span class="comment">           ref:用于指定其他的bean类型数据，它指的就是在spring的Ioc核心容器中出现过的bean对象</span></span><br><span class="line"><span class="comment">       优势：在获取bean对象时，注入数据是必须的操作，否则对象无法创建成功</span></span><br><span class="line"><span class="comment">       弊端：改变了bean对象的实例化方式，使我们在创建对象时，如果融不到这些数据，页必须提供</span></span><br><span class="line"><span class="comment">     --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"user"</span> <span class="attr">class</span>=<span class="string">"com.example.dto.User"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">constructor-arg</span> <span class="attr">name</span>=<span class="string">"name"</span> <span class="attr">value</span>=<span class="string">"zhangsan"</span>&gt;</span><span class="tag">&lt;/<span class="name">constructor-arg</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">constructor-arg</span> <span class="attr">name</span>=<span class="string">"age"</span> <span class="attr">value</span>=<span class="string">"18"</span>&gt;</span><span class="tag">&lt;/<span class="name">constructor-arg</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">constructor-arg</span> <span class="attr">name</span>=<span class="string">"address"</span> <span class="attr">ref</span>=<span class="string">"address"</span>&gt;</span><span class="tag">&lt;/<span class="name">constructor-arg</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line"><span class="comment">&lt;!--配置一个地址对象--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"address"</span> <span class="attr">class</span>=<span class="string">"com.example.dto.Address"</span>&gt;</span><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">User</span>  </span>&#123;</span><br><span class="line">    </span><br><span class="line">      <span class="keyword">private</span> String name;</span><br><span class="line">      <span class="keyword">private</span> Integer age;</span><br><span class="line">      <span class="keyword">private</span> Address address;</span><br><span class="line">    </span><br><span class="line">      <span class="function"><span class="keyword">public</span> <span class="title">AccountServiceImpl</span><span class="params">(String name,Integer age,Address address)</span></span>&#123;</span><br><span class="line">          <span class="keyword">this</span>.name=name;</span><br><span class="line">          <span class="keyword">this</span>.age=age;</span><br><span class="line">          <span class="keyword">this</span>.address=address;</span><br><span class="line">      &#125;</span><br><span class="line">	......</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>基于 <strong>Set</strong> 方法的依赖注入</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!--set方法注入      常用</span></span><br><span class="line"><span class="comment">    涉及的标签：property</span></span><br><span class="line"><span class="comment">    出现的位置：bean标签的内部</span></span><br><span class="line"><span class="comment">     name:用于注入时所调用的set方法名称</span></span><br><span class="line"><span class="comment">     value:用于提供基本类型和string类型数据</span></span><br><span class="line"><span class="comment">     ref:用于指定其他的bean类型数据，它指的就是在spring的Ioc核心容器中出现过的bean对象</span></span><br><span class="line"><span class="comment">  优势：创建对象时没有明确的限制，可以直接使用默认构造函数</span></span><br><span class="line"><span class="comment">  弊端：如果由某个成员，必须有值，则获取对象时，有可能set方法没有执行</span></span><br><span class="line"><span class="comment"> --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"user"</span> <span class="attr">class</span>=<span class="string">"com.example.dto.User"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"name"</span> <span class="attr">value</span>=<span class="string">"zhangsan"</span>&gt;</span><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"age"</span> <span class="attr">value</span>=<span class="string">"18"</span>&gt;</span><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"address"</span> <span class="attr">ref</span>=<span class="string">"address"</span>&gt;</span><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br></pre></td></tr></table></figure>
-</li>
-<li><p>基于 <strong>Set</strong> 方法完成负责集合类型的注入 </p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!--</span></span><br><span class="line"><span class="comment">    复杂类型的注入/集合类型的注入</span></span><br><span class="line"><span class="comment">    用于给List结构集合注入的标签</span></span><br><span class="line"><span class="comment">         Array List Set</span></span><br><span class="line"><span class="comment">    用于给List结构集合注入的标签</span></span><br><span class="line"><span class="comment">         Map Properties</span></span><br><span class="line"><span class="comment">    结构相同，标签可以互换</span></span><br><span class="line"><span class="comment"> --&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"accountService3"</span> <span class="attr">class</span>=<span class="string">"com.li.service.impl.AccountServiceImpl3"</span>&gt;</span></span><br><span class="line">     <span class="comment">&lt;!-- List\Set 配置相同，将 array 标签改为 list 、set即可 --&gt;</span> </span><br><span class="line">     <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"arrayFiled"</span>&gt;</span></span><br><span class="line">         <span class="tag">&lt;<span class="name">array</span>&gt;</span></span><br><span class="line">             <span class="tag">&lt;<span class="name">value</span>&gt;</span>aaa<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">             <span class="tag">&lt;<span class="name">value</span>&gt;</span>bbb<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">             <span class="tag">&lt;<span class="name">value</span>&gt;</span>ccc<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">         <span class="tag">&lt;/<span class="name">array</span>&gt;</span></span><br><span class="line">     <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">     <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"mapFiled"</span>&gt;</span></span><br><span class="line">         <span class="tag">&lt;<span class="name">map</span>&gt;</span></span><br><span class="line">             <span class="tag">&lt;<span class="name">entry</span> <span class="attr">key</span>=<span class="string">"testKey"</span> <span class="attr">value</span>=<span class="string">"aaa"</span>&gt;</span><span class="tag">&lt;/<span class="name">entry</span>&gt;</span></span><br><span class="line">         <span class="tag">&lt;/<span class="name">map</span>&gt;</span></span><br><span class="line">     <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">     <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"propsFiled"</span>&gt;</span></span><br><span class="line">         <span class="tag">&lt;<span class="name">props</span>&gt;</span></span><br><span class="line">             <span class="tag">&lt;<span class="name">prop</span> <span class="attr">key</span>=<span class="string">"testKey"</span>&gt;</span>ccc<span class="tag">&lt;/<span class="name">prop</span>&gt;</span></span><br><span class="line">         <span class="tag">&lt;/<span class="name">props</span>&gt;</span></span><br><span class="line">     <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-</li>
-</ul>
-<p><strong>注解方式</strong></p>
-<ul>
-<li><p>用于创建对象：作用和XML配置文件的<bean>标签的实现功能一致；</bean></p>
-<ol>
-<li><p><strong>@Component</strong>: 作用：用于当前类存入<strong>spring</strong>容器</p>
-<p>属性：<strong>value</strong>: 用于指定bean的id，当我们不写时，默认为当前类的名称且首字母小写。</p>
-</li>
-<li><p><strong>@Controller</strong> : 用于表现层</p>
-</li>
-<li><p><strong>@Service</strong>: 用于业务层</p>
-</li>
-<li><p><strong>@Repository</strong>: 用于持久层</p>
-</li>
-</ol>
-</li>
-<li><p>用于注入数据：作用和XML配置文件中的bean标签中的<property>作用一样；</property></p>
-<ol>
-<li><p><strong>@Autowried（byType）</strong></p>
-<p>作用：自动按<strong>类型</strong>注入，只要容器中由唯一的bean对象类型和要注入的变量类型匹配，就可以成功注入</p>
-<p>位置：可以为成员变量，也可以为方法</p>
-</li>
-<li><p><strong>@Qualifier</strong></p>
-<p>作用：再按照<strong>类型</strong>注入的基础之上再按照<strong>名称</strong>注入，它在给类成员注入时不能单独使用，和<strong>Autowired</strong>配合使用，但是给方法注入时可以。</p>
-<p>属性：value：用于指定注入bean的id</p>
-</li>
-<li><p><strong>@Resources（byName）</strong> </p>
-<p>作用：属于<strong><em>JSR-250</em></strong>规范定义的注解，支持根据<strong>类型和名称</strong>进行对象注入，它可以独立使用</p>
-<p>属性：name:用于指定bean的id</p>
-<p> <strong>以上三种注入只能注入其他bean类型的数据，而基本类型和String类型无法使用上述注解实现</strong></p>
-</li>
-<li><p><strong>@Value</strong></p>
-<p>作用：用于注入基本类型和<strong>String</strong>类型数据</p>
-<p>属性：value：用于指定数据的值，它可以使用spring中的spEL(也就是spring的el表达式)</p>
-<p>SpEl的写法：${表达式}     </p>
-</li>
-</ol>
-</li>
-</ul>
-<ul>
-<li><p>用于改变作用范围：作用和在<strong>bean</strong>标签中使用<strong>scope</strong>属性实现的功能一样的</p>
-<p><strong>@Scope</strong> </p>
-<p>作用：用于指定bean的作用范围</p>
-<p>属性：value:指定范围取值。常用的值：singleton(单例) prototype(多例）</p>
-</li>
-<li><p>和生命周期相关：作用和在bean标签中使用<strong>init-method</strong>和<strong>destroy-method</strong>的作用一样</p>
-<p><strong>@PreDestroy</strong>：用于指定销毁，属于<strong><em>JSR-250</em></strong>规范定义的注解</p>
-<p><strong>@PostConstruct</strong>：用于指定初始化，属于<strong><em>JSR-250</em></strong>规范定义的注解</p>
-</li>
-</ul>
-<h4 id="Spring-AOP"><a href="#Spring-AOP" class="headerlink" title="Spring AOP"></a>Spring AOP</h4><p><strong>AOP （Aspect Orient Programming）</strong>,直译过来就是 <strong>面向切面编程</strong>。<strong>AOP</strong> 是一种编程思想，是面向对象编程（<strong>OOP</strong>）的一种补充。</p>
-<p><strong>AOP</strong> 要达到的效果是，保证开发者不修改源代码的前提下，去为系统中的业务组件添加某种通用功能。</p>
-<ul>
-<li><strong>静态 AOP 实现</strong>： AOP 框架在编译阶段对程序源代码进行修改，生成了静态的 AOP 代理类（生成的 *.class 文件已经被改掉了，需要使用特定的编译器），比如<strong>AspectJ</strong>。</li>
-<li><strong>动态 AOP 实现</strong>： AOP 框架在运行阶段对动态生成代理对象（在内存中以 JDK 动态代理，或 CGlib 动态地生成 AOP 代理类），如 <strong>SpringAOP</strong>。</li>
-</ul>
-<p><strong>AOP 领域中的特性术语：</strong></p>
-<ul>
-<li><strong>通知（Advice</strong>）: <strong>AOP</strong> 框架中的增强处理。通知描述了切面何时执行以及如何执行增强处理。</li>
-<li><strong>连接点（join point</strong>）: 连接点表示应用执行过程中能够插入切面的一个点，这个点可以是方法的调用、异常的抛出。在 Spring AOP 中，连接点总是方法的调用。</li>
-<li><strong>切点（PointCut）</strong>: 可以插入增强处理的连接点。</li>
-<li><strong>切面（Aspect）</strong>: 切面是通知和切点的结合。</li>
-<li><strong>引入（Introduction）</strong>：引入允许我们向现有的类添加新的方法或者属性。</li>
-<li><strong>织入（Weaving）</strong>: 将增强处理添加到目标对象中，并创建一个被增强的对象，这个过程就是织入。</li>
-<li><strong>目标对象（Target Object）</strong>: 包含连接点的对象。也被称作被通知或被代理对象。POJO</li>
-<li><strong>AOP代理（AOP Proxy）</strong>: AOP框架创建的对象，包含通知。 在Spring中，AOP代理可以是<strong>JDK动态代理</strong>或者<strong>CGLIB代理</strong>。</li>
-</ul>
-<p><strong>Spring AOP</strong></p>
-<p><strong>AOP</strong>编程可不是<strong>Spring</strong>独有的，<strong>Spring</strong>只是支持<strong>AOP</strong>编程的框架之一。</p>
-<p><strong>AOP</strong>分两类，一类可以对方法的参数进行拦截，一类是对方法进行拦截，<strong>SpringAOP</strong>属于后者，所以<strong>Spring</strong>的<strong>AOP</strong>是属于方法级的</p>
-<p><strong>通知类型：</strong></p>
-<ul>
-<li><strong>前置通知（Before）</strong>： 标识一个前置增强方法，相当于<strong>BeforeAdvice</strong>的功能.</li>
-<li><strong>后置通知（After）</strong>： final增强，不管是抛出异常或者正常退出都会执行.</li>
-<li><strong>返回后通知（AfterReturning）</strong>： 后置增强，似于<strong>AfterReturningAdvice</strong>, 方法正常退出时执行.</li>
-<li><strong>异常后通知（AfterThrowing）</strong>： 异常抛出增强，相当于<strong>ThrowsAdvice</strong>.</li>
-<li><strong>环绕通知（Around）</strong>： 环绕增强，相当于<strong>MethodInterceptor</strong>.</li>
-</ul>
-<p><strong>execution</strong>：用于匹配方法执行的连接点；</p>
-<p><strong>Spring</strong> 支持 基于 <strong>XML配置</strong> 和 基于<strong>@AspectJ</strong> 注解 俩种方式来实现自定义 方面。</p>
-<ul>
-<li><strong>XML Schema based：</strong>方面是使用常规类以及基于配置的 XML 来实现的。</li>
-<li><strong>@AspectJ based：</strong>@AspectJ 引用一种声明方面的风格作为带有 Java 5 注释的常规 Java 类注释。</li>
-</ul>
-<p><strong>基于 XML配置方式</strong></p>
-<p>配置 AOP xml 配置文件：</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 描述中使用 aop 命名空间标签 --&gt;</span></span><br><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">beans</span> <span class="attr">xmlns</span>=<span class="string">"http://www.springframework.org/schema/beans"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span> </span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:aop</span>=<span class="string">"http://www.springframework.org/schema/aop"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xsi:schemaLocation</span>=<span class="string">"http://www.springframework.org/schema/beans</span></span></span><br><span class="line"><span class="tag"><span class="string">    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd </span></span></span><br><span class="line"><span class="tag"><span class="string">    http://www.springframework.org/schema/aop </span></span></span><br><span class="line"><span class="tag"><span class="string">    http://www.springframework.org/schema/aop/spring-aop-3.0.xsd "</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- bean definition &amp; AOP specific configuration --&gt;</span></span><br><span class="line">	<span class="comment">&lt;!-- 目标对象 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"targetObject"</span> <span class="attr">class</span>=<span class="string">"com.example.aop.argetObject"</span>/&gt;</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">&lt;!-- 切面类 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"aspect"</span> <span class="attr">class</span>=<span class="string">"com.example.aop.Aspect"</span>/&gt;</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">&lt;!-- 面向切面编程 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">aop:config</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!-- 定义切面 --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">aop:aspect</span> <span class="attr">ref</span>=<span class="string">"aspect"</span>&gt;</span></span><br><span class="line">            <span class="comment">&lt;!--定义切点--&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">aop:pointcut</span> <span class="attr">id</span>=<span class="string">"action"</span> <span class="attr">expression</span>=<span class="string">"execution(* *.*(..))"</span>/&gt;</span></span><br><span class="line">            <span class="comment">&lt;!-- 声明前置通知 (在切点方法被执行前调用)--&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">aop:before</span> <span class="attr">method</span>=<span class="string">"beforeMethod"</span> <span class="attr">pointcut-ref</span>=<span class="string">"action"</span>/&gt;</span></span><br><span class="line">            <span class="comment">&lt;!-- 声明后置通知 (在切点方法被执行后调用)--&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">aop:after</span> <span class="attr">method</span>=<span class="string">"afterMethod"</span> <span class="attr">pointcut-ref</span>=<span class="string">"action"</span>/&gt;</span></span><br><span class="line">            .....</span><br><span class="line">        <span class="tag">&lt;/<span class="name">aop:aspect</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">aop:config</span>&gt;</span></span><br><span class="line">    </span><br><span class="line"><span class="tag">&lt;/<span class="name">beans</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-
-
-<p><strong>基于 @Aspect 注解方式</strong></p>
-<ul>
-<li>首先要开启<strong>@Aspect</strong> 支持（applicationContext.xml）</li>
-</ul>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">beans</span> <span class="attr">xmlns</span>=<span class="string">"http://www.springframework.org/schema/beans"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:xsi</span>=<span class="string">"http://www.w3.org/2001/XMLSchema-instance"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:context</span>=<span class="string">"http://www.springframework.org/schema/context"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:aop</span>=<span class="string">"http://www.springframework.org/schema/aop"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:mybatis-spring</span>=<span class="string">"http://mybatis.org/schema/mybatis-spring"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xmlns:tx</span>=<span class="string">"http://www.springframework.org/schema/tx"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">xsi:schemaLocation</span>=<span class="string">"http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd</span></span></span><br><span class="line"><span class="tag"><span class="string">        http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring-1.2.xsd</span></span></span><br><span class="line"><span class="tag"><span class="string">        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd</span></span></span><br><span class="line"><span class="tag"><span class="string">        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd</span></span></span><br><span class="line"><span class="tag"><span class="string">        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd"</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- 配置开启@Aspect支持 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">aop:aspectj-autoproxy</span> <span class="attr">proxy-target-class</span>=<span class="string">"true"</span> /&gt;</span></span><br><span class="line">    </span><br><span class="line"><span class="tag">&lt;/<span class="name">beans</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>定义<strong>Aspect</strong> 类：</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.aop;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@Aspect</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DemoAspect</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 切点表达式:</span></span><br><span class="line"><span class="comment">     *     ..两个点表明多个，*代表一个</span></span><br><span class="line"><span class="comment">     *     表达式代表切入com..service包下的所有类的所有方法，方法参数不限，返回类型不限。  </span></span><br><span class="line"><span class="comment">     *  其中访问修饰符可以不写，不能用*，，第一个*代表返回类型不限，第二个*表示所有类，第三个*表示所有方法，..两个点表示方法里的参数不限。</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String POINT_CUT = <span class="string">"execution(* com..service.*.*(..))"</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 命名切点</span></span><br><span class="line"><span class="comment">     * public 切点可访问性修饰符</span></span><br><span class="line"><span class="comment">     *         与类可访问性修饰符的功能是相同的，它可以决定定义的切点可以在哪些类中可使用。</span></span><br><span class="line"><span class="comment">     * pointCut 切点名称</span></span><br><span class="line"><span class="comment">     * void   返回类型</span></span><br><span class="line"><span class="comment">     *     因为命名切点仅利用方法名及访问修饰符的信息，</span></span><br><span class="line"><span class="comment">     *  一般定义方法的返回类型为 void ，并且方法体为空 </span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Pointcut</span>(POINT_CUT)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">pointCut</span><span class="params">()</span></span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 在切点方法之前执行</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> joinPoint</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Before</span>(value=<span class="string">"pointCut()"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doBefore</span><span class="params">(JoinPoint joinPoint)</span></span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"@Before：切点方法之前执行....."</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 在切点方法之后执行</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> joinPoint</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@After</span>(value=<span class="string">"pointCut()"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doAfter</span><span class="params">(JoinPoint joinPoint)</span></span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"@After：切点方法之后执行....."</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">    * 切点方法返回后执行</span></span><br><span class="line"><span class="comment">    *     如果第一个参数为JoinPoint，则第二个参数为返回值的信息</span></span><br><span class="line"><span class="comment">    *     如果第一个参数不为JoinPoint，则第一个参数为returning中对应的参数</span></span><br><span class="line"><span class="comment">    *     returning：限定了只有目标方法返回值与通知方法参数类型匹配时才能执行后置返回通知，否则不执行，</span></span><br><span class="line"><span class="comment">    *     参数为Object类型将匹配任何目标返回值</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    <span class="meta">@AfterReturning</span>(value = <span class="string">"pointCut()"</span>,returning = <span class="string">"result"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doAfter</span><span class="params">(JoinPoint joinPoint,Object result)</span></span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"@AfterReturning：切点方法返回后执行....."</span>);</span><br><span class="line">        System.out.println(<span class="string">"返回值："</span>+result);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 切点方法抛异常执行</span></span><br><span class="line"><span class="comment">     *     定义一个名字，该名字用于匹配通知实现方法的一个参数名，当目标方法抛出异常返回后，将把目标方法抛出的异常传给通知方法；</span></span><br><span class="line"><span class="comment">     *     throwing:限定了只有目标方法抛出的异常与通知方法相应参数异常类型时才能执行后置异常通知，否则不执行，</span></span><br><span class="line"><span class="comment">     *     对于throwing对应的通知方法参数为Throwable类型将匹配任何异常。</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> joinPoint</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> exception</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">     <span class="meta">@AfterThrowing</span>(value = <span class="string">"pointCut()"</span>,throwing = <span class="string">"exception"</span>)</span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doAfterThrowing</span><span class="params">(JoinPoint joinPoint,Throwable exception)</span></span>&#123;</span><br><span class="line">         System.out.println(<span class="string">"@afterThrowing：切点方法抛异常执行....."</span>);</span><br><span class="line">     &#125;</span><br><span class="line">     </span><br><span class="line">     </span><br><span class="line">     <span class="comment">/**</span></span><br><span class="line"><span class="comment">      * </span></span><br><span class="line"><span class="comment">      * 属于环绕增强，能控制切点执行前，执行后，，用这个注解后，程序抛异常，会影响<span class="doctag">@AfterThrowing</span>这个注解</span></span><br><span class="line"><span class="comment">      * </span></span><br><span class="line"><span class="comment">      * org.aspectj.lang.JoinPoint 接口表示目标类连接点对象，它定义这些主要方法。</span></span><br><span class="line"><span class="comment">      * Object[] getArgs()：获取连接点方法运行时的入参列表。</span></span><br><span class="line"><span class="comment">      * Signature getSignature()：获取连接点的方法签名对象。</span></span><br><span class="line"><span class="comment">      * Object getTarget()：获取连接点所在的目标对象。</span></span><br><span class="line"><span class="comment">      * Object getThis()：获取代理对象。</span></span><br><span class="line"><span class="comment">      * <span class="doctag">@param</span> pjp</span></span><br><span class="line"><span class="comment">      * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">      * <span class="doctag">@throws</span> Throwable </span></span><br><span class="line"><span class="comment">      */</span></span><br><span class="line">     <span class="meta">@Around</span>(value=<span class="string">"pointCut()"</span>)</span><br><span class="line">     <span class="function"><span class="keyword">public</span> Object <span class="title">doAround</span><span class="params">(ProceedingJoinPoint pjp)</span> <span class="keyword">throws</span> Throwable</span>&#123;</span><br><span class="line">         System.out.println(<span class="string">"@Around：切点方法环绕start....."</span>);</span><br><span class="line">         Object[] args = pjp.getArgs();</span><br><span class="line">         Object o = pjp.proceed(args);</span><br><span class="line">         System.out.println(<span class="string">"@Around：切点方法环绕end....."</span>);</span><br><span class="line">         <span class="keyword">return</span> o;</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h4 id="Spring-事务"><a href="#Spring-事务" class="headerlink" title="Spring 事务"></a>Spring 事务</h4><p><strong>Spring事务</strong>的本质其实就是<strong>数据库对事务的支持</strong>，没有数据库的事务支持，spring是无法提供事务功能的。对于纯JDBC操作数据库，想要用到事务，可以按照以下步骤进行：</p>
-<ol>
-<li><strong>获取连接</strong> Connection con = DriverManager.getConnection()</li>
-<li><strong>开启事务</strong>con.setAutoCommit(true/false);</li>
-<li><strong>执行CRUD</strong></li>
-<li><strong>提交事务/回滚事务</strong> con.commit() / con.rollback();</li>
-<li><strong>关闭连接</strong> conn.close();</li>
-</ol>
-<h5 id="分类"><a href="#分类" class="headerlink" title="分类"></a>分类</h5><ul>
-<li><strong>编程式事务</strong>：指在代码中手动的管理事务的提交、回滚等操作，代码侵入性比较强</li>
-<li><strong>声明式事务</strong>：基于AOP面向切面的，它将具体业务与事务处理部分解耦，代码侵入性很低，所以在实际开发中声明式事务用的比较多。声明式事务也有两种实现方式，是基于<strong>TX和AOP的xml配置文件</strong>方式，二种就是基于@<strong>Transactional</strong>注解了。</li>
-</ul>
-<p>这里举例 <strong>注解的方式</strong>配置事务。</p>
-<h5 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h5><p>1、定义事务管理器，传入 数据源对象</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span> </span><br><span class="line"><span class="function"><span class="keyword">public</span> PlatformTransactionManager <span class="title">transactionManager</span><span class="params">()</span> </span>&#123; </span><br><span class="line"></span><br><span class="line">	JpaTransactionManager transactionManager = <span class="keyword">new</span> JpaTransactionManager(); </span><br><span class="line">	transactionManager.setDataSource(dataSource()); </span><br><span class="line">	<span class="keyword">return</span> transactionManager; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>2、在对应需要事务的类或方法上添加注解 <strong><em>@Transactional</em></strong></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// @Transactional注解来自org.springframework.transaction.annotation包，而不是javax.transaction。</span></span><br><span class="line"><span class="meta">@Transactional</span> </span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">saveSomething</span><span class="params">(String name)</span> </span>&#123; </span><br><span class="line">    <span class="comment">//数据库操作 </span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h5 id="实现原理"><a href="#实现原理" class="headerlink" title="实现原理"></a><strong>实现原理</strong></h5><ul>
-<li>配置文件开启注解驱动，在相关的类和方法上通过注解<strong><em>@Transactional</em></strong>标识。类上添加<strong><em>@Transactional</em></strong>则代表该类的所有方法都有事务。</li>
-<li><strong>Spring</strong> 在启动的时候会去解析生成相关的bean，这时候会查看拥有相关注解的类和方法，并且为这些类和方法生成<strong>代理</strong>，并根据<strong><em>@Transaction</em></strong>的相关参数进行相关配置注入，这样就在代理中为我们把相关的事务处理掉了（开启正常提交事务，异常回滚事务）。</li>
-<li>真正的数据库层的事务提交和回滚是通过<strong>bin log和redo log</strong>实现的。</li>
-</ul>
-<h5 id="事务机制"><a href="#事务机制" class="headerlink" title="事务机制"></a>事务机制</h5><p><strong>Spring</strong>的事务机制是<strong>用统一的机制来处理不同数据访问技术的事务处理</strong>。<strong>Spring</strong>的事务机制提供了一个<strong><em>PlatformTransactionManager</em></strong>接口，不同的数据访问技术的事务使用不同的接口实现</p>
-<ul>
-<li><strong>JDBC</strong>：DataSourceTransactionManager</li>
-<li><strong>JPA</strong>：JpaTransactionManager</li>
-<li><strong>Hibernate</strong>：HibernateTransactionManager</li>
-<li><strong>JDO</strong>：JdoTransactionManager</li>
-<li><strong>分布式事务</strong>：JtaTransactionManager</li>
-</ul>
-<h5 id="Spring-事务隔离级别"><a href="#Spring-事务隔离级别" class="headerlink" title="Spring 事务隔离级别"></a>Spring 事务隔离级别</h5><p><a href="http://blogsea.cn/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/" target="_blank" rel="noopener">分布式事务</a>课程中，我们学习了<strong>数据库隔离级别</strong></p>
-<p><img src="/2021/03/15/%E5%BF%85%E4%BC%9A%E6%A1%86%E6%9E%B6%EF%BC%88%E4%B8%80%EF%BC%89-Spring/framework_09.png" alt="数据库隔离级别"></p>
-<p><strong>脏读</strong>：一事务对数据进行了增删改，但未提交，另一事务可以读取到未提交的数据。如果第一个事务这时候回滚了，那么第二个事务就读到了脏数据。</p>
-<p><strong>不可重复读</strong>：一个事务中发生了两次读操作，第一次读操作和第二次操作之间，另外一个事务对数据进行了修改，这时候两次读取的数据是不一致的。</p>
-<p><strong>幻读</strong>：第一个事务对一定范围的数据进行批量修改，第二个事务在这个范围增加一条数据，这时候第一个事务就会丢失对新增数据的修改。</p>
-<p>总结：</p>
-<ul>
-<li><p>隔离级别越高，越能保证数据的完整性和一致性，但是对并发性能的影响也越大。</p>
-</li>
-<li><p>大多数的数据库默认隔离级别为 <strong>Read Commited</strong>，比如 SqlServer、Oracle</p>
-</li>
-<li><p>少数数据库默认隔离级别为：<strong>Repeatable Read</strong> 比如： MySQL InnoDB</p>
-</li>
-</ul>
-<p><strong>Spring 中的事务隔离级别</strong></p>
-<p><img src="/2021/03/15/%E5%BF%85%E4%BC%9A%E6%A1%86%E6%9E%B6%EF%BC%88%E4%B8%80%EF%BC%89-Spring/framework_10.png" alt="Spring 事务隔离级别"></p>
-<h5 id="事务嵌套（传播机制）"><a href="#事务嵌套（传播机制）" class="headerlink" title="事务嵌套（传播机制）"></a>事务嵌套（传播机制）</h5><ul>
-<li><p><strong>PROPAGATION_REQUIRED</strong> (spring 默认)</p>
-<p>支持当前事务,如果有就加入当前事务中;如果当前方法没有事务,就新建一个事务;</p>
-</li>
-<li><p><strong>PROPAGATION_REQUIRES_NEW</strong></p>
-<p>新建事务,如果当前存在事务,就把当前事务挂起;如果当前方法没有事务,就新建事务;</p>
-<p>他与 <strong>PROPAGATION_REQUIRED</strong> 的事务区别在于事务的回滚程度了。</p>
-</li>
-<li><p><strong>PROPAGATION_NESTED</strong></p>
-<p>如果当前方法有事务,则在嵌套事务内执行;如果当前方法没有事务,则与required操作类似;</p>
-</li>
-<li><p><strong>PROPAGATION_MANATORY</strong></p>
-<p>支持当前事务,如果有就加入当前事务中;如果当前没有事务,就抛出异常;</p>
-</li>
-<li><p><strong>PROPAGATION_SUPPORTS</strong></p>
-<p>支持当前事务,如果有就加入当前事务中;如果当前方法没有事务,就以非事务的方式执行;</p>
-<p>这种时候，内部方法的事务性完全依赖于最外层的事务。</p>
-</li>
-<li><p><strong>PROPAGATION_NOT_SUPPORTED</strong></p>
-<p>以非事务方式执行,如果当前方法存在事务就挂起当前事务;如果当前方法不存在事务,就以非事务方式执行;</p>
-</li>
-<li><p><strong>PROPAGATION_NERVER</strong></p>
-<p>以非事务方式执行,如果当前方法存在事务就抛出异常;如果当前方法不存在事务,就以非事务方式执行;</p>
-</li>
-</ul>
-<h5 id="Transactional-失效原因"><a href="#Transactional-失效原因" class="headerlink" title="@Transactional 失效原因"></a>@Transactional 失效原因</h5><ul>
-<li><p><strong>@Transactional 做用于非public方法上</strong>。</p>
-<p>因为在<strong>Spring AOP</strong>代理时<strong>TransactionInterceptor</strong> （事务拦截器）在目标方法执行前后进行拦截，<strong>DynamicAdvisedInterceptor</strong>（CglibAopProxy 的内部类）的 <strong><em>intercept</em></strong> 方法或 <strong>JdkDynamicAopProxy</strong> 的 <strong><em>invoke</em></strong> 方法会间接调用 <strong>AbstractFallbackTransactionAttributeSource</strong>的 <strong><em>computeTransactionAttribute</em></strong>方法，获取<strong>Transactional</strong> 注解的事务配置信息。其中此方法会检查目标方法的修饰符是否为 <strong>public</strong>，<strong>不是 public则不会获取@Transactional 的属性配置信息</strong>。</p>
-</li>
-</ul>
-<ul>
-<li><p><strong>@Transactional 注解属性 rollbackFor 设置错误</strong>。</p>
-<p><strong>rollbackFor</strong> 可以指定能够触发事务回滚的异常类型。Spring默认抛出了<strong>未检查unchecked异常（继承自 RuntimeException 的异常）或者 Error才回滚事务</strong>。如果需要制定异常回滚，则需配置 rollbackFor ，</p>
-<p><strong>若在目标方法中抛出的异常是 rollbackFor 指定的异常的子类，事务同样会回滚。</strong></p>
-</li>
-</ul>
-<ul>
-<li><p><strong>同一个类中方法调用，导致@Transactional失效</strong>。</p>
-<p>这是由于使用Spring AOP代理造成的，因为只有当事务方法被当前类以外的代码调用时，才会由Spring生成的代理对象来管理。</p>
-<p>解决方法可以是，上层自定义 self() 方法，返回代理对象。调用本类方法时，使用 <strong><em>self().testB()</em></strong> 即可。</p>
-<p>具体实现方法为 ：</p>
-<ol>
-<li><p>自定义 接口  <strong>ProxySelf</strong>：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">public interface ProxySelf&lt;T&gt; &#123;</span><br><span class="line">    default T self() &#123;</span><br><span class="line">        return AopContext.currentProxy();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>service 接口继承 ProxySelf ，泛型传入自身接口</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">IUserService</span> <span class="keyword">extends</span> <span class="title">ProxySelf</span>&lt;<span class="title">IUserService</span>&gt;</span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>service 实现类中调用 <strong><em>this.self().testB()</em></strong> 方法即可。</p>
-</li>
-</ol>
-</li>
-</ul>
-<ul>
-<li><p><strong>异常被你的 catch “吃了” 导致@Transactional失效</strong></p>
-</li>
-<li><p><strong>数据库引擎不支持事务</strong>：例如 Mysql 切换 MyISAM 引擎等</p>
-</li>
-</ul>
-<p><strong>更多事务扩展知识</strong>可在<a href="http://blogsea.cn/2020/05/27/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/" target="_blank" rel="noopener">分布式架构之事务管理</a>中学习。</p>
-<h3 id="SpringMVC"><a href="#SpringMVC" class="headerlink" title="SpringMVC"></a>SpringMVC</h3><p>在早期 Java Web 的开发中，统一把显示层、控制层、数据层的操作全部交给 JSP 或者 JavaBean 来进行处理，我们称之为 <strong>Model1</strong></p>
-<p><strong>出现的弊端：</strong></p>
-<ul>
-<li><p>JSP 和 Java Bean 之间严重耦合，Java 代码和 HTML 代码也耦合在了一起</p>
-</li>
-<li><p>要求开发者不仅要掌握 Java ，还要有高超的前端水平</p>
-</li>
-<li><p>前端和后端相互依赖，前端需要等待后端完成，后端也依赖前端完成，才能进行有效的测试</p>
-</li>
-<li><p>代码难以复用</p>
-</li>
-</ul>
-<p>正因为上面的种种弊端，所以很快这种方式就被 <strong>Servlet + JSP + Java Bean</strong> 所替代了，早期的 <strong>MVC</strong> 模型<strong>（Model2）</strong></p>
-<p>为解决持久层中一直未处理好的数据库事务的编程，又为了迎合 <strong>NoSQL</strong> 的强势崛起，Spring MVC 应运而生。</p>
-<p><img src="/2021/03/15/%E5%BF%85%E4%BC%9A%E6%A1%86%E6%9E%B6%EF%BC%88%E4%B8%80%EF%BC%89-Spring/framework_06.png" alt="SpringMVC诞生背景"></p>
-<p><strong>传统的模型层被拆分为了业务层(Service)和数据访问层（DAO,Data Access Object）。</strong> 在 Service 下可以通过 Spring 的声明式事务操作数据访问层，而在业务层上还允许我们访问 NoSQL 。</p>
-<p><strong>特点：</strong></p>
-<ul>
-<li>结构松散，几乎可以在 Spring MVC 中使用各类视图</li>
-<li>松耦合，各个模块分离</li>
-<li>与 Spring 无缝集成</li>
-</ul>
-<h4 id="工作原理"><a href="#工作原理" class="headerlink" title="工作原理"></a>工作原理</h4><p><strong>SpringMVC</strong> 核心是在 <strong><em>DispatcherServlet</em></strong> 类，简单来说就是：客户端发送请求到 <strong>DispatcherServlet</strong>，<strong>DispatcherServlet</strong> 查询 <strong>handlerMapping</strong> 找到处理请求的 <strong>Controller</strong>，<strong>Controller</strong> 调用业务逻辑后，返回 <strong>ModelAndView</strong>（或者<strong>Json</strong>数据），<strong>DispatcherServlet</strong> 查询 <strong>ModelAndView</strong>，找到指定视图<br>视图将结果返回到客户端。</p>
-<h4 id="执行流程"><a href="#执行流程" class="headerlink" title="执行流程"></a>执行流程</h4><p><img src="/2021/03/15/%E5%BF%85%E4%BC%9A%E6%A1%86%E6%9E%B6%EF%BC%88%E4%B8%80%EF%BC%89-Spring/framework_07.png" alt="SpringMVC执行流程"></p>
-<ul>
-<li>用户发送请求至前端控制器<strong>DispatcherServlet</strong>；</li>
-<li><strong>DispatcherServlet</strong>收到请求后，调用<strong>HandlerMapping</strong>处理器映射器，请求获取<strong>Handle</strong>；</li>
-<li>处理器映射器根据请求<strong>url</strong>找到具体的处理器，生成<strong>处理器对象及处理器拦截器</strong>(如果有则生成)一并返回给<strong>DispatcherServlet</strong>；</li>
-<li><strong>DispatcherServlet</strong> 调用 <strong>HandlerAdapter</strong>处理器适配器；</li>
-<li><strong>HandlerAdapter</strong> 经过适配调用 具体处理器(<strong>Handler</strong>，也叫后端控制器)；</li>
-<li><strong>Handler</strong>执行完成返回<strong>ModelAndView</strong>；</li>
-<li><strong>HandlerAdapter</strong>将<strong>Handler</strong>执行结果<strong>ModelAndView</strong>返回给<strong>DispatcherServlet</strong>；</li>
-<li><strong>DispatcherServlet</strong>将<strong>ModelAndView</strong>传给<strong>ViewResolver</strong>视图解析器进行解析；</li>
-<li><strong>ViewResolver</strong>解析后返回具体<strong>View</strong>；</li>
-<li><strong>DispatcherServlet</strong>对<strong>View</strong>进行渲染视图（即将模型数据填充至视图中）</li>
-<li><strong>DispatcherServlet</strong>响应用户。</li>
-</ul>
-<h4 id="组件说明"><a href="#组件说明" class="headerlink" title="组件说明"></a>组件说明</h4><ul>
-<li><p><strong>DispatcherServlet：前端控制器</strong><br>用户请求到达前端控制器，它就相当于mvc模式中的c，dispatcherServlet是整个流程控制的中心，由它调用其它组件处理用户的请求，dispatcherServlet的存在降低了组件之间的耦合性。</p>
-</li>
-<li><p><strong>HandlerMapping：处理器映射器</strong><br>HandlerMapping负责根据用户请求url找到Handler即处理器，springmvc提供了不同的映射器实现不同的映射方式，例如：配置文件方式，实现接口方式，注解方式等。</p>
-</li>
-<li><p><strong>Handler：处理器</strong><br>Handler 是继DispatcherServlet前端控制器的后端控制器，在DispatcherServlet的控制下Handler对具体的用户请求进行处理。<br>由于Handler涉及到具体的用户业务请求，所以一般情况需要程序员根据业务需求开发Handler。</p>
-</li>
-<li><p><strong>HandlAdapter：处理器适配器</strong><br>通过HandlerAdapter对处理器进行执行，这是适配器模式的应用，通过扩展适配器可以对更多类型的处理器进行执行。</p>
-</li>
-<li><p><strong>ViewResolver：视图解析器</strong><br>View Resolver负责将处理结果生成View视图，View Resolver首先根据逻辑视图名解析成物理视图名即具体的页面地址，再生成View视图对象，最后对View进行渲染将处理结果通过页面展示给用户。</p>
-</li>
-<li><p><strong>View：视图</strong><br>springmvc框架提供了很多的View视图类型的支持，包括：jstlView、freemarkerView、pdfView等。我们最常用的视图就是jsp。<br>一般情况下需要通过页面标签或页面模版技术将模型数据通过页面展示给用户，需要由程序员根据业务需求开发具体的页面。</p>
-</li>
-</ul>
-<h4 id="SpringMVC-拦截器"><a href="#SpringMVC-拦截器" class="headerlink" title="SpringMVC 拦截器"></a>SpringMVC 拦截器</h4><p><strong>Spring MVC</strong>中的拦截器（<strong>Interceptor</strong>）类似于<strong>Servlet</strong>中的过滤器（<strong>Filter</strong>），它主要用于拦截用户请求并作相应的处理。例如通过拦截器可以进行<strong>权限验证、记录请求信息的日志、判断用户是否登录等</strong>。</p>
-<p>通常自定义拦截器类可以有两种方式：</p>
-<ul>
-<li>通过实现<strong>HandlerInterceptor</strong>接口，或继承<strong>HandlerInterceptor</strong>接口的实现类（如<strong>HandlerInterceptorAdapter</strong>）来定义。</li>
-<li>通过实现<strong>WebRequestInterceptor</strong>接口，或继承<strong>WebRequestInterceptor</strong>接口的实现类来定义。</li>
-</ul>
-<p>例如：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CustomInterceptor</span> <span class="keyword">implements</span> <span class="title">HandlerInterceptor</span></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">preHandle</span><span class="params">(HttpServletRequest request, </span></span></span><br><span class="line"><span class="function"><span class="params">                             HttpServletResponse response, Object handler)</span><span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">postHandle</span><span class="params">(HttpServletRequest request, </span></span></span><br><span class="line"><span class="function"><span class="params">                           HttpServletResponse response, Object handler,</span></span></span><br><span class="line"><span class="function"><span class="params">                           ModelAndView modelAndView)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">afterCompletion</span><span class="params">(HttpServletRequest request,</span></span></span><br><span class="line"><span class="function"><span class="params">                                HttpServletResponse response, Object handler,</span></span></span><br><span class="line"><span class="function"><span class="params">                                Exception ex)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><strong>preHandle() 方法</strong>：该方法会在控制器方法前执行，其返回值表示是否中断后续操作。当其返回值为true时，表示继续向下执行；<br>当其返回值为false时，会中断后续的所有操作（包括调用下一个拦截器和控制器类中的方法执行等）。</li>
-<li><strong>postHandle()方法</strong>：该方法会在控制器方法调用之后，且解析视图之前执行。可以通过此方法对请求域中的模型和视图做出进一步的修改。</li>
-<li><strong>afterCompletion()方法</strong>：该方法会在整个请求完成，即视图渲染结束之后执行。可以通过此方法实现一些资源清理、记录日志信息等工作。</li>
-</ul>
-<p><strong>拦截器配置</strong></p>
-<ul>
-<li><p>xml配置文件方式</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">mvc:interceptors</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--拦截器1--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">mvc:interceptor</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!--配置拦截器的作用路径--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">mvc:mapping</span> <span class="attr">path</span>=<span class="string">"/**"</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">mvc:exclude-mapping</span> <span class="attr">path</span>=<span class="string">""</span>/&gt;</span></span><br><span class="line">        <span class="comment">&lt;!--定义在&lt;mvc:interceptor&gt;下面的表示匹配指定路径的请求才进行拦截--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=<span class="string">"com.example.interceptor.Intercptor1"</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">mvc:interceptor</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--拦截器2--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">mvc:interceptor</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">mvc:mapping</span> <span class="attr">path</span>=<span class="string">"/hello"</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span>=<span class="string">"com.example.interceptor.Interceptor2"</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">mvc:interceptor</span>&gt;</span></span><br><span class="line">      ....</span><br><span class="line"><span class="tag">&lt;<span class="name">mvc:interceptors</span>&gt;</span></span><br></pre></td></tr></table></figure>
-</li>
-<li><p>java代码方式</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">InterceptorConfig</span> <span class="keyword">implements</span> <span class="title">WebMvcConfigurer</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addInterceptors</span><span class="params">(InterceptorRegistry registry)</span> </span>&#123;</span><br><span class="line">        <span class="comment">//注册CustomInterceptor拦截器</span></span><br><span class="line">        InterceptorRegistration registration = registry.addInterceptor(<span class="keyword">new</span> CustomInterceptor());</span><br><span class="line">        registration.addPathPatterns(<span class="string">"/**"</span>);                      <span class="comment">//所有路径都被拦截</span></span><br><span class="line">        registration.excludePathPatterns(                         <span class="comment">//添加不拦截路径</span></span><br><span class="line">            <span class="string">"/login"</span>,                <span class="comment">//登录</span></span><br><span class="line">            <span class="string">"/**/*.html"</span>,            <span class="comment">//html静态资源</span></span><br><span class="line">            <span class="string">"/**/*.js"</span>,              <span class="comment">//js静态资源</span></span><br><span class="line">            <span class="string">"/**/*.css"</span>,             <span class="comment">//css静态资源</span></span><br><span class="line">            <span class="string">"/**/*.woff"</span>,</span><br><span class="line">            <span class="string">"/**/*.ttf"</span></span><br><span class="line">        );    </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-</li>
-</ul>
-<p><strong>SpringMVC拦截器 与 过滤器（Filter）的区别与联系</strong></p>
-<ul>
-<li><p><strong>Spring</strong> 拦截器与 <strong>Servlet</strong> 的 过滤器（<strong>Filter</strong>）有相似之处，二者都是<strong>AOP编程思想</strong>的体现，都能实现权限检查、日志记录等。</p>
-</li>
-<li><p><strong>Filter</strong> 是 <strong>Servlet</strong> 规范规定的，只用于 <strong>Web</strong> 应用程序中；而拦截器 既用于 <strong>Web</strong> 程序，也可以用于<strong>Application</strong>、<strong>Swing</strong>程序中。</p>
-</li>
-<li><p><strong>Filter</strong> 是 <strong>Servlet</strong> 规范定义的，是 <strong>Servlet</strong> 容器支持的；拦截器 则是 <strong>Spring</strong> 容器内的，是<strong>Spring</strong> 框架支持的。</p>
-</li>
-<li><p>拦截器是 <strong>Spring</strong> 的组件，归 <strong>Spring</strong> 管理，配置在 <strong>Spring</strong> 文件中，因此能使用 <strong>Spring</strong> 中的任何资源、对象，例如<strong>Service</strong>对象，数据源，事务管理等，通过<strong>Ioc</strong> 注入到拦截器即可，而<strong>Filter</strong> 不能。</p>
-</li>
-<li><p><strong>Filter</strong> 在 <strong>Servlet</strong> 前后起作用；而拦截器能够深入到方法前后、异常抛出前后，因此拦截器拥有更大弹性。</p>
-</li>
-<li><p><strong>Filter</strong> 和 拦截器 作用顺序比较：</p>
-<p><img src="/2021/03/15/%E5%BF%85%E4%BC%9A%E6%A1%86%E6%9E%B6%EF%BC%88%E4%B8%80%EF%BC%89-Spring/framework_08.png" alt="Filter 和 拦截器执行顺序"></p>
-</li>
-</ul>
-<h3 id="SpringData"><a href="#SpringData" class="headerlink" title="SpringData"></a>SpringData</h3><h4 id="JPA（待更新）"><a href="#JPA（待更新）" class="headerlink" title="JPA（待更新）"></a>JPA（待更新）</h4><h3 id="SpringBoot"><a href="#SpringBoot" class="headerlink" title="SpringBoot"></a>SpringBoot</h3><p><a href="http://blogsea.cn/2020/04/28/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/" target="_blank" rel="noopener">SpringBoot学习之启动配置原理</a></p>
-<p><a href="http://blogsea.cn/2020/05/07/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/" target="_blank" rel="noopener">SpringBoot学习之自动配置原理</a></p>
-<p><a href="http://blogsea.cn/2020/05/08/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86/" target="_blank" rel="noopener">SpringBoot学习之日志管理</a></p>
-<p>另补充<strong>SpringBoot</strong>关键注解：</p>
-<ul>
-<li><strong>@SpringBootApplication</strong> ：包含了 @ComponentScan、@EnableAutoConfiguration、@SpringBootConfiguration 三个注解</li>
-<li><strong>@SpringBootConfiguration：</strong>包含了 @Configuration 注解。</li>
-<li><strong>@EnableAutoConfiguration：</strong>自动配置</li>
-<li><strong>@Conditional相关 ：</strong>控制自动配置的生效条件的注解<ul>
-<li>@ConditionalOnBean</li>
-<li>@ConditionalOnClass</li>
-<li>@ConditionalOnExpression</li>
-<li>@ConditionalOnMissingBean</li>
-<li>@ConditionalOnMissingClass</li>
-<li>@ConditionalOnNotWebApplication</li>
-</ul>
-</li>
-</ul>
-<p><strong>SpringBoot</strong> 相关模块：</p>
-<ul>
-<li><strong>starter：</strong>Starter 是 Spring Boot 提供的无缝集成功能的一种方式，使用某个功能时开发者不需要关注各种依赖库的处理，不需要具体的配置信息，由 Spring Boot 自动配置进行 Bean的创建。例如需要使用 Web 功能时，只需要在依赖中引入 Spring-boot-starter-web 即可。</li>
-<li><strong>actuator：</strong>Actuator 是用来对应用程序进行监视和管理，通过 RESTful API 请求来监管、审计、收集应用的运行情况。</li>
-<li><strong>devtools：</strong>DevTools 提供了一系列开发工具的支持，来提高开发效率。例如热部署能力等。</li>
-<li><strong>cli：</strong>CLI 就是命令行接口，是一个命令行工具，支持使用 Groovy 脚本，可以快速搭建 Spring 原型项目。</li>
-</ul>
-<p><strong>SpringBoot</strong> 配置文件：</p>
-<ul>
-<li><strong>bootstarp：</strong>应用程序的父上下文，会先于 applicaton 加载，主要用于从额外的资源来加载配置信息，还可以在本地外部配置文件中解密属性。bootstrap 里面的属性会优先加载，默认也不能被本地相同配置覆盖。</li>
-<li><strong>application：</strong>默认配置文件，可区分环境。</li>
-</ul>
-<h3 id="SpringCloud"><a href="#SpringCloud" class="headerlink" title="SpringCloud"></a>SpringCloud</h3><p>涉及篇幅过多，后续补充</p>
-<blockquote>
-<p>笔记来源：网络知识点整理</p>
-</blockquote>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spring/" rel="tag">Spring</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%9D%A2%E8%AF%95%E5%A4%8D%E4%B9%A0/" rel="tag">面试复习</a></li></ul>
 
 
     </footer>

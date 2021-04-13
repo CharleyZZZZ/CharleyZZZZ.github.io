@@ -7872,4 +7872,58 @@
         <tag>hash</tag>
       </tags>
   </entry>
+  <entry>
+    <title>布隆过滤器</title>
+    <url>/2021/04/13/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/</url>
+    <content><![CDATA[<h3 id="布隆过滤器"><a href="#布隆过滤器" class="headerlink" title="布隆过滤器"></a>布隆过滤器</h3><p><strong>布隆过滤器</strong>本质上是一种<strong>数据结构</strong>，比较巧妙的<strong>概率型数据结构（probabilistic data structure）</strong></p>
+<ul>
+<li><p><strong>优点</strong>：高效地插入和查询，可以用来告诉你 <strong>“某样东西一定不存在或者可能存在”</strong>。</p>
+<p>相比于传统的 List、Set、Map 等数据结构，它更高效、占用空间更少。</p>
+</li>
+<li><p><strong>缺点</strong>：是其返回的<strong>结果是概率性</strong>的，而不是确切的。</p>
+</li>
+</ul>
+<h3 id="实现原理"><a href="#实现原理" class="headerlink" title="实现原理"></a>实现原理</h3><p>通常判断某个元素是否存在的方式：</p>
+<p>可以将值映射到 <strong>HashMap</strong> 的 Key，然后可以在 O(1) 的时间复杂度内返回结果，效率高。但是 HashMap 的实现也有缺点，例如<strong>存储容量占比高</strong>，考虑到负载因子的存在，通常<strong>空间是不能被用满</strong>的，而一旦你的值很多例如上亿的时候，那 HashMap 占据的内存大小就变得很大了。</p>
+<p>即：<strong>内存占用大，利用率低。</strong></p>
+<p><strong>布隆过滤器数据结构</strong></p>
+<p><strong>布隆过滤器</strong>是一个 bit 向量或者说 bit 数组：</p>
+<p><img src="/2021/04/13/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/bulong_filter_01.jpg" alt="布隆过滤器"></p>
+<p>如果我们要映射一个值到布隆过滤器中，我们需要使用<strong>多个不同的哈希函数</strong>生成<strong>多个哈希值，</strong>并对每个生成的哈希值指向的 bit 位置置成 1。</p>
+<p><strong>例如：</strong></p>
+<p>针对值 “baidu” 和三个不同的哈希函数分别生成了哈希值 1、4、7，则在1、4、7 位置置成1。</p>
+<p>这时，我们再存一个值 “tencent”，假如哈希函数返回 3、4、8 的话，3、4、8 位置置成1。值得注意的是，4 这个 bit 位由于两个值的哈希函数都返回了这个 bit 位，因此它被覆盖了。</p>
+<p>现在我们如果想查询 “ali” 这个值是否存在，哈希函数返回了 1、5、8三个值，结果我们发现 5 这个 bit 位上的值为 0，<strong>说明没有任何一个值映射到这个 bit 位上</strong>，因此我们可以<strong>很确定</strong>地说 “ali” 这个值不存在。</p>
+<p>但是，如果现在有一个值经过n次哈希函数后，得到的值的位置都为1，那么该值一定存在吗？不一定。</p>
+<p><strong>综上：</strong></p>
+<p><strong>布隆过滤器可以判断某一个值一定不存在，不一定能判断某一个值一定存在，只能说可能存在。</strong></p>
+<p>这个可能的准确性，取决于<strong>哈希函数的个数</strong> 和 <strong>布隆过滤器的长度</strong>。</p>
+<p><strong>扩展</strong>：传统的布隆过滤器并不支持删除操作。但是名为 Counting Bloom filter 的变种可以用来<strong>测试元素计数个数是否绝对小于某个阈值</strong>，它支持元素删除。</p>
+<h3 id="如何选择哈希函数个数和布隆过滤器长度"><a href="#如何选择哈希函数个数和布隆过滤器长度" class="headerlink" title="如何选择哈希函数个数和布隆过滤器长度"></a>如何选择哈希函数个数和布隆过滤器长度</h3><p><img src="/2021/04/13/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/bulong_filter_02.jpg" alt="布隆过滤器参数选择"></p>
+<p>k 为哈希函数个数，m 为布隆过滤器长度，n 为插入的元素个数，p 为误报率。</p>
+<p>由图可见，<strong>哈希函数个数越多，布隆过滤器越长，误报率越低。</strong></p>
+<p>如何选择适合业务的 k 和 m 值，这里直接贴一个公式：</p>
+<p><img src="/2021/04/13/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/bulong_filter_03.jpg" alt="参数计算公式"></p>
+<p>具体公式推导过程，可自行上网查询。</p>
+<h3 id="最佳实践"><a href="#最佳实践" class="headerlink" title="最佳实践"></a>最佳实践</h3><ul>
+<li><p>利用布隆过滤器减少磁盘 IO 或者网络请求，<strong>一旦一个值必定不存在的话，我们可以不用进行后续昂贵的查询请求。</strong></p>
+</li>
+<li><p>使用布隆过滤器来加速查找和判断是否存在，那么性能很低的哈希函数不是个好选择，推荐 MurmurHash、Fnv 这些。</p>
+</li>
+<li><p>Redis 因其支持 setbit 和 getbit 操作，且纯内存性能高等特点，因此天然就可以作为布隆过滤器来使用。但是布隆过滤器的不当使用极易产生大 Value，增加 Redis 阻塞风险，因此生成环境中建议对体积庞大的布隆过滤器进行拆分。拆分的形式方法多种多样，但是本质是不要将 Hash(Key) 之后的请求分散在多个节点的多个小 bitmap 上，而是应该拆分成多个小 bitmap 之后，对一个 Key 的所有哈希函数都落在这一个小 bitmap 上。</p>
+</li>
+</ul>
+<blockquote>
+<p>笔记来源：</p>
+<p><a href="https://zhuanlan.zhihu.com/p/43263751" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/43263751</a></p>
+<p><a href="https://www.cnblogs.com/liyulong1982/p/6013002.html" target="_blank" rel="noopener">https://www.cnblogs.com/liyulong1982/p/6013002.html</a></p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>技术学习</category>
+      </categories>
+      <tags>
+        <tag>布隆过滤器</tag>
+      </tags>
+  </entry>
 </search>
