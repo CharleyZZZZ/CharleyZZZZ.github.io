@@ -73,7 +73,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">3.8k</span>
+            <span class="post-count">3.6k</span>
         </span>
     </span>
 
@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">13 min</span>
+            <span class="post-count">12 min</span>
         </span>
     </span>
 </div>
@@ -195,36 +195,24 @@
 </ul>
 <p>数据同步过程：</p>
 <ul>
-<li>Master 服务器上对数据库的变更操作记录在 Binlog 中。</li>
-<li>Master 的 Binlog Dump Thread 接到写入请求后读取 Binlog 推送给 Slave I/O Thread。</li>
-<li>Slave I/O Thread 将读取的 Binlog 写入到本地 relay log 文件。</li>
-<li>Slave SQL thread 检测到 relay log 的变更请求，解析 relay log 并在从库上进行应用。</li>
+<li>master提交完事务后，写入binlog</li>
+<li>slave连接到master，获取binlog</li>
+<li>master创建dump线程，推送binglog到slave</li>
+<li>slave启动一个IO线程读取同步过来的master的binlog，记录到relay log中继日志中</li>
+<li>slave再开启一个sql线程读取relay log事件并在slave执行，完成同步</li>
+<li>slave记录自己的binglog</li>
 </ul>
 <p>以上整个复制过程都是异步操作，所以主从复制俗称<strong>异步复制</strong>，存在数据延迟。</p>
 <h5 id="半同步复制（after-commit）"><a href="#半同步复制（after-commit）" class="headerlink" title="半同步复制（after commit）"></a>半同步复制（after commit）</h5><p>考虑到一个场景，主库正常写入数据并提交事务 T1，但是 Slave1 和 Slave2 由于某种原因（例如网络原因）一直无法接受到 Binlog Dump Thread Event 的推送请求，如果这时候 Master Crash，Slave 提升为 Master 后导致事务 T1 数据丢失。为了提升数据安全，MySQL 让 Master 在某一个时间点等待 Slave 节点的 ACK 消息后才进行事务提交，这就是<strong>半同步复制</strong>的基础。</p>
-<p>MySQL 事务写入碰到主从复制时的完整过程：</p>
-<ol>
-<li>InnoDB Redo File Write (Prepare Write)；</li>
-<li>Binlog File Flush &amp; Sync to Binlog File；</li>
-<li>InnoDB Redo File Commit（Commit Write）；</li>
-<li>Send Binlog to Slave。</li>
-</ol>
-<p>当 Master 不需要关注 Slave 是否接受到 Binlog Event 时，即为传统的主从复制。</p>
-<p>当 Master 需要在第三步等待 Slave 返回 ACK 时，即为 <strong>半同步复制 after-commit</strong>。</p>
-<p>当 Master 需要在第二步等待 Slave 返回 ACK 时，即为 <strong>增强半同步 after-sync</strong>。</p>
 <p><strong>MySQL Master 将事务写入 Binlog（sync_binlog=1）并推送给 Slave 后主库将事务提交到存储引擎（此时未返回客户端但是其他会话可以访问到事务提交信息），Slave  I/O Thread 将读取的 Binlog 写入到本地 relay log 文件（sync_relay=1）后向 Master 返回 ACK 消息，当主库 Master 等到 Slave 返回的 ACK 消息后 Master 将事务提交成功的结果返回给客户端。</strong></p>
 <h5 id="增强半同步-after-sync"><a href="#增强半同步-after-sync" class="headerlink" title="增强半同步 after-sync"></a>增强半同步 after-sync</h5><p>为了提升数据的安全性，MySQL 5.7 引入了<strong>增强半同步 after_sync（无损复制）</strong>，并将其设置为默认的半同步方式来解决数据丢失的问题。</p>
-<p><strong>after-sync 是将 Master 等待 ACK 消息放到了 Binlog File Flush &amp; Sync to Binlog File 之后，Engine Commit 之前，这样就可以保证数据不会丢失，因为 Slave 接受到event 并写入自身 relay log。</strong></p>
-<h4 id="同步复制（准同步）"><a href="#同步复制（准同步）" class="headerlink" title="同步复制（准同步）"></a>同步复制（准同步）</h4><h5 id="Galera-Cluster"><a href="#Galera-Cluster" class="headerlink" title="Galera Cluster"></a><strong>Galera Cluster</strong></h5><ul>
-<li><strong>Multi-Master 多主架构</strong>：通常由三个实例组成的一个集群，三个节点均可以提供读写.</li>
-<li><strong>Share-Nothing 架构：</strong>客户端可以读写访问集群任意一个节点，集群节点间组成了 Group communication。这可以用来保证集群节点数据的强一致性，这种架构是 Share-Nothing，不共享数据、多副本的高冗余架构，拥有多点写入、同步复制、无复制延迟、并法复制、随意切换、节点自动配置、健康检查等功能。     </li>
-</ul>
-<p>Galera Cluster是一个强一致性集群，当集群节点有数据写入时，Group communication 会向组内所有成员广播写集（初步可简单理解为写入的Binlog），所有节点验证通过之后写节点开始提交，其他节点执行写集应用和提交，当出现数据冲突时则写节点执行回滚，其他节点丢弃该写集。</p>
-<h5 id="MySQL-Group-Replication"><a href="#MySQL-Group-Replication" class="headerlink" title="MySQL Group Replication"></a><strong>MySQL Group Replication</strong></h5><p>MySQL 在 5.7 版本参考 Galera Cluster 的技术实现推出了 MySQL Group Replication（简称 <strong>MGR</strong>）。</p>
+<p><strong>after-sync 是将 Master 等待 ACK 消息放到了 存储引擎提交事务之前，这样就可以保证数据不会丢失，因为 Slave 接受到 event 并写入自身 relay log，之后给Master 回复ACK, 这时Master 引擎才会提交事务，然后返回结果给客户端。</strong></p>
+<h4 id="同步复制（准同步）"><a href="#同步复制（准同步）" class="headerlink" title="同步复制（准同步）"></a>同步复制（准同步）</h4><h5 id="Galera-Cluster"><a href="#Galera-Cluster" class="headerlink" title="Galera Cluster"></a><strong>Galera Cluster</strong></h5><p><strong>Galera Cluster</strong>是一个强一致性集群，当集群节点有数据写入时，Group communication 会向组内所有成员广播写集（初步可简单理解为写入的Binlog），所有节点验证通过之后写节点开始提交，其他节点执行写集应用和提交，当出现数据冲突时则写节点执行回滚，其他节点丢弃该写集。</p>
+<h5 id="MySQL-Group-Replication-组复制"><a href="#MySQL-Group-Replication-组复制" class="headerlink" title="MySQL Group Replication 组复制"></a><strong>MySQL Group Replication</strong> 组复制</h5><p>MySQL 在 5.7 版本参考 Galera Cluster 的技术实现推出了 MySQL Group Replication（简称 <strong>MGR</strong>）。</p>
 <p>MGR 同样是一个<strong>支持多点写入的多主复制架构</strong>，它<strong>基于原生 MySQL 主从复制的基础上</strong>构建组通信层，由 Group Replication 提供一组原子消息并且按照全局顺序进行消息传递，集群任何节点均可写入，但所有写入事务只有在获得<strong>复制组认证</strong>通过（多数派协议 Paxos）后才能进行提交。例如由若干个节点共同组成一个复制组，一个事务的提交必须经过组内大多数节点（N / 2 + 1）决议并通过，才能得以提交。</p>
 <h4 id="使用场景"><a href="#使用场景" class="headerlink" title="使用场景"></a>使用场景</h4><ul>
 <li><strong>主从复制</strong>：通常适合于轻量级程序、高可用要求不高的业务场景。这类架构中应用程序直连访问 Master 和 Slave 进行读写分离，当 Master 出现故障时由于无法自动切换导致服务受损。因此通常会基于此架构加上 VIP/DNS + Keepalived 及双主复制来做一个简单的高可用切换。</li>
-<li><strong>双主复制</strong>：通常为其中一个 Master 提供线上服务，另一个 Master 作为 Standby 供高可用切换，Master 下游挂载 Slave 承担读请求。</li>
+<li><strong>双主复制</strong>：通常为其中一个 Master 提供线上服务，另一个 Master 作为 Standby 供高可用切换（这里的原理为互为主从，通过<strong>keepalived</strong>监控主库状态，做故障切换），Master 下游挂载 Slave 承担读请求。</li>
 <li><strong>树形复制</strong>：这类架构通常适用于数据访问策略分层，例如 MySQL Master 和 MySQL Slave 参与线上业务访问及高可用切换，MySQL Statistic 节点提供离线查询、报表慢查和非线上业务访问。</li>
 </ul>
 <h3 id="海量数据架构设计"><a href="#海量数据架构设计" class="headerlink" title="海量数据架构设计"></a>海量数据架构设计</h3><h4 id="指标"><a href="#指标" class="headerlink" title="指标"></a>指标</h4><ul>
@@ -515,6 +503,10 @@
     
     <li class="nav-item">
       <a class="nav-item-link" href="/tags/%E7%94%9F%E6%B4%BB/">生活</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2019/about">关于</a>
     </li>
     
   </ul>

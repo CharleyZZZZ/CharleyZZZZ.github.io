@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+
+
+<html lang="en">
+
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    分布式ID生成方案 |  Hello World !
+  </title>
+  <meta name="generator" content="hexo-theme-ayer">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/dist/main.css">
+
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css">
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+  
+  
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+
+  
+  
+
+  
+
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content on">
+      <section class="outer">
+  <article id="post-分布式ID生成方案" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  分布式ID生成方案
+</h1>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/05/25/%E5%88%86%E5%B8%83%E5%BC%8FID%E7%94%9F%E6%88%90%E6%96%B9%E6%A1%88/" class="article-date">
+  <time datetime="2021-05-25T06:26:53.000Z" itemprop="datePublished">2021-05-25</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0/">技术学习</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> Word count:</span>
+            <span class="post-count">1.7k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> Reading time≈</span>
+            <span class="post-count">7 min</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h3><p>分布式系统中需要全局唯一的ID，就叫 分布式ID。</p>
+<ul>
+<li>全局唯一</li>
+<li>高性能：id生成响应要快，否则会影响系统性能</li>
+<li>高可用</li>
+<li>好接入：系统设计简单，好接入</li>
+<li>趋势递增</li>
+</ul>
+<h3 id="常用方案"><a href="#常用方案" class="headerlink" title="常用方案"></a>常用方案</h3><ul>
+<li><p>UUID</p>
+</li>
+<li><p>数据库自增ID</p>
+</li>
+<li><p>分布式数据库自增ID</p>
+</li>
+<li><p>号段模式</p>
+</li>
+<li><p>Redis 自增特性</p>
+</li>
+<li><p>雪花算法（SnowFlake）</p>
+</li>
+</ul>
+<h4 id="UUID"><a href="#UUID" class="headerlink" title="UUID"></a>UUID</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123; </span><br><span class="line">       String uuid = UUID.randomUUID().toString().replaceAll(<span class="string">"-"</span>,<span class="string">""</span>);</span><br><span class="line">       System.out.println(uuid);</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+
+<p>优点：</p>
+<ul>
+<li>生成简单，本地生成无网络消耗，具有唯一性</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>无序字符串，不能递增</li>
+<li>无具体业务含义</li>
+<li>长度过长</li>
+</ul>
+<h4 id="数据库自增ID"><a href="#数据库自增ID" class="headerlink" title="数据库自增ID"></a>数据库自增ID</h4><p>基于数据库的<code>auto_increment</code>自增ID完全可以充当<code>分布式ID</code>，具体实现：需要一个单独的MySQL实例用来生成ID，建表结构如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">DATABASE</span> <span class="string">`SEQ_ID`</span>;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> SEQID.SEQUENCE_ID (</span><br><span class="line">    <span class="keyword">id</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">unsigned</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> auto_increment, </span><br><span class="line">    <span class="keyword">value</span> <span class="built_in">char</span>(<span class="number">10</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">default</span> <span class="string">''</span>,</span><br><span class="line">    PRIMARY <span class="keyword">KEY</span> (<span class="keyword">id</span>),</span><br><span class="line">) <span class="keyword">ENGINE</span>=MyISAM;</span><br></pre></td></tr></table></figure>
+
+<p><strong>优点：</strong></p>
+<ul>
+<li>实现简单，ID单调自增，数值类型查询速度快</li>
+</ul>
+<p><strong>缺点：</strong></p>
+<ul>
+<li>DB单点存在宕机风险，无法扛住高并发场景</li>
+</ul>
+<h4 id="基于数据库集群自增ID"><a href="#基于数据库集群自增ID" class="headerlink" title="基于数据库集群自增ID"></a>基于数据库集群自增ID</h4><p>前边说了单点数据库方式不可取，那对上边的方式做一些高可用优化，换成主从模式集群。害怕一个主节点挂掉没法用，那就做双主模式集群，也就是两个Mysql实例都能单独的生产自增ID。</p>
+<p><strong>问题：多个实例都生成ID，会产生重复ID 的问题，不满足唯一性。</strong></p>
+<p><strong>解决方法：设置起始值和自增步长。</strong></p>
+<p>MySQL_1 配置：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> @@auto_increment_offset = <span class="number">1</span>;     <span class="comment">-- 起始值</span></span><br><span class="line"><span class="keyword">set</span> @@auto_increment_increment = <span class="number">2</span>;  <span class="comment">-- 步长</span></span><br></pre></td></tr></table></figure>
+
+<p>MySQL_2 配置：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> @@auto_increment_offset = <span class="number">2</span>;     <span class="comment">-- 起始值</span></span><br><span class="line"><span class="keyword">set</span> @@auto_increment_increment = <span class="number">2</span>;  <span class="comment">--</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>优点：</strong></p>
+<ul>
+<li>解决DB单点问题。</li>
+</ul>
+<p><strong>缺点：</strong></p>
+<ul>
+<li>不利于后续扩容（扩容需要修改已有实例的起始值和步长），而且实际上单个数据库自身压力还是大，依旧无法满足高并发场景。</li>
+</ul>
+<h4 id="号段模式"><a href="#号段模式" class="headerlink" title="号段模式"></a>号段模式</h4><p>号段模式是当下分布式ID生成器的主流实现方式之一，号段模式可以理解为从数据库批量的获取自增ID，每次从数据库取出一个号段范围，例如 (1,1000] 代表1000个ID，具体的业务服务将本号段，生成1~1000的自增ID并加载到内存。表结构如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> id_generator (</span><br><span class="line">  <span class="keyword">id</span> <span class="built_in">int</span>(<span class="number">10</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">  max_id <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'当前最大id'</span>,</span><br><span class="line">  step <span class="built_in">int</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'号段的布长'</span>,</span><br><span class="line">  biz_type	<span class="built_in">int</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'业务类型'</span>,</span><br><span class="line">  <span class="keyword">version</span> <span class="built_in">int</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'版本号'</span>,</span><br><span class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`id`</span>)</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p><strong>biz_type</strong> ：代表不同业务类型</p>
+<p><strong>max_id</strong> ：当前最大的可用id</p>
+<p><strong>step</strong> ：代表号段的长度</p>
+<p><strong>version</strong> ：是一个乐观锁，每次都更新version，保证并发时数据的正确性</p>
+<p>等这批号段ID用完，再次向数据库申请新号段，对<code>max_id</code>字段做一次<code>update</code>操作，<code>update max_id= max_id + step</code>，update成功则说明新号段获取成功，新的号段范围是<code>(max_id ,max_id +step]</code>。</p>
+<h4 id="基于Redis自增ID"><a href="#基于Redis自增ID" class="headerlink" title="基于Redis自增ID"></a>基于Redis自增ID</h4><p><code>Redis</code>也同样可以实现，原理就是利用<code>redis</code>的 <code>incr</code>命令实现ID的原子性自增。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span>:<span class="number">6379</span>&gt; set seq_id <span class="number">1</span>     <span class="comment">// 初始化自增ID为1</span></span><br><span class="line">OK</span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span>:<span class="number">6379</span>&gt; incr seq_id      <span class="comment">// 增加1，并返回递增后的数值</span></span><br><span class="line">(integer) <span class="number">2</span></span><br></pre></td></tr></table></figure>
+
+<p>用<code>redis</code>实现需要注意一点，要考虑到redis持久化的问题。<code>redis</code>有两种持久化方式<code>RDB</code>和<code>AOF</code></p>
+<ul>
+<li><code>RDB</code>会定时打一个快照进行持久化，假如连续自增但<code>redis</code>没及时持久化，而这会Redis挂掉了，重启Redis后会出现ID重复的情况。</li>
+<li><code>AOF</code>会对每条写命令进行持久化，即使<code>Redis</code>挂掉了也不会出现ID重复的情况，但由于incr命令的特殊性，会导致<code>Redis</code>重启恢复的数据时间过长。</li>
+</ul>
+<h4 id="雪花算法（Snowflake）"><a href="#雪花算法（Snowflake）" class="headerlink" title="雪花算法（Snowflake）"></a>雪花算法（Snowflake）</h4><p><img src="/2021/05/25/%E5%88%86%E5%B8%83%E5%BC%8FID%E7%94%9F%E6%88%90%E6%96%B9%E6%A1%88/incr_id.jpg" alt="雪花算法组成结构"></p>
+<p><code>Snowflake</code>生成的是Long类型的ID，一个Long类型占8个字节，每个字节占8比特，也就是说一个Long类型占64个比特。</p>
+<p>Snowflake ID组成结构：<code>正数位</code>（占1比特）+ <code>时间戳</code>（占41比特）+ <code>机器ID</code>（占5比特）+ <code>数据中心</code>（占5比特）+ <code>自增值</code>（占12比特），总共64比特组成的一个Long类型。</p>
+<ul>
+<li>第一个bit位（1bit）：Java中long的最高位是符号位代表正负，正数是0，负数是1，一般生成ID都为正数，所以默认为0。</li>
+<li>时间戳部分（41bit）：毫秒级的时间，不建议存当前时间戳，而是用（当前时间戳 - 固定开始时间戳）的差值，可以使产生的ID从更小的值开始；41位的时间戳可以使用69年，(1L &lt;&lt; 41) / (1000L * 60 * 60 * 24 * 365) = 69年</li>
+<li>工作机器id（10bit）：也被叫做<code>workId</code>，这个可以灵活配置，机房或者机器号组合都可以。</li>
+<li>序列号部分（12bit），自增值支持同一毫秒内同一个节点可以生成4096个ID</li>
+</ul>
+<p><strong>Java版本的<code>Snowflake</code>算法实现：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Twitter的SnowFlake算法,使用SnowFlake算法生成一个整数，然后转化为62进制变成一个短地址URL</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * https://github.com/beyondfengyu/SnowFlake</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SnowFlakeShortUrl</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 起始的时间戳</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> <span class="keyword">long</span> START_TIMESTAMP = <span class="number">1480166465631L</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 每一部分占用的位数</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> <span class="keyword">long</span> SEQUENCE_BIT = <span class="number">12</span>;   <span class="comment">//序列号占用的位数</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> <span class="keyword">long</span> MACHINE_BIT = <span class="number">5</span>;     <span class="comment">//机器标识占用的位数</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> <span class="keyword">long</span> DATA_CENTER_BIT = <span class="number">5</span>; <span class="comment">//数据中心占用的位数</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 每一部分的最大值</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> <span class="keyword">long</span> MAX_SEQUENCE = -<span class="number">1L</span> ^ (-<span class="number">1L</span> &lt;&lt; SEQUENCE_BIT);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> <span class="keyword">long</span> MAX_MACHINE_NUM = -<span class="number">1L</span> ^ (-<span class="number">1L</span> &lt;&lt; MACHINE_BIT);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> <span class="keyword">long</span> MAX_DATA_CENTER_NUM = -<span class="number">1L</span> ^ (-<span class="number">1L</span> &lt;&lt; DATA_CENTER_BIT);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 每一部分向左的位移</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> <span class="keyword">long</span> MACHINE_LEFT = SEQUENCE_BIT;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> <span class="keyword">long</span> DATA_CENTER_LEFT = SEQUENCE_BIT + MACHINE_BIT;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> <span class="keyword">long</span> TIMESTAMP_LEFT = DATA_CENTER_LEFT + DATA_CENTER_BIT;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">long</span> dataCenterId;  <span class="comment">//数据中心</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">long</span> machineId;     <span class="comment">//机器标识</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">long</span> sequence = <span class="number">0L</span>; <span class="comment">//序列号</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">long</span> lastTimeStamp = -<span class="number">1L</span>;  <span class="comment">//上一次时间戳</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">long</span> <span class="title">getNextMill</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">long</span> mill = getNewTimeStamp();</span><br><span class="line">        <span class="keyword">while</span> (mill &lt;= lastTimeStamp) &#123;</span><br><span class="line">            mill = getNewTimeStamp();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> mill;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">long</span> <span class="title">getNewTimeStamp</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> System.currentTimeMillis();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 根据指定的数据中心ID和机器标志ID生成指定的序列号</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> dataCenterId 数据中心ID</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> machineId    机器标志ID</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">SnowFlakeShortUrl</span><span class="params">(<span class="keyword">long</span> dataCenterId, <span class="keyword">long</span> machineId)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (dataCenterId &gt; MAX_DATA_CENTER_NUM || dataCenterId &lt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"DtaCenterId can't be greater than MAX_DATA_CENTER_NUM or less than 0！"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (machineId &gt; MAX_MACHINE_NUM || machineId &lt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"MachineId can't be greater than MAX_MACHINE_NUM or less than 0！"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">this</span>.dataCenterId = dataCenterId;</span><br><span class="line">        <span class="keyword">this</span>.machineId = machineId;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 产生下一个ID</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">long</span> <span class="title">nextId</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">long</span> currTimeStamp = getNewTimeStamp();</span><br><span class="line">        <span class="keyword">if</span> (currTimeStamp &lt; lastTimeStamp) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"Clock moved backwards.  Refusing to generate id"</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (currTimeStamp == lastTimeStamp) &#123;</span><br><span class="line">            <span class="comment">//相同毫秒内，序列号自增</span></span><br><span class="line">            sequence = (sequence + <span class="number">1</span>) &amp; MAX_SEQUENCE;</span><br><span class="line">            <span class="comment">//同一毫秒的序列数已经达到最大</span></span><br><span class="line">            <span class="keyword">if</span> (sequence == <span class="number">0L</span>) &#123;</span><br><span class="line">                currTimeStamp = getNextMill();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">//不同毫秒内，序列号置为0</span></span><br><span class="line">            sequence = <span class="number">0L</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        lastTimeStamp = currTimeStamp;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> (currTimeStamp - START_TIMESTAMP) &lt;&lt; TIMESTAMP_LEFT <span class="comment">//时间戳部分</span></span><br><span class="line">                | dataCenterId &lt;&lt; DATA_CENTER_LEFT       <span class="comment">//数据中心部分</span></span><br><span class="line">                | machineId &lt;&lt; MACHINE_LEFT             <span class="comment">//机器标识部分</span></span><br><span class="line">                | sequence;                             <span class="comment">//序列号部分</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        SnowFlakeShortUrl snowFlake = <span class="keyword">new</span> SnowFlakeShortUrl(<span class="number">2</span>, <span class="number">3</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; (<span class="number">1</span> &lt;&lt; <span class="number">4</span>); i++) &#123;</span><br><span class="line">            <span class="comment">//10进制</span></span><br><span class="line">            System.out.println(snowFlake.nextId());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>笔记来源：<a href="https://zhuanlan.zhihu.com/p/107939861" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/107939861</a></p>
+</blockquote>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://charleyzzzz.github.io/2021/05/25/%E5%88%86%E5%B8%83%E5%BC%8FID%E7%94%9F%E6%88%90%E6%96%B9%E6%A1%88/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ID/" rel="tag">ID</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag">分布式</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2021/05/25/%E9%99%90%E6%B5%81%E6%96%B9%E6%A1%88/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            限流方案
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2021/04/13/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">布隆过滤器</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: 'fV6hp5I755QPrJ9W3gpD596M-gzGzoHsz',
+        app_key: '2BLVrJEhiPxBOjTvEyjpXD2c',
+        path: window.location.pathname,
+        notify: 'false',
+        verify: 'false',
+        avatar: 'monsterid',
+        placeholder: 'ヾﾉ≧∀≦)o来啊，快活啊!',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2020-2021
+        <i class="ri-heart-fill heart_icon"></i> CharleyZZZZ
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>Visitors:<span id="busuanzi_value_site_uv"></span></s>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>Views:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="float_btns">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+      </div>
+    </main>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/timg.jpg" alt="Hello World !"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags/%E7%94%9F%E6%B4%BB/">生活</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2019/about">关于</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <script>
+      if (window.matchMedia("(max-width: 768px)").matches) {
+        document.querySelector('.content').classList.remove('on');
+        document.querySelector('.sidebar').classList.remove('on');
+      }
+    </script>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/img/wechat.jpg">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Subtitle -->
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+    console.log(err)
+  }
+</script>
+
+<!-- Tocbot -->
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto'
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+<!-- ClickLove -->
+
+
+<script src="/js/clickLove.js"></script>
+
+
+<!-- CodeCopy -->
+
+
+<link rel="stylesheet" href="/css/clipboard.css">
+
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+
+
+
+    
+  </div>
+</body>
+
+</html>

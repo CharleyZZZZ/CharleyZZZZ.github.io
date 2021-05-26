@@ -1482,6 +1482,13 @@
 <li>如果是则认为获得锁，执行业务代码，否则通过 watch 事件监听 /lock01 的子节点变更消息，获得变更通知后重复此步骤直至获得锁；</li>
 <li>完成业务流程后，删除对应的子节点，释放分布式锁。</li>
 </ul>
+<p>特点：</p>
+<ul>
+<li>Zookeeper 唯一特性保证锁的互斥性。</li>
+<li>ZooKeeper节点的递增有序性，可以确保锁的公平。</li>
+<li>临时节点可以保证超时释放。</li>
+<li>ZooKeeper的节点监听机制，能避免羊群效应，每一个等通知的Znode节点，只需要监听（linsten）或者监视（watch）排号在自己前面那个，而且紧挨在自己前面的那个节点，就能收到其删除事件了。<br>只要上一个节点被删除了，就进行再一次判断，看看自己是不是序号最小的那个节点，如果是，自己就获得锁。</li>
+</ul>
 <p>在实际开发中，可以应用 Apache Curator 来快速实现分布式锁，Curator 是 Netflix 公司开源的一个 ZooKeeper 客户端，对 ZooKeeper 原生 API 做了抽象和封装。</p>
 <p><strong>以上学习内容均来自邴越老师《分布式技术原理与实战》课程，用于学习记录，希望大家共同进步，欧耶。</strong></p>
 ]]></content>
@@ -7172,36 +7179,24 @@
 </ul>
 <p>数据同步过程：</p>
 <ul>
-<li>Master 服务器上对数据库的变更操作记录在 Binlog 中。</li>
-<li>Master 的 Binlog Dump Thread 接到写入请求后读取 Binlog 推送给 Slave I/O Thread。</li>
-<li>Slave I/O Thread 将读取的 Binlog 写入到本地 relay log 文件。</li>
-<li>Slave SQL thread 检测到 relay log 的变更请求，解析 relay log 并在从库上进行应用。</li>
+<li>master提交完事务后，写入binlog</li>
+<li>slave连接到master，获取binlog</li>
+<li>master创建dump线程，推送binglog到slave</li>
+<li>slave启动一个IO线程读取同步过来的master的binlog，记录到relay log中继日志中</li>
+<li>slave再开启一个sql线程读取relay log事件并在slave执行，完成同步</li>
+<li>slave记录自己的binglog</li>
 </ul>
 <p>以上整个复制过程都是异步操作，所以主从复制俗称<strong>异步复制</strong>，存在数据延迟。</p>
 <h5 id="半同步复制（after-commit）"><a href="#半同步复制（after-commit）" class="headerlink" title="半同步复制（after commit）"></a>半同步复制（after commit）</h5><p>考虑到一个场景，主库正常写入数据并提交事务 T1，但是 Slave1 和 Slave2 由于某种原因（例如网络原因）一直无法接受到 Binlog Dump Thread Event 的推送请求，如果这时候 Master Crash，Slave 提升为 Master 后导致事务 T1 数据丢失。为了提升数据安全，MySQL 让 Master 在某一个时间点等待 Slave 节点的 ACK 消息后才进行事务提交，这就是<strong>半同步复制</strong>的基础。</p>
-<p>MySQL 事务写入碰到主从复制时的完整过程：</p>
-<ol>
-<li>InnoDB Redo File Write (Prepare Write)；</li>
-<li>Binlog File Flush &amp; Sync to Binlog File；</li>
-<li>InnoDB Redo File Commit（Commit Write）；</li>
-<li>Send Binlog to Slave。</li>
-</ol>
-<p>当 Master 不需要关注 Slave 是否接受到 Binlog Event 时，即为传统的主从复制。</p>
-<p>当 Master 需要在第三步等待 Slave 返回 ACK 时，即为 <strong>半同步复制 after-commit</strong>。</p>
-<p>当 Master 需要在第二步等待 Slave 返回 ACK 时，即为 <strong>增强半同步 after-sync</strong>。</p>
 <p><strong>MySQL Master 将事务写入 Binlog（sync_binlog=1）并推送给 Slave 后主库将事务提交到存储引擎（此时未返回客户端但是其他会话可以访问到事务提交信息），Slave  I/O Thread 将读取的 Binlog 写入到本地 relay log 文件（sync_relay=1）后向 Master 返回 ACK 消息，当主库 Master 等到 Slave 返回的 ACK 消息后 Master 将事务提交成功的结果返回给客户端。</strong></p>
 <h5 id="增强半同步-after-sync"><a href="#增强半同步-after-sync" class="headerlink" title="增强半同步 after-sync"></a>增强半同步 after-sync</h5><p>为了提升数据的安全性，MySQL 5.7 引入了<strong>增强半同步 after_sync（无损复制）</strong>，并将其设置为默认的半同步方式来解决数据丢失的问题。</p>
-<p><strong>after-sync 是将 Master 等待 ACK 消息放到了 Binlog File Flush &amp; Sync to Binlog File 之后，Engine Commit 之前，这样就可以保证数据不会丢失，因为 Slave 接受到event 并写入自身 relay log。</strong></p>
-<h4 id="同步复制（准同步）"><a href="#同步复制（准同步）" class="headerlink" title="同步复制（准同步）"></a>同步复制（准同步）</h4><h5 id="Galera-Cluster"><a href="#Galera-Cluster" class="headerlink" title="Galera Cluster"></a><strong>Galera Cluster</strong></h5><ul>
-<li><strong>Multi-Master 多主架构</strong>：通常由三个实例组成的一个集群，三个节点均可以提供读写.</li>
-<li><strong>Share-Nothing 架构：</strong>客户端可以读写访问集群任意一个节点，集群节点间组成了 Group communication。这可以用来保证集群节点数据的强一致性，这种架构是 Share-Nothing，不共享数据、多副本的高冗余架构，拥有多点写入、同步复制、无复制延迟、并法复制、随意切换、节点自动配置、健康检查等功能。     </li>
-</ul>
-<p>Galera Cluster是一个强一致性集群，当集群节点有数据写入时，Group communication 会向组内所有成员广播写集（初步可简单理解为写入的Binlog），所有节点验证通过之后写节点开始提交，其他节点执行写集应用和提交，当出现数据冲突时则写节点执行回滚，其他节点丢弃该写集。</p>
-<h5 id="MySQL-Group-Replication"><a href="#MySQL-Group-Replication" class="headerlink" title="MySQL Group Replication"></a><strong>MySQL Group Replication</strong></h5><p>MySQL 在 5.7 版本参考 Galera Cluster 的技术实现推出了 MySQL Group Replication（简称 <strong>MGR</strong>）。</p>
+<p><strong>after-sync 是将 Master 等待 ACK 消息放到了 存储引擎提交事务之前，这样就可以保证数据不会丢失，因为 Slave 接受到 event 并写入自身 relay log，之后给Master 回复ACK, 这时Master 引擎才会提交事务，然后返回结果给客户端。</strong></p>
+<h4 id="同步复制（准同步）"><a href="#同步复制（准同步）" class="headerlink" title="同步复制（准同步）"></a>同步复制（准同步）</h4><h5 id="Galera-Cluster"><a href="#Galera-Cluster" class="headerlink" title="Galera Cluster"></a><strong>Galera Cluster</strong></h5><p><strong>Galera Cluster</strong>是一个强一致性集群，当集群节点有数据写入时，Group communication 会向组内所有成员广播写集（初步可简单理解为写入的Binlog），所有节点验证通过之后写节点开始提交，其他节点执行写集应用和提交，当出现数据冲突时则写节点执行回滚，其他节点丢弃该写集。</p>
+<h5 id="MySQL-Group-Replication-组复制"><a href="#MySQL-Group-Replication-组复制" class="headerlink" title="MySQL Group Replication 组复制"></a><strong>MySQL Group Replication</strong> 组复制</h5><p>MySQL 在 5.7 版本参考 Galera Cluster 的技术实现推出了 MySQL Group Replication（简称 <strong>MGR</strong>）。</p>
 <p>MGR 同样是一个<strong>支持多点写入的多主复制架构</strong>，它<strong>基于原生 MySQL 主从复制的基础上</strong>构建组通信层，由 Group Replication 提供一组原子消息并且按照全局顺序进行消息传递，集群任何节点均可写入，但所有写入事务只有在获得<strong>复制组认证</strong>通过（多数派协议 Paxos）后才能进行提交。例如由若干个节点共同组成一个复制组，一个事务的提交必须经过组内大多数节点（N / 2 + 1）决议并通过，才能得以提交。</p>
 <h4 id="使用场景"><a href="#使用场景" class="headerlink" title="使用场景"></a>使用场景</h4><ul>
 <li><strong>主从复制</strong>：通常适合于轻量级程序、高可用要求不高的业务场景。这类架构中应用程序直连访问 Master 和 Slave 进行读写分离，当 Master 出现故障时由于无法自动切换导致服务受损。因此通常会基于此架构加上 VIP/DNS + Keepalived 及双主复制来做一个简单的高可用切换。</li>
-<li><strong>双主复制</strong>：通常为其中一个 Master 提供线上服务，另一个 Master 作为 Standby 供高可用切换，Master 下游挂载 Slave 承担读请求。</li>
+<li><strong>双主复制</strong>：通常为其中一个 Master 提供线上服务，另一个 Master 作为 Standby 供高可用切换（这里的原理为互为主从，通过<strong>keepalived</strong>监控主库状态，做故障切换），Master 下游挂载 Slave 承担读请求。</li>
 <li><strong>树形复制</strong>：这类架构通常适用于数据访问策略分层，例如 MySQL Master 和 MySQL Slave 参与线上业务访问及高可用切换，MySQL Statistic 节点提供离线查询、报表慢查和非线上业务访问。</li>
 </ul>
 <h3 id="海量数据架构设计"><a href="#海量数据架构设计" class="headerlink" title="海量数据架构设计"></a>海量数据架构设计</h3><h4 id="指标"><a href="#指标" class="headerlink" title="指标"></a>指标</h4><ul>
@@ -7924,6 +7919,191 @@
       </categories>
       <tags>
         <tag>布隆过滤器</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>限流方案</title>
+    <url>/2021/05/25/%E9%99%90%E6%B5%81%E6%96%B9%E6%A1%88/</url>
+    <content><![CDATA[<h3 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h3><p>在大数据量高并发访问时，经常会出现服务或接口面对暴涨的请求而<strong>不可用</strong>的情况，甚至引发连锁反映导致整个系统崩溃。此时你需要使用的技术手段之一就是限流，当请求达到一定的并发数或速率，就进行等待、排队、降级、拒绝服务等。</p>
+<p>限流一般分为俩个维度：</p>
+<ul>
+<li><strong>时间：</strong> 限流基于某段时间范围或者某个时间点，也就是我们常说的“时间窗口”，比如对每分钟、每秒钟的时间窗口做限定。</li>
+<li><strong>资源：</strong> 基于可用资源的限制，比如设定最大访问次数，或最高可用连接数。</li>
+</ul>
+<p><strong>分类：</strong></p>
+<ul>
+<li><strong>合法性验证限流</strong>：比如验证码、IP 黑名单等，这些手段可以有效的防止恶意攻击和爬虫采集；</li>
+<li><strong>容器限流</strong>：比如 Tomcat、Nginx 等限流手段，其中 Tomcat 可以设置最大线程数（maxThreads），当并发超过最大线程数会排队等待执行；而Nginx提供了两种限流手段：一是控制速率，二是控制并发连接数；</li>
+<li><strong>服务端限流</strong>：比如我们在服务器端通过限流算法实现限流，常用的有漏桶算法、令牌桶算法、滑动时间窗口算法等。</li>
+</ul>
+<h3 id="方案"><a href="#方案" class="headerlink" title="方案"></a>方案</h3><h4 id="Tomcat限流"><a href="#Tomcat限流" class="headerlink" title="Tomcat限流"></a>Tomcat限流</h4><p>Tomcat 8.5 版本的最大线程数在 conf/server.xml 配置中，如下所示：</p>
+<figure class="highlight properties"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;connector</span> <span class="string">port="8080" protocol="HTTP/1.1"</span></span><br><span class="line">	<span class="attr">connectionTimeout</span>=<span class="string">"20000"</span></span><br><span class="line">	<span class="attr">maxThreads</span>=<span class="string">"150"/&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>其中 maxThreads 就是 Tomcat 的最大线程数，当请求的并发大于此值（maxThreads）时，请求就会排队执行，这样就完成了限流的目的。</p>
+<p>注意：</p>
+<p>maxThreads 的值可以适当的调大一些，Tomcat默认为 150（Tomcat 版本 8.5），但这个值也不是越大越好，要看具体的服务器配置，需要注意的是每开启一个线程需要耗用 1MB 的 JVM 内存空间用于作为线程栈之用，并且线程越多 GC 的负担也越重。</p>
+<p>最后需要注意一下，操作系统对于进程中的线程数有一定的限制，Windows 每个进程中的线程数不允许超过 2000，Linux 每个进程中的线程数不允许超过 1000。</p>
+<h4 id="Nginx-限流"><a href="#Nginx-限流" class="headerlink" title="Nginx 限流"></a>Nginx 限流</h4><p>Nginx官方版本<strong>限制IP的连接</strong>和<strong>并发</strong>分别有两个模块：</p>
+<ul>
+<li><code>limit_req_zone</code> 用来限制单位时间内的请求数，即速率限制,采用的漏桶算法 “leaky bucket”。</li>
+<li><code>limit_req_conn</code> 用来限制同一时间连接数，即并发限制。</li>
+</ul>
+<h5 id="限制速率"><a href="#限制速率" class="headerlink" title="限制速率"></a>限制速率</h5><figure class="highlight properties"><table><tr><td class="code"><pre><span class="line"><span class="attr">http</span> <span class="string">&#123;</span></span><br><span class="line">    <span class="attr">limit_req_zone</span> <span class="string">$binary_remote_addr zone=one:10m rate=1r/s;</span></span><br><span class="line">    <span class="attr">server</span> <span class="string">&#123;</span></span><br><span class="line">        <span class="attr">location</span> <span class="string">/search/ &#123;</span></span><br><span class="line">            <span class="attr">limit_req</span> <span class="string">zone=one burst=5 nodelay;</span></span><br><span class="line">        <span class="attr">&#125;</span></span><br><span class="line"><span class="attr">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight properties"><table><tr><td class="code"><pre><span class="line"><span class="attr">limit_req_zone</span> <span class="string">$binary_remote_addr zone=one:10m rate=1r/s;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>第一个参数：<code>$binary_remote_addr</code> 表示通过<code>remote_addr</code>这个标识来做限制，“binary_”的目的是缩写内存占用量，是限制同一客户端ip地址。</li>
+<li>第二个参数：<code>zone=one:10m</code>表示生成一个大小为10M，名字为one的内存区域，用来存储访问的频次信息。</li>
+<li>第三个参数：<code>rate=1r/s</code>表示允许相同标识的客户端的访问频次，这里限制的是每秒1次，还可以有比如30r/m的。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">limit_req zone&#x3D;one burst&#x3D;5 nodelay;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>第一个参数：<code>zone=one</code> 设置使用哪个配置区域来做限制，与上面<code>limit_req_zone</code> 里的name对应。</li>
+<li>第二个参数：<code>burst=5</code>，重点说明一下这个配置，burst爆发的意思，这个配置的意思是设置一个大小为5的缓冲区当有大量请求（爆发）过来时，超过了访问频次限制的请求可以先放到这个缓冲区内。</li>
+<li>第三个参数：<code>nodelay</code>，如果设置，超过访问频次而且缓冲区也满了的时候就会直接返回503，如果没有设置，则所有请求会等待排队。</li>
+</ul>
+<h5 id="限制并发数"><a href="#限制并发数" class="headerlink" title="限制并发数"></a>限制并发数</h5><p>nginx 利用 <code>limit_conn_zone</code> 和<code>limit_conn</code> 两个指令即可控制并发数.</p>
+<figure class="highlight properties"><table><tr><td class="code"><pre><span class="line"><span class="attr">limit_conn_zone</span> <span class="string">$binary_remote_addr zone=perip:10m;</span></span><br><span class="line"><span class="attr">limit_conn_zone</span> <span class="string">$server_name zone=perserver:10m;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">server</span> <span class="string">&#123;</span></span><br><span class="line">    <span class="attr">...</span></span><br><span class="line">    <span class="attr">limit_conn</span> <span class="string">perip 10;</span></span><br><span class="line">    <span class="attr">limit_conn</span> <span class="string">perserver 100;</span></span><br><span class="line"><span class="attr">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>可以配置多个<code>limit_conn</code>指令。例如，以上配置将限制每个客户端IP连接到服务器的数量，同时限制连接到虚拟服务器的总数。</p>
+<h4 id="滑动时间窗口算法（Redis）"><a href="#滑动时间窗口算法（Redis）" class="headerlink" title="滑动时间窗口算法（Redis）"></a>滑动时间窗口算法（Redis）</h4><p>借助<strong>Redis的有序集合ZSet</strong>来实现时间窗口算法限流，实现的过程是：</p>
+<p>第一步：先使用ZSet的<strong>key</strong>存储限流的<strong>ID</strong>，<strong>score</strong>用来存储<strong>请求的时间</strong>。</p>
+<p>第二步：每次有请求访问来了之后，先判断当前时间窗口内记录的操作次数 count，小于阈值max则允许进行操作，超过阈值则进行限流。同时对时间窗口之外的数据进行清理，节省内存。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RedisLimit</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Redis 操作客户端</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">static</span> Jedis jedis = <span class="keyword">new</span> Jedis(<span class="string">"127.0.0.1"</span>, <span class="number">6379</span>);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">100</span>; i++) &#123;</span><br><span class="line">            <span class="keyword">boolean</span> res = isPeriodLimiting(<span class="string">"www.baidu.com"</span>, <span class="number">3</span>, <span class="number">10</span>);</span><br><span class="line">            <span class="keyword">if</span> (res) &#123;</span><br><span class="line">                System.out.println(<span class="string">"正常访问:"</span> + i);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                System.out.println(<span class="string">"限流访问:"</span> + i);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 休眠 4s</span></span><br><span class="line">        Thread.sleep(<span class="number">4000</span>);</span><br><span class="line">        <span class="comment">// 超过最大执行时间之后，再从发起请求</span></span><br><span class="line">        <span class="keyword">boolean</span> res = isPeriodLimiting(<span class="string">"www.baidu.com"</span>, <span class="number">3</span>, <span class="number">10</span>);</span><br><span class="line">        <span class="keyword">if</span> (res) &#123;</span><br><span class="line">            System.out.println(<span class="string">"休眠后，正常执行请求"</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            System.out.println(<span class="string">"休眠后，被限流"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">boolean</span> <span class="title">isPeriodLimiting</span><span class="params">(String key, <span class="keyword">int</span> period, <span class="keyword">int</span> maxCount)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 当前时间戳</span></span><br><span class="line">        <span class="keyword">long</span> nowTs = System.currentTimeMillis();</span><br><span class="line">        <span class="comment">// 删除非时间段内的请求数据（清除老访问数据，比如 period=60 时，标识清除 60s 以前的请求记录）</span></span><br><span class="line">        jedis.zremrangeByScore(key, <span class="number">0</span>, nowTs - period * <span class="number">1000</span>);</span><br><span class="line">        <span class="comment">// 当前请求次数</span></span><br><span class="line">        <span class="keyword">long</span> currCount = jedis.zcard(key);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (currCount &gt;= maxCount) &#123;</span><br><span class="line">            <span class="comment">// 超过最大请求次数，执行限流</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 未达到最大请求数，正常执行业务,请求记录 +1</span></span><br><span class="line">        jedis.zadd(key, nowTs, <span class="string">""</span> + nowTs);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="漏桶算法"><a href="#漏桶算法" class="headerlink" title="漏桶算法"></a>漏桶算法</h4><p>漏桶(Leaky Bucket)算法：请求先进入到漏桶里，漏桶以一定的速度出水，当水流入速度过大或者漏桶已满会直接溢，然后就拒绝请求，可以看出漏桶算法能强行限制数据的传输速率。</p>
+<ul>
+<li><p>定义一个桶的最大量；</p>
+</li>
+<li><p>记录上次桶刷新的时间和水量，以便后续计算当前桶里面的水；</p>
+</li>
+<li><p>定义水的流出速率，速率越小，限制流量越小；</p>
+</li>
+<li><p>每次请求，先检查桶的水量，如果没有达到最大值，往桶里面加水。如果达到最大值则按照相应的拒绝策略拒绝。</p>
+</li>
+</ul>
+<blockquote>
+<p>笔记来源：<a href="https://blog.csdn.net/wangxy_job/article/details/106313398" target="_blank" rel="noopener">https://blog.csdn.net/wangxy_job/article/details/106313398</a></p>
+<p><a href="https://www.cnblogs.com/biglittleant/p/8979915.html" target="_blank" rel="noopener">https://www.cnblogs.com/biglittleant/p/8979915.html</a></p>
+<p><a href="https://blog.csdn.net/wangxy_job/article/details/106313383" target="_blank" rel="noopener">https://blog.csdn.net/wangxy_job/article/details/106313383</a></p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>技术学习</category>
+      </categories>
+      <tags>
+        <tag>限流</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>分布式ID生成方案</title>
+    <url>/2021/05/25/%E5%88%86%E5%B8%83%E5%BC%8FID%E7%94%9F%E6%88%90%E6%96%B9%E6%A1%88/</url>
+    <content><![CDATA[<h3 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h3><p>分布式系统中需要全局唯一的ID，就叫 分布式ID。</p>
+<ul>
+<li>全局唯一</li>
+<li>高性能：id生成响应要快，否则会影响系统性能</li>
+<li>高可用</li>
+<li>好接入：系统设计简单，好接入</li>
+<li>趋势递增</li>
+</ul>
+<h3 id="常用方案"><a href="#常用方案" class="headerlink" title="常用方案"></a>常用方案</h3><ul>
+<li><p>UUID</p>
+</li>
+<li><p>数据库自增ID</p>
+</li>
+<li><p>分布式数据库自增ID</p>
+</li>
+<li><p>号段模式</p>
+</li>
+<li><p>Redis 自增特性</p>
+</li>
+<li><p>雪花算法（SnowFlake）</p>
+</li>
+</ul>
+<h4 id="UUID"><a href="#UUID" class="headerlink" title="UUID"></a>UUID</h4><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123; </span><br><span class="line">       String uuid = UUID.randomUUID().toString().replaceAll(<span class="string">"-"</span>,<span class="string">""</span>);</span><br><span class="line">       System.out.println(uuid);</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+
+<p>优点：</p>
+<ul>
+<li>生成简单，本地生成无网络消耗，具有唯一性</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>无序字符串，不能递增</li>
+<li>无具体业务含义</li>
+<li>长度过长</li>
+</ul>
+<h4 id="数据库自增ID"><a href="#数据库自增ID" class="headerlink" title="数据库自增ID"></a>数据库自增ID</h4><p>基于数据库的<code>auto_increment</code>自增ID完全可以充当<code>分布式ID</code>，具体实现：需要一个单独的MySQL实例用来生成ID，建表结构如下：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">DATABASE</span> <span class="string">`SEQ_ID`</span>;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> SEQID.SEQUENCE_ID (</span><br><span class="line">    <span class="keyword">id</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">unsigned</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> auto_increment, </span><br><span class="line">    <span class="keyword">value</span> <span class="built_in">char</span>(<span class="number">10</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">default</span> <span class="string">''</span>,</span><br><span class="line">    PRIMARY <span class="keyword">KEY</span> (<span class="keyword">id</span>),</span><br><span class="line">) <span class="keyword">ENGINE</span>=MyISAM;</span><br></pre></td></tr></table></figure>
+
+<p><strong>优点：</strong></p>
+<ul>
+<li>实现简单，ID单调自增，数值类型查询速度快</li>
+</ul>
+<p><strong>缺点：</strong></p>
+<ul>
+<li>DB单点存在宕机风险，无法扛住高并发场景</li>
+</ul>
+<h4 id="基于数据库集群自增ID"><a href="#基于数据库集群自增ID" class="headerlink" title="基于数据库集群自增ID"></a>基于数据库集群自增ID</h4><p>前边说了单点数据库方式不可取，那对上边的方式做一些高可用优化，换成主从模式集群。害怕一个主节点挂掉没法用，那就做双主模式集群，也就是两个Mysql实例都能单独的生产自增ID。</p>
+<p><strong>问题：多个实例都生成ID，会产生重复ID 的问题，不满足唯一性。</strong></p>
+<p><strong>解决方法：设置起始值和自增步长。</strong></p>
+<p>MySQL_1 配置：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">set</span> @@auto_increment_offset = <span class="number">1</span>;     <span class="comment">-- 起始值</span></span><br><span class="line"><span class="keyword">set</span> @@auto_increment_increment = <span class="number">2</span>;  <span class="comment">-- 步长</span></span><br></pre></td></tr></table></figure>
+
+<p>MySQL_2 配置：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">set</span> @@auto_increment_offset = <span class="number">2</span>;     <span class="comment">-- 起始值</span></span><br><span class="line"><span class="keyword">set</span> @@auto_increment_increment = <span class="number">2</span>;  <span class="comment">--</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>优点：</strong></p>
+<ul>
+<li>解决DB单点问题。</li>
+</ul>
+<p><strong>缺点：</strong></p>
+<ul>
+<li>不利于后续扩容（扩容需要修改已有实例的起始值和步长），而且实际上单个数据库自身压力还是大，依旧无法满足高并发场景。</li>
+</ul>
+<h4 id="号段模式"><a href="#号段模式" class="headerlink" title="号段模式"></a>号段模式</h4><p>号段模式是当下分布式ID生成器的主流实现方式之一，号段模式可以理解为从数据库批量的获取自增ID，每次从数据库取出一个号段范围，例如 (1,1000] 代表1000个ID，具体的业务服务将本号段，生成1~1000的自增ID并加载到内存。表结构如下：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> id_generator (</span><br><span class="line">  <span class="keyword">id</span> <span class="built_in">int</span>(<span class="number">10</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">  max_id <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'当前最大id'</span>,</span><br><span class="line">  step <span class="built_in">int</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'号段的布长'</span>,</span><br><span class="line">  biz_type	<span class="built_in">int</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'业务类型'</span>,</span><br><span class="line">  <span class="keyword">version</span> <span class="built_in">int</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">'版本号'</span>,</span><br><span class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`id`</span>)</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p><strong>biz_type</strong> ：代表不同业务类型</p>
+<p><strong>max_id</strong> ：当前最大的可用id</p>
+<p><strong>step</strong> ：代表号段的长度</p>
+<p><strong>version</strong> ：是一个乐观锁，每次都更新version，保证并发时数据的正确性</p>
+<p>等这批号段ID用完，再次向数据库申请新号段，对<code>max_id</code>字段做一次<code>update</code>操作，<code>update max_id= max_id + step</code>，update成功则说明新号段获取成功，新的号段范围是<code>(max_id ,max_id +step]</code>。</p>
+<h4 id="基于Redis自增ID"><a href="#基于Redis自增ID" class="headerlink" title="基于Redis自增ID"></a>基于Redis自增ID</h4><p><code>Redis</code>也同样可以实现，原理就是利用<code>redis</code>的 <code>incr</code>命令实现ID的原子性自增。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span>:<span class="number">6379</span>&gt; set seq_id <span class="number">1</span>     <span class="comment">// 初始化自增ID为1</span></span><br><span class="line">OK</span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span>:<span class="number">6379</span>&gt; incr seq_id      <span class="comment">// 增加1，并返回递增后的数值</span></span><br><span class="line">(integer) <span class="number">2</span></span><br></pre></td></tr></table></figure>
+
+<p>用<code>redis</code>实现需要注意一点，要考虑到redis持久化的问题。<code>redis</code>有两种持久化方式<code>RDB</code>和<code>AOF</code></p>
+<ul>
+<li><code>RDB</code>会定时打一个快照进行持久化，假如连续自增但<code>redis</code>没及时持久化，而这会Redis挂掉了，重启Redis后会出现ID重复的情况。</li>
+<li><code>AOF</code>会对每条写命令进行持久化，即使<code>Redis</code>挂掉了也不会出现ID重复的情况，但由于incr命令的特殊性，会导致<code>Redis</code>重启恢复的数据时间过长。</li>
+</ul>
+<h4 id="雪花算法（Snowflake）"><a href="#雪花算法（Snowflake）" class="headerlink" title="雪花算法（Snowflake）"></a>雪花算法（Snowflake）</h4><p><img src="/2021/05/25/%E5%88%86%E5%B8%83%E5%BC%8FID%E7%94%9F%E6%88%90%E6%96%B9%E6%A1%88/incr_id.jpg" alt="雪花算法组成结构"></p>
+<p><code>Snowflake</code>生成的是Long类型的ID，一个Long类型占8个字节，每个字节占8比特，也就是说一个Long类型占64个比特。</p>
+<p>Snowflake ID组成结构：<code>正数位</code>（占1比特）+ <code>时间戳</code>（占41比特）+ <code>机器ID</code>（占5比特）+ <code>数据中心</code>（占5比特）+ <code>自增值</code>（占12比特），总共64比特组成的一个Long类型。</p>
+<ul>
+<li>第一个bit位（1bit）：Java中long的最高位是符号位代表正负，正数是0，负数是1，一般生成ID都为正数，所以默认为0。</li>
+<li>时间戳部分（41bit）：毫秒级的时间，不建议存当前时间戳，而是用（当前时间戳 - 固定开始时间戳）的差值，可以使产生的ID从更小的值开始；41位的时间戳可以使用69年，(1L &lt;&lt; 41) / (1000L * 60 * 60 * 24 * 365) = 69年</li>
+<li>工作机器id（10bit）：也被叫做<code>workId</code>，这个可以灵活配置，机房或者机器号组合都可以。</li>
+<li>序列号部分（12bit），自增值支持同一毫秒内同一个节点可以生成4096个ID</li>
+</ul>
+<p><strong>Java版本的<code>Snowflake</code>算法实现：</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Twitter的SnowFlake算法,使用SnowFlake算法生成一个整数，然后转化为62进制变成一个短地址URL</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * https://github.com/beyondfengyu/SnowFlake</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SnowFlakeShortUrl</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 起始的时间戳</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> <span class="keyword">long</span> START_TIMESTAMP = <span class="number">1480166465631L</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 每一部分占用的位数</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> <span class="keyword">long</span> SEQUENCE_BIT = <span class="number">12</span>;   <span class="comment">//序列号占用的位数</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> <span class="keyword">long</span> MACHINE_BIT = <span class="number">5</span>;     <span class="comment">//机器标识占用的位数</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> <span class="keyword">long</span> DATA_CENTER_BIT = <span class="number">5</span>; <span class="comment">//数据中心占用的位数</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 每一部分的最大值</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> <span class="keyword">long</span> MAX_SEQUENCE = -<span class="number">1L</span> ^ (-<span class="number">1L</span> &lt;&lt; SEQUENCE_BIT);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> <span class="keyword">long</span> MAX_MACHINE_NUM = -<span class="number">1L</span> ^ (-<span class="number">1L</span> &lt;&lt; MACHINE_BIT);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> <span class="keyword">long</span> MAX_DATA_CENTER_NUM = -<span class="number">1L</span> ^ (-<span class="number">1L</span> &lt;&lt; DATA_CENTER_BIT);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 每一部分向左的位移</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> <span class="keyword">long</span> MACHINE_LEFT = SEQUENCE_BIT;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> <span class="keyword">long</span> DATA_CENTER_LEFT = SEQUENCE_BIT + MACHINE_BIT;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> <span class="keyword">long</span> TIMESTAMP_LEFT = DATA_CENTER_LEFT + DATA_CENTER_BIT;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">long</span> dataCenterId;  <span class="comment">//数据中心</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">long</span> machineId;     <span class="comment">//机器标识</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">long</span> sequence = <span class="number">0L</span>; <span class="comment">//序列号</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">long</span> lastTimeStamp = -<span class="number">1L</span>;  <span class="comment">//上一次时间戳</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">long</span> <span class="title">getNextMill</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">long</span> mill = getNewTimeStamp();</span><br><span class="line">        <span class="keyword">while</span> (mill &lt;= lastTimeStamp) &#123;</span><br><span class="line">            mill = getNewTimeStamp();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> mill;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">long</span> <span class="title">getNewTimeStamp</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> System.currentTimeMillis();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 根据指定的数据中心ID和机器标志ID生成指定的序列号</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> dataCenterId 数据中心ID</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> machineId    机器标志ID</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">SnowFlakeShortUrl</span><span class="params">(<span class="keyword">long</span> dataCenterId, <span class="keyword">long</span> machineId)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (dataCenterId &gt; MAX_DATA_CENTER_NUM || dataCenterId &lt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"DtaCenterId can't be greater than MAX_DATA_CENTER_NUM or less than 0！"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (machineId &gt; MAX_MACHINE_NUM || machineId &lt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"MachineId can't be greater than MAX_MACHINE_NUM or less than 0！"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">this</span>.dataCenterId = dataCenterId;</span><br><span class="line">        <span class="keyword">this</span>.machineId = machineId;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 产生下一个ID</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">long</span> <span class="title">nextId</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">long</span> currTimeStamp = getNewTimeStamp();</span><br><span class="line">        <span class="keyword">if</span> (currTimeStamp &lt; lastTimeStamp) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"Clock moved backwards.  Refusing to generate id"</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (currTimeStamp == lastTimeStamp) &#123;</span><br><span class="line">            <span class="comment">//相同毫秒内，序列号自增</span></span><br><span class="line">            sequence = (sequence + <span class="number">1</span>) &amp; MAX_SEQUENCE;</span><br><span class="line">            <span class="comment">//同一毫秒的序列数已经达到最大</span></span><br><span class="line">            <span class="keyword">if</span> (sequence == <span class="number">0L</span>) &#123;</span><br><span class="line">                currTimeStamp = getNextMill();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">//不同毫秒内，序列号置为0</span></span><br><span class="line">            sequence = <span class="number">0L</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        lastTimeStamp = currTimeStamp;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> (currTimeStamp - START_TIMESTAMP) &lt;&lt; TIMESTAMP_LEFT <span class="comment">//时间戳部分</span></span><br><span class="line">                | dataCenterId &lt;&lt; DATA_CENTER_LEFT       <span class="comment">//数据中心部分</span></span><br><span class="line">                | machineId &lt;&lt; MACHINE_LEFT             <span class="comment">//机器标识部分</span></span><br><span class="line">                | sequence;                             <span class="comment">//序列号部分</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        SnowFlakeShortUrl snowFlake = <span class="keyword">new</span> SnowFlakeShortUrl(<span class="number">2</span>, <span class="number">3</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; (<span class="number">1</span> &lt;&lt; <span class="number">4</span>); i++) &#123;</span><br><span class="line">            <span class="comment">//10进制</span></span><br><span class="line">            System.out.println(snowFlake.nextId());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>笔记来源：<a href="https://zhuanlan.zhihu.com/p/107939861" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/107939861</a></p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>技术学习</category>
+      </categories>
+      <tags>
+        <tag>分布式</tag>
+        <tag>ID</tag>
       </tags>
   </entry>
 </search>

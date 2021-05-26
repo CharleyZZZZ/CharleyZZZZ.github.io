@@ -80,6 +80,735 @@
     
     
     
+    <article id="post-操作系统与计算机网络（二）" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/01/19/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E4%B8%8E%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%BA%8C%EF%BC%89/"
+    >操作系统与计算机网络（二）</a> 
+</h2>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/01/19/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E4%B8%8E%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%BA%8C%EF%BC%89/" class="article-date">
+  <time datetime="2021-01-19T08:36:56.000Z" itemprop="datePublished">2021-01-19</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0/">技术学习</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="操作系统与计算机网络（二）"><a href="#操作系统与计算机网络（二）" class="headerlink" title="操作系统与计算机网络（二）"></a>操作系统与计算机网络（二）</h1><h3 id="网络模型"><a href="#网络模型" class="headerlink" title="网络模型"></a>网络模型</h3><h4 id="OSI七层网络模型"><a href="#OSI七层网络模型" class="headerlink" title="OSI七层网络模型"></a>OSI七层网络模型</h4><p>OSI（Open System Interconnection）开放系统互连参考模型是国际标准化组织（ISO）制定的一个用于计算机或通信系统间互联的标准体系。</p>
+<p><strong>优点</strong>：</p>
+<ol>
+<li>把复杂的网络划分成为更容易管理的层（将整个庞大而复杂的问题划分为若干个容易处理的小问题）；</li>
+<li>没有一个厂家能完整的提供整套解决方案和所有的设备，协议；</li>
+<li>独立完成各自该做的任务，互不影响，分工明确，上层不关心下层具体细节，分层同样有益于网络排错<br>功能与代表设备。</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>分层</th>
+<th>名字</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>7</td>
+<td>应用层</td>
+<td>提供网络与用户软件之间的接口服务</td>
+</tr>
+<tr>
+<td>6</td>
+<td>表示层</td>
+<td>提供格式化的表示和转换数据服务</td>
+</tr>
+<tr>
+<td>5</td>
+<td>会话层</td>
+<td>提供包括访问验证和会话管理在内的建立和维护应用之间通信的机制</td>
+</tr>
+<tr>
+<td>4</td>
+<td>传输层</td>
+<td>提供建立、维护和取消传输连接功能，负责可靠或不可靠传输数据</td>
+</tr>
+<tr>
+<td>3</td>
+<td>网络层</td>
+<td>处理网络间路由，确保数据及时传送</td>
+</tr>
+<tr>
+<td>2</td>
+<td>数据链路层</td>
+<td>负责无错传输数据，确认帧，发错重传等</td>
+</tr>
+<tr>
+<td>1</td>
+<td>物理层</td>
+<td>负责最后将信息编码成电流脉冲或其它信号用于网上传输。</td>
+</tr>
+</tbody></table>
+<h4 id="TCP-IP四层网络模型"><a href="#TCP-IP四层网络模型" class="headerlink" title="TCP/IP四层网络模型"></a>TCP/IP四层网络模型</h4><p>TCP/IP分层模型（TCP/IP Layening Model）被称作因特网分层模型(Internet Layering Model)、因特网参考模型(Internet Reference Model)。</p>
+<p><img src="/2021/01/19/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E4%B8%8E%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%BA%8C%EF%BC%89/computer_network_01.png" alt="网络模型"></p>
+<p>区别：</p>
+<ul>
+<li>OSI引入了服务、接口、协议、分层的概念，TCP/IP借鉴了OSI的这些概念建立TCP/IP模型。</li>
+<li>OSI先有模型，后有协议，先有标准，后进行实践；而TCP/IP则相反，先有协议和应用再提出了模型，且是参照的OSI模型。</li>
+<li>OSI是一种理论下的模型，而TCP/IP已被广泛使用，成为网络互联事实上的标准。</li>
+</ul>
+<p>常用协议的总结，这里是根据TCP/IP模型来的，因为通常应用层、表示层、会话层的协议可以共用。</p>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>协议</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>网络接口层</td>
+<td>以太网协议</td>
+</tr>
+<tr>
+<td>网络层</td>
+<td>IP协议、ARP协议（地址解析协议）、RARP协议反向地址转换协议）</td>
+</tr>
+<tr>
+<td>传输层</td>
+<td>UDP协议、TCP协议</td>
+</tr>
+<tr>
+<td></td>
+<td>TELNET、FPT、SFTP、SMTP、HTTP\HTTPS等</td>
+</tr>
+</tbody></table>
+<h3 id="TCP协议"><a href="#TCP协议" class="headerlink" title="TCP协议"></a>TCP协议</h3><h4 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h4><ul>
+<li>TCP 协议是<strong>基于链接</strong>的，也就是传输数据前需要先建立好链接，然后再进行传输。TCP 链接一旦建立，就可以在链接上进行<strong>双向</strong>的通信。</li>
+<li>TCP 的传输是<strong>基于字节流</strong>而不是报文，将数据按字节大小进行编号，接收端通过 ACK 来确认收到的数据编号。</li>
+<li>通过这种机制，TCP 协议能够保证接收数据的有序性和完整性，因此 TCP 能够提供<strong>可靠性传输</strong>。</li>
+<li>TCP 还能提供流量控制能力，通过<strong>滑动窗口</strong>来控制数据的发送速率。滑动窗口的本质是动态缓冲区，接收端根据自己的处理能力，在 TCP 的 Header 中动态调整窗口大小，通过 ACK 应答包通知给发送端，发送端根据窗口大小调整发送的的速度。</li>
+<li>仅仅有了流量控制能力还不够，TCP 协议还考虑到了网络问题可能会导致大量重传，进而导致网络情况进一步恶化，因此 TCP 协议还提供<strong>拥塞控制</strong>。TCP 处理拥塞控制主要用到了慢启动、拥塞避免、拥塞发生、快速恢复四个算法。</li>
+</ul>
+<h4 id="三次握手"><a href="#三次握手" class="headerlink" title="三次握手"></a>三次握手</h4><p>TCP 是<strong>基于链接</strong>的，所以在传输数据前需要先建立链接，TCP 在传输上是<strong>双工传输</strong>，不区分 Client 端与 Server 端，为了便于理解，我们把主动发起建连请求的一端称作 Client 端，把被动建立链接的一端称作 Server 端。</p>
+<p><img src="/2021/01/19/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E4%B8%8E%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%BA%8C%EF%BC%89/computer_network_02.png" alt="网络模型"></p>
+<p>首先建立链接前需要 Server 端先监听端口，因此 Server 端建立链接前的初始状态就是 LISTEN 状态，这时 Client 端准备建立链接，先发送一个 SYN 同步包，发送完同步包后，Client 端的链接状态变成了 SYN_SENT 状态。Server 端收到 SYN 后，同意建立链接，会向 Client 端回复一个 ACK。</p>
+<p> 由于 TCP 是双工传输，Server 端也会同时向 Client 端发送一个 SYN，申请 Server 向 Client 方向建立链接。发送完 ACK 和 SYN 后，Server 端的链接状态就变成了 SYN_RCVD。 </p>
+<p>Client 收到 Server 的 ACK 后，Client 端的链接状态就变成了 ESTABLISHED 状态，同时，Client 向 Server 端发送 ACK，回复 Server 端的 SYN 请求。</p>
+<p> Server 端收到 Client 端的 ACK 后，Server 端的链接状态也就变成了的 ESTABLISHED 状态，此时建连完成，双方随时可以进行数据传输。</p>
+<p><strong>问题：SYN 洪水攻击</strong></p>
+<p>发生的原因，就是 Server 端收到 Client 端的 SYN 请求后，发送了 ACK 和 SYN，但是 Client 端不进行回复，导致 Server 端大量的链接处在 SYN_RCVD 状态，进而影响其他正常请求的建连。可以设置 tcp_synack_retries = 0 加快半链接的回收速度，或者调大 tcp_max_syn_backlog 来应对少量的 SYN 洪水攻击。</p>
+<h4 id="四次挥手"><a href="#四次挥手" class="headerlink" title="四次挥手"></a>四次挥手</h4><p><img src="/2021/01/19/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E4%B8%8E%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%BA%8C%EF%BC%89/computer_network_03.png" alt="网络模型"></p>
+<p>TCP 链接的关闭，通信双方都可以先发起，我们暂且把先发起的一方看作 Client，从图中看出，通信中 Client 和 Server 两端的链接都是 ESTABLISHED 状态，然后 Client 先主动发起了关闭链接请求，Client 向 Server 发送了一个 FIN 包，表示 Client 端已经没有数据要发送了，然后 Client 进入了 FIN_WAIT_1 状态。</p>
+<p> Server 端收到 FIN 后，返回 ACK，然后进入 CLOSE_WAIT 状态。此时 Server 属于<strong>半关闭状态</strong>，因为此时 Client 向 Server 方向已经不会发送数据了，可是 Server 向 Client 端可能还有数据要发送。</p>
+<p> 当 Server 端数据发送完毕后，Server 端会向 Client 端发送 FIN，表示 Server 端也没有数据要发送了，此时 Server 进入 LAST_ACK 状态，就等待 Client 的应答就可以关闭链接了。 </p>
+<p>Client 端收到 Server 端的 FIN 后，回复 ACK，然后进入 TIME_WAIT 状态。TIME_WAIT 状态下需要<strong>等待 2 倍的最大报文段生存时间</strong>，来保证链接的可靠关闭，之后才会进入 CLOSED 关闭状态。而 Server 端收到 ACK 后直接就进入 CLOSED 状态。</p>
+<p><strong>问题1</strong>：为什么需要等待 2 倍最大报文段生存时间之后再关闭链接？</p>
+<ul>
+<li><p>保证 TCP 协议的全双工连接能够可靠关闭；</p>
+</li>
+<li><p>保证这次连接的重复数据段从网络中消失，防止端口被重用时可能产生数据混淆。</p>
+</li>
+</ul>
+<p><strong>问题2</strong>：大量 Socket 处在 TIME_WAIT 或者 CLOSE_WAIT 状态</p>
+<p>一般开启 tcp_tw_reuse 和 tcp_tw_recycle 能够加快 TIME-WAIT 的 Sockets 回收；</p>
+<p>而大量 CLOSE_WAIT 可能是被动关闭的一方存在代码 bug，没有正确关闭链接导致的。</p>
+<h4 id="滑动窗口"><a href="#滑动窗口" class="headerlink" title="滑动窗口"></a>滑动窗口</h4><p>建立连接时，各端分配一个缓冲区用来存储接收的数据，并将缓冲区的尺寸发送给另一端。</p>
+<p>接收方发送的确认消息中包含了自己剩余的缓冲区尺寸。剩余缓冲区空间的数量叫做窗口。其实就是建立连接的双虎互相知道彼此剩余的缓冲区大小。</p>
+<p>TCP的滑动窗口是动态的，<strong>应用根据自身的处理能力变化，通过本端TCP接收窗口大小控制来对对对端的发送窗口流量限制。</strong></p>
+<p>应用程序在需要（如内存不足）时，通过API通知TCP协议栈缩小TCP的接收窗口。然后TCP协议栈在下个段发送时包含新的窗口大小通知给对端，对端按通知的窗口来改变发送窗口，以此达到减缓发送速率的目的。</p>
+<h4 id="拥塞控制"><a href="#拥塞控制" class="headerlink" title="拥塞控制"></a>拥塞控制</h4><p>在某段时间，若对网络中某一资源的需求超过了该资源所能提供的可用部分，网络性能就要变坏，这种情况就叫做<strong>网络拥塞</strong>。</p>
+<p>在计算机网络中数位链路容量（即带宽）、交换结点中的缓存和处理机等，都是网络的资源。若出现拥塞而不进行控制，整个网络的吞吐量将随输入负荷的增大而下降。</p>
+<p>TCP拥塞控制：</p>
+<ul>
+<li>慢开始：不要一开始就发送大量的数据，先探测一下网络的拥塞程度，也就是说由小到大逐渐增加拥塞窗口的大小。</li>
+<li>拥塞避免：拥塞避免并非完全能够避免拥塞，是说在拥塞避免阶段将拥塞窗口控制为按线性规律增长，使网络比较不容易出现拥塞。</li>
+<li>快重传：快重传要求接收方在收到一个失序的报文段后就立即发出重复确认（为的是使发送方及早知道有报文段没有到达对方）而不要等到自己发送数据时捎带确认。由于不需要等待设置的重传计时器到期，能尽早重传未被确认的报文段，能提高整个网络的吞吐量。</li>
+<li>快恢复：当发送方连续收到三个重复确认时，说明网络也不那么糟糕，可以快速恢复。</li>
+</ul>
+<h3 id="UDP协议"><a href="#UDP协议" class="headerlink" title="UDP协议"></a>UDP协议</h3><p>无连接协议，也称透明协议，也位于传输层。</p>
+<p><strong>与TCP协议的区别</strong>：</p>
+<ol>
+<li><p>TCP提供面向连接的传输，通信前要先建立连接（三次握手机制）； UDP提供无连接的传输，通信前不需要建立连接。</p>
+</li>
+<li><p>TCP提供可靠的传输（有序，无差错，不丢失，不重复）； UDP提供不可靠的传输。</p>
+</li>
+<li><p>TCP面向字节流的传输，因此它能将信息分割成组，并在接收端将其重组； UDP是面向数据报的传输，没有分组开销。</p>
+</li>
+<li><p>TCP提供拥塞控制和流量控制机制； UDP不提供拥塞控制和流量控制机制。</p>
+</li>
+</ol>
+<h3 id="HTTP协议"><a href="#HTTP协议" class="headerlink" title="HTTP协议"></a>HTTP协议</h3><ul>
+<li>http协议是基于TCP/IP协议之上的应用层协议。</li>
+<li>基于请求-响应模式</li>
+<li>无状态保存：HTTP是一种不保存状态,即无状态(stateless)协议。</li>
+<li>无连接：无连接的含义是限制每次连接只处理一个请求。服务器处理完客户的请求，并收到客户的应答后，即断开连接。采用这种方式可以节省传输时间。</li>
+</ul>
+<h4 id="请求消息Request"><a href="#请求消息Request" class="headerlink" title="请求消息Request"></a>请求消息Request</h4><p><strong>组成</strong>：<strong>请求行（request line）、请求头部（header）、空行</strong>和<strong>请求数据</strong>四个部分组成。</p>
+<p><img src="/2021/01/19/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E4%B8%8E%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%BA%8C%EF%BC%89/computer_network_04.png" alt="网络模型"></p>
+<p>例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">GET /abc.jpg HTTP/<span class="number">1.1</span></span><br><span class="line">Host    img.mukewang.com</span><br><span class="line">User-Agent    Mozilla/<span class="number">5.0</span> (Windows NT <span class="number">10.0</span>; WOW64) AppleWebKit/<span class="number">537.36</span> (KHTML, like Gecko) Chrome/<span class="number">51.0</span><span class="number">.2704</span><span class="number">.106</span> Safari/<span class="number">537.36</span></span><br><span class="line">Accept    image/webp,image<span class="comment">/*,*/</span>*;q=<span class="number">0.8</span></span><br><span class="line">Referer    http:<span class="comment">//www.www.baidu.com/</span></span><br><span class="line">Accept-Encoding    gzip, deflate, sdch</span><br><span class="line">Accept-Language    zh-CN,zh;q=<span class="number">0.8</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>请求行：用来说明  请求类型,要访问的资源以及所使用的HTTP版本。</p>
+</li>
+<li><p>请求头部：紧接着请求行（即第一行）之后的部分，用来说明服务器要使用的附加信息。常用属性如下：</p>
+<ul>
+<li><p><strong>Accept</strong>     报文头属性告诉服务端 客户端接受什么类型的响应</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Accept:text/plain</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>Cookie</strong>   浏览器cookie信息</p>
+</li>
+<li><p><strong>Referer</strong>   表示这个请求是从哪个URL过来的</p>
+</li>
+<li><p><strong>Cache-Control</strong>   对缓存进行控制，对响应返回的内容在客户端被缓存，或不希望被缓存。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Cache-Control: no-cache</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+<li><p>空行：请求头部后面的空行是必须的</p>
+</li>
+<li><p>请求数据：也叫主体。</p>
+</li>
+</ul>
+<h4 id="响应消息Response"><a href="#响应消息Response" class="headerlink" title="响应消息Response"></a>响应消息Response</h4><p><strong>组成：状态行、消息报头、空行和响应正文。</strong></p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">HTTP/1.1 200 OK</span><br><span class="line">Date: Fri, 22 May 2009 06:07:21 GMT</span><br><span class="line">Content-Type: text/html; charset=UTF-8</span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">head</span>&gt;</span><span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">            <span class="comment">&lt;!--body goes here--&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>状态行：由HTTP协议版本号， 状态码， 状态消息 三部分组成。</p>
+</li>
+<li><p>消息报头，用来说明客户端要使用的一些附加信息。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Date: Fri, <span class="number">22</span> May <span class="number">2009</span> <span class="number">06</span>:<span class="number">07</span>:<span class="number">21</span> GMT <span class="comment">//生成响应的时间</span></span><br><span class="line">Content-Type: text/html; charset=UTF-<span class="number">8</span>  <span class="comment">//媒体类型信息</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>空行：消息报头后面的空行是必须的。</p>
+</li>
+<li><p>响应正文：服务器返回的正文文本。</p>
+</li>
+</ul>
+<h4 id="状态码"><a href="#状态码" class="headerlink" title="状态码"></a>状态码</h4><ul>
+<li><p>1xx：指示信息–表示请求已接收，继续处理</p>
+</li>
+<li><p>2xx：成功–表示请求已被成功接收、理解、接受</p>
+</li>
+<li><p>3xx：重定向–要完成请求必须进行更进一步的操作</p>
+</li>
+<li><p>4xx：客户端错误–请求有语法错误或请求无法实现</p>
+</li>
+<li><p>5xx：服务器端错误–服务器未能实现合法的请求</p>
+</li>
+</ul>
+<p>常见状态码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">200</span> OK                        <span class="comment">//客户端请求成功</span></span><br><span class="line"><span class="number">400</span> Bad Request               <span class="comment">//客户端请求有语法错误，不能被服务器所理解</span></span><br><span class="line"><span class="number">401</span> Unauthorized              <span class="comment">//请求未经授权，这个状态代码必须和WWW-Authenticate报头域一起使用 </span></span><br><span class="line"><span class="number">403</span> Forbidden                 <span class="comment">//服务器收到请求，但是拒绝提供服务</span></span><br><span class="line"><span class="number">404</span> Not Found                 <span class="comment">//请求资源不存在，eg：输入了错误的URL</span></span><br><span class="line"><span class="number">500</span> Internal Server Error     <span class="comment">//服务器发生不可预期的错误</span></span><br><span class="line"><span class="number">503</span> Server Unavailable        <span class="comment">//服务器当前不能处理客户端的请求，一段时间后可能恢复正常</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="HTTP请求方法"><a href="#HTTP请求方法" class="headerlink" title="HTTP请求方法"></a>HTTP请求方法</h4><p>根据HTTP标准，HTTP请求可以使用多种请求方法。<br>HTTP1.0定义了三种请求方法： GET, POST 和 HEAD方法。<br>HTTP1.1新增了五种请求方法：OPTIONS, PUT, DELETE, TRACE 和 CONNECT 方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET         <span class="comment">//请求指定的页面信息，并返回实体主体。</span></span><br><span class="line">HEAD        <span class="comment">//类似于get请求，只不过返回的响应中没有具体的内容，用于获取报头</span></span><br><span class="line">POST        <span class="comment">//向指定资源提交数据进行处理请求（例如提交表单或者上传文件）。数据被包含在请求体中。POST请求可能会导致新的资源的建立和/或已有资源的修改。</span></span><br><span class="line">PUT         <span class="comment">//从客户端向服务器传送的数据取代指定的文档的内容。</span></span><br><span class="line">DELETE      <span class="comment">//请求服务器删除指定的页面。</span></span><br><span class="line">CONNECT     <span class="comment">//HTTP/1.1协议中预留给能够将连接改为管道方式的代理服务器。</span></span><br><span class="line">OPTIONS     <span class="comment">//允许客户端查看服务器的性能。</span></span><br><span class="line">TRACE       <span class="comment">//回显服务器收到的请求，主要用于测试或诊断。</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="I-O模型"><a href="#I-O模型" class="headerlink" title="I/O模型"></a>I/O模型</h3><p>五种IO模型：阻塞IO、非阻塞IO、多路复用IO、信号驱动IO以及异步IO。</p>
+<h4 id="阻塞IO模型"><a href="#阻塞IO模型" class="headerlink" title="阻塞IO模型"></a>阻塞IO模型</h4><p>最传统的一种IO模型，即在读写数据过程中会发生阻塞现象。</p>
+<p>当用户线程发出IO请求之后，内核会去查看数据是否就绪，如果没有就绪就会等待数据就绪，而用户线程就会处于阻塞状态，用户线程交出CPU。当数据就绪之后，内核会将数据拷贝到用户线程，并返回结果给用户线程，用户线程才解除block状态。</p>
+<h4 id="非阻塞IO模型"><a href="#非阻塞IO模型" class="headerlink" title="非阻塞IO模型"></a>非阻塞IO模型</h4><p>当用户线程发起一个read操作后，并不需要等待，而是马上就得到了一个结果。</p>
+<p>如果结果是一个error时，它就知道数据还没有准备好，于是它可以再次发送read操作。一旦内核中的数据准备好了，并且又再次收到了用户线程的请求，那么它马上就将数据拷贝到了用户线程，然后返回。</p>
+<p> 所以事实上，在非阻塞IO模型中，用户线程需要<strong>不断地询问内核数据是否就绪</strong>，也就说非阻塞IO不会交出CPU，而会一直占用CPU。</p>
+<h4 id="多路复用IO模型"><a href="#多路复用IO模型" class="headerlink" title="多路复用IO模型"></a>多路复用IO模型</h4><p>在多路复用IO模型中，会有一个线程不断去轮询多个socket的状态，只有当socket真正有读写事件时，才真正调用实际的IO读写操作。</p>
+<p>多路复用实现了<strong>一个线程处理多个 I/O 句柄的操作</strong>。<strong>多路</strong>指的是多个<strong>数据通道</strong>，<strong>复用</strong>指的是使用一个或多个固定线程来处理每一个 Socket。</p>
+<p>因为在多路复用IO模型中，只需要使用一个线程就可以管理多个socket，系统不需要建立新的进程或者线程，也不必维护这些线程和进程，并且只有在真正有socket读写事件进行时，才会使用IO资源，所以它大大减少了资源占用。</p>
+<p>不过要注意的是，多路复用IO模型是通过<strong>轮询</strong>的方式来检测是否有事件到达，并且对到达的事件逐一进行响应。因此对于多路复用IO模型来说，一旦事件响应体很大，那么就会导致后续的事件迟迟得不到处理，并且会影响新的事件轮询。</p>
+<p>多路复用IO模型是目前使用得比较多的模型。Java NIO实际上就是多路复用IO。</p>
+<h4 id="信号驱动IO模型"><a href="#信号驱动IO模型" class="headerlink" title="信号驱动IO模型"></a>信号驱动IO模型</h4><p>在信号驱动IO模型中，当用户线程发起一个IO请求操作，会给对应的socket注册一个信号函数，然后用户线程会继续执行，当内核数据就绪时会发送一个信号给用户线程，用户线程接收到信号之后，便在信号函数中调用IO读写操作来进行实际的IO请求操作。</p>
+<h4 id="异步IO模型"><a href="#异步IO模型" class="headerlink" title="异步IO模型"></a>异步IO模型</h4><p>异步IO模型才是最理想的IO模型，在异步IO模型中，当用户线程发起read操作之后，立刻就可以开始去做其它的事。而另一方面，从内核的角度，当它受到一个asynchronous read之后，它会立刻返回，说明read请求已经成功发起了，因此不会对用户线程产生任何block。然后，内核会等待数据准备完成，然后将数据拷贝到用户线程，当这一切都完成之后，内核会给用户线程发送一个信号，告诉它read操作完成了。也就说用户线程完全不需要关心实际的整个IO操作是如何进行的，只需要先发起一个请求，当接收内核返回的成功信号时表示IO操作已经完成，可以直接去使用数据了。</p>
+<p><strong>异步 I/O 与信号驱动 I/O 这种半异步模式的主要区别</strong>：信号驱动 I/O 由内核通知何时可以开始一个 I/O 操作，而异步 I/O 由内核通知 I/O 操作何时已经完成。</p>
+<p>异步IO是需要操作系统的底层支持，在Java 7中，提供了Asynchronous IO。简称AIO。</p>
+<h3 id="I-O多路复用模型"><a href="#I-O多路复用模型" class="headerlink" title="I/O多路复用模型"></a>I/O多路复用模型</h3><p>Linux 下有三种提供 I/O 多路复用的 API，分别是：</p>
+<ul>
+<li>select</li>
+</ul>
+<ul>
+<li>poll</li>
+</ul>
+<ul>
+<li>epoll</li>
+</ul>
+<p>一个 Socket 文件，可以由多个进程使用；而一个进程，也可以使用多个 Socket 文件。进程和 Socket 之间是<strong>多对多</strong>的关系。另一方面，一个 Socket 也会有不同的事件类型。因此操作系统很难判断，将哪样的事件给哪个进程。</p>
+<p>这样在进程内部就需要一个数据结构来<strong>描述自己会关注哪些 Socket 文件的哪些事件</strong>（读、写、异常等）。通常有两种考虑方向，一种是利用<strong>线性结构</strong>，比如说数组、链表等，这类结构的查询需要遍历。每次内核产生一种消息，就<strong>遍历</strong>这个线性结构。另一种是<strong>索引结构</strong>，内核发生了消息可以通过索引结构马上知道这个消息进程关不关注。</p>
+<h4 id="select"><a href="#select" class="headerlink" title="select()"></a>select()</h4><p><strong>select 和 poll 都采用线性结构</strong>，select 允许用户传入 3 个集合。如下面这段程序所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">fd_set read_fd_set, write_fd_set, error_fd_set;</span><br><span class="line">while(true) &#123;</span><br><span class="line">  select(..., &amp;read_fd_set, &amp;write_fd_set, &amp;error_fd_set); </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>每次 select 操作会阻塞当前线程，在阻塞期间所有操作系统产生的每个消息，都会通过遍历的手段查看是否在 3 个集合当中。上面程序<code>read_fd_set</code>中放入的是当数据可以读取时进程关心的 Socket；<code>write_fd_set</code>是当数据可以写入时进程关心的 Socket；<code>error_fd_set</code>是当发生异常时进程关心的 Socket。</p>
+<h4 id="poll"><a href="#poll" class="headerlink" title="poll()"></a>poll()</h4><p>从写程序的角度来看，select 并不是一个很好的编程模型。<strong>一个好的编程模型应该是直接抽象成消息：用户不需要用 select 来设置自己的集合，而是可以通过系统的 API 直接拿到对应的消息，从而处理对应的文件描述符。</strong></p>
+<p>比如下面这段伪代码就是一个更好的编程模型，具体的分析如下：</p>
+<ol>
+<li>poll 是一个阻塞调用，它将某段时间内操作系统内发生的且进程关注的消息告知用户程序；</li>
+<li>用户程序通过直接调用 poll 函数拿到消息；</li>
+<li>poll 函数的第一个参数告知内核 poll 关注哪些 Socket 及消息类型；</li>
+<li>poll 调用后，经过一段时间的等待（阻塞），就拿到了是一个消息的数组；</li>
+<li>通过遍历这个数组中的消息，能够知道关联的文件描述符和消息的类型；</li>
+<li>通过消息类型判断接下来该进行读取还是写入操作；</li>
+<li>通过文件描述符，可以进行实际地读、写、错误处理。</li>
+</ol>
+<p>poll 虽然优化了编程模型，但是从性能角度分析，它和 select 差距不大。因为内核在产生一个消息之后，依然需要遍历 poll 关注的所有文件描述符来确定这条消息是否跟用户程序相关。</p>
+<h4 id="epoll"><a href="#epoll" class="headerlink" title="epoll()"></a>epoll()</h4><p>为了解决上述问题，epoll 通过更好的方案实现了从操作系统订阅消息。epoll 将进程关注的文件描述符存入一棵二叉搜索树，通常是红黑树的实现。在这棵红黑树当中，Key 是 Socket 的编号，值是这个 Socket 关注的消息。</p>
+<p>另外当有关注的事件发生时，epoll 会先放到一个队列当中。当用户调用epoll_wait时候，就会从队列中返回一个消息。epoll 函数本身是一个构造函数，只用来创建红黑树和队列结构。epoll_wait调用后，如果队列中没有消息，也可以马上返回。因此epoll是一个非阻塞模型。</p>
+<blockquote>
+<p>笔记来源：网络以及 林䭽 老师的《重学操作系统》课程</p>
+</blockquote>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" rel="tag">计算机网络</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%9D%A2%E8%AF%95%E5%A4%8D%E4%B9%A0/" rel="tag">面试复习</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+  
+  
+
+</article>
+    
+    <article id="post-操作系统与计算机网络（一）" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/01/19/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E4%B8%8E%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/"
+    >操作系统与计算机网络（一）</a> 
+</h2>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/01/19/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E4%B8%8E%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/" class="article-date">
+  <time datetime="2021-01-19T08:36:44.000Z" itemprop="datePublished">2021-01-19</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0/">技术学习</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="操作系统与计算机网络（一）"><a href="#操作系统与计算机网络（一）" class="headerlink" title="操作系统与计算机网络（一）"></a>操作系统与计算机网络（一）</h1><h3 id="计算机组成原理"><a href="#计算机组成原理" class="headerlink" title="计算机组成原理"></a>计算机组成原理</h3><h4 id="冯-·-诺依曼模型"><a href="#冯-·-诺依曼模型" class="headerlink" title="冯 · 诺依曼模型"></a>冯 · 诺依曼模型</h4><p><img src="/2021/01/19/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E4%B8%8E%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/operation_system_01.png" alt="冯·诺依曼模型"></p>
+<p>1945 年冯诺依曼和其他几位科学家遵循图灵机的设计，提出用电子元件构造计算机，约定了用二进制进行计算和存储，并且将计算机结构分成以下 5 个部分：</p>
+<ul>
+<li>输入设备；</li>
+</ul>
+<ul>
+<li>输出设备；</li>
+</ul>
+<ul>
+<li>内存；</li>
+</ul>
+<ul>
+<li>中央处理器；</li>
+</ul>
+<ul>
+<li>总线</li>
+</ul>
+<h5 id="输入、输出设备"><a href="#输入、输出设备" class="headerlink" title="输入、输出设备"></a>输入、输出设备</h5><p>输入设备向计算机输入数据，计算机经过计算，将结果通过输出设备向外界传达。</p>
+<h5 id="内存"><a href="#内存" class="headerlink" title="内存"></a>内存</h5><p>在冯诺依曼模型中，程序和数据被存储在一个被称作<strong>内存</strong>的<strong>线性排列存储区域</strong>。</p>
+<p>存储的数据单位是一个二进制位（bit）。最小的存储单位叫作字节（byte），也就是 8 位，每一个字节都对应一个内存地址。内存地址由 0 开始编号，比如第 1 个地址是 0，第 2 个地址是 1， 然后自增排列，最后一个地址是内存中的字节数减 1。</p>
+<p>我们通常说的内存都是<strong>随机存取器</strong>，也就是读取任何一个地址数据的速度是一样的，写入任何一个地址数据的速度也是一样的。</p>
+<h5 id="中央处理器CPU"><a href="#中央处理器CPU" class="headerlink" title="中央处理器CPU"></a>中央处理器CPU</h5><p>冯诺依曼模型中 CPU 负责<strong>控制</strong>和<strong>计算</strong>。为了方便计算较大的数值，CPU 每次可以计算多个字节的数据。</p>
+<ul>
+<li>如果 CPU 每次可以计算 4 个 byte，那么我们称作 32 位 CPU；</li>
+<li>如果 CPU 每次可以计算 8 个 byte，那么我们称作 64 位 CPU；</li>
+</ul>
+<p>这里的 32 和 64，称作 CPU 的<strong>位宽</strong>。</p>
+<p>数据如何通过线路传递？其实是通过电压，低电压是 0，高电压是 1。如果只有一条线路，每次只能传递 1 个信号，因为你必须在 0,1 中选一个。比如你构造高高低低这样的信号，其实就是 1100，相当于你传了一个数字 10 过去。这种传递是相当慢的，因为你需要传递 4 次。</p>
+<p>这种一个 bit 一个 bit 发送的方式，我们叫作<strong>串行</strong>。如果希望每次多传一些数据，就需要增加线路，也就是需要<strong>并行</strong>。</p>
+<p>如果只有 1 条地址总线，那每次只能表示 0-1 两种情况，所以只能操作 2 个内存地址；如果有 10 条地址总线，一次就可以表示 2^10 种情况，也就是可以操作 2^10 个内存地址；如果你希望操作 4G 的内存，那么就需要 32 条线，因为 2^32 是 4G。所以通常32位CPU 支持最大内存容量为4G。</p>
+<p><strong>CPU 三个主要参数：主频、总线频率、缓存容量</strong></p>
+<ol>
+<li><p>上面说过一次数据传输大小取决于位宽，那么单位时间数据传输频率就是<strong>主频</strong>，即<strong>CPU内核工作的时钟频率</strong>,代表一秒钟内脉冲信号运行了X个周期。主频对提高CPU运算速度至关重要。</p>
+<p>主频的单位是 Hz（赫兹）、kHz（千赫）、兆赫（MHz）、吉赫（GHz）、太赫（THz）、拍赫（PHz）、艾赫（EHz）。Hz在电子技术中，是指一个按一定电压幅度，一定时间间隔连续发出的脉冲信号（脉冲信号之间的时间间隔称为周期，时间是s(秒)），一秒钟一个周期就是 1Hz。</p>
+</li>
+<li><p><strong>总线频率</strong>（FSB）:CPU标注的总线频率是指CPU连接到北桥芯片（北桥芯片用于CPU和内存、显卡、PCI交换数据，而南桥芯片主要负责I/O接口等一些外设接口的控制、IDE设备的控制，了解即可）总线的最高频率。该总线也是CPU与外界交换数据的主要通道，因此前端总线的数据传输能力对整机性能影响很大。</p>
+</li>
+<li><p><strong>缓存容量</strong>：1L（一级缓存）、2L（二级缓存）、3L（三级缓存）是处理器内部的缓冲存储器，工作在CPU 和内存之间。缓存大小直接影响CPU 的性能。</p>
+</li>
+</ol>
+<p><strong>CPU的亲和性</strong></p>
+<p>进程要<strong>在某个给定的 CPU 上尽量长时间地运行而不被迁移到其他处理器的倾向性</strong>，进程迁移的频率小就意味着产生的负载小。亲和性一词是从affinity翻译来的，实际可以称为CPU绑定。</p>
+<p>在多核运行的机器上，每个CPU本身自己会有缓存，在缓存中存着进程使用的数据，而没有绑定CPU的话，进程可能会被操作系统调度到其他CPU上，如此CPU cache（高速缓冲存储器）命中率就低了。</p>
+<p>缓存区没有这类数据，要先把内存或硬盘的数据载入缓存。而当缓存区绑定CPU后，程序就会一直在指定的CPU执行，不会被操作系统调度到其他CPU，性能上会有一定的提高。</p>
+<p>另外一种使用CPU绑定考虑的是将关键的进程隔离开，对于部分实时进程调度优先级提高，可以将其绑定到一个指定CPU核上，可以保证实时进程的调度，也可以避免其他CPU上进程被该实时进程干扰。</p>
+<p>操作系统部分Linux的调度程序同时提供 ” 软CPU亲和性 ”  和 ” 硬CPU亲和性 ”</p>
+<ul>
+<li>软亲和性：进程要在指定的 CPU 上尽量长时间地运行而不被迁移到其他CPU。</li>
+<li>硬亲和性：将进程或者线程绑定到某一个指定的cpu核运行</li>
+</ul>
+<p>补充概念：</p>
+<ul>
+<li><p>物理CPU：机器上实际安装的CPU个数，比如说你的主板上安装了一块8核CPU，那么物理CPU个数就是1个，所以物理CPU个数就是主板上安装的CPU个数。</p>
+</li>
+<li><p>逻辑CPU：一般情况，我们认为一颗CPU可以有多个核，加上intel的超线程技术(HT), 可以在逻辑上再分一倍数量的CPU core出来。</p>
+</li>
+<li><p>超线程技术(Hyper-Threading)：就是利用特殊的硬件指令，把单个物理CPU模拟成两个CPU（逻辑CPU），实现多线程。我们常听到的双核四线程/四核八线程指的就是支持超线程技术的CPU。</p>
+</li>
+</ul>
+<h5 id="总线"><a href="#总线" class="headerlink" title="总线"></a>总线</h5><p>CPU 和内存以及其他设备之间，需要通信，因此用一种特殊的设备进行控制，就是总线。</p>
+<ul>
+<li>地址总线：专门用来指定CPU 将操作的内存<strong>地址</strong>。</li>
+<li>数据总线：用来读写内存中的<strong>数据</strong>。当 CPU 需要读写内存的时候，先要通过地址总线来指定内存地址，再通过数据总线来传输数据。</li>
+<li>控制总线：用来发送和接收关键<strong>信号</strong>。例如中断信号。</li>
+</ul>
+<h4 id="程序的执行过程"><a href="#程序的执行过程" class="headerlink" title="程序的执行过程"></a>程序的执行过程</h4><ol>
+<li><p>首先，CPU 读取 PC 指针指向的<strong>指令</strong>，将它<strong>导入指令寄存器</strong>。</p>
+<p>具体来说，完成读取指令这件事情有 3 个步骤：</p>
+<ul>
+<li><p>步骤 1：CPU 的控制单元操作地址总线指定需要访问的内存地址（简单理解，就是把 PC 指针中的值拷贝到地址总线中）。</p>
+</li>
+<li><p>步骤 2：CPU 通知内存设备准备数据（内存设备准备好了，就通过数据总线将数据传送给 CPU）。</p>
+</li>
+<li><p>步骤 3：CPU 收到内存传来的数据后，将这个数据存入指令寄存器。</p>
+</li>
+</ul>
+<p>完成以上 3 步，CPU 成功读取了 PC 指针指向指令，存入了指令寄存器。</p>
+</li>
+<li><p>然后，CPU 分析指令寄存器中的指令，确定指令的类型和参数。</p>
+</li>
+<li><p>如果是计算类型的指令，那么就交给逻辑运算单元计算；如果是存储类型的指令，那么由控制单元执行。</p>
+</li>
+<li><p>PC 指针自增，并准备获取下一条指令。</p>
+<p>在 32 位的机器上，指令是 32 位 4 个字节，需要 4 个内存地址存储，因此 PC 指针会自增 4。</p>
+</li>
+</ol>
+<p>注意：</p>
+<ul>
+<li>内存虽然是一个随机存取器，但是我们通常不会把指令和数据存在一起，这是为了安全起见。</li>
+</ul>
+<ul>
+<li>程序指针也是一个寄存器，64 位的 CPU 会提供 64 位的寄存器，这样就可以使用更多内存地址。64 位的寄存器可以寻址的范围非常大，但是也会受到地址总线条数的限制。比如和 64 位 CPU 配套工作的地址总线只有 40 条，那么可以寻址的范围就只有 1T，也就是 2^40。</li>
+</ul>
+<p>从 PC 指针读取指令、到执行、再到下一条指令，构成了一个循环，这个不断循环的过程叫作<strong>CPU 的指令周期</strong>。</p>
+<h4 id="存储器分级"><a href="#存储器分级" class="headerlink" title="存储器分级"></a>存储器分级</h4><p>原因：</p>
+<ul>
+<li>存储器大小受体积制约</li>
+<li>存储器电子元件密度越大，发热越严重。</li>
+<li>与CPU距离越远传输速度越慢</li>
+<li>价格</li>
+</ul>
+<p>不能用一块存储器来解决所有的需求，那就必须把需求分级。</p>
+<h5 id="存储器分级策略"><a href="#存储器分级策略" class="headerlink" title="存储器分级策略"></a>存储器分级策略</h5><ol>
+<li>寄存器；</li>
+<li>L1-Cache；</li>
+<li>L2-Cache；</li>
+<li>L3-Cahce；</li>
+<li>内存；</li>
+<li>硬盘/SSD</li>
+</ol>
+<h5 id="寄存器（Register）"><a href="#寄存器（Register）" class="headerlink" title="寄存器（Register）"></a>寄存器（Register）</h5><p>寄存器紧挨着 CPU 的控制单元和逻辑计算单元，它所使用的材料速度也是最快的。存储器的速度越快、能耗越高、产热越大，而且花费也是最贵的，因此数量不能很多。</p>
+<p>寄存器的数量通常在几十到几百之间，每个寄存器可以用来存储一定字节（byte）的数据。比如：</p>
+<p>​        32 位 CPU 中大多数寄存器可以存储 4 个字节；</p>
+<p>​        64 位 CPU 中大多数寄存器可以存储 8 个字节。</p>
+<p>寄存机的访问速度非常快，一般要求在半个 CPU 时钟周期内完成读写。比如一条要在 4 个周期内完成的指令，除了读写寄存器，还需要解码指令、控制指令执行和计算。如果寄存器的速度太慢，那 4 个周期就可能无法完成这条指令了。</p>
+<h5 id="L1-Cache"><a href="#L1-Cache" class="headerlink" title="L1-Cache"></a>L1-Cache</h5><p>L1- 缓存在 CPU 中，相比寄存器，虽然它的位置距离 CPU 核心更远，但造价更低。通常 L1-Cache 大小在几十 Kb 到几百 Kb 不等，读写速度在 2~4 个 CPU 时钟周期。</p>
+<h5 id="L2-Cache"><a href="#L2-Cache" class="headerlink" title="L2-Cache"></a>L2-Cache</h5><p>L2- 缓存也在 CPU 中，位置比 L1- 缓存距离 CPU 核心更远。它的大小  比 L1-Cache 更大，具体大小要看 CPU 型号，有 2M 的，也有更小或者更大的，速度在 10~20 个 CPU 周期。</p>
+<h5 id="L3-Cache"><a href="#L3-Cache" class="headerlink" title="L3-Cache"></a>L3-Cache</h5><p>L3- 缓存同样在 CPU 中，位置比 L2- 缓存距离 CPU 核心更远。大小通常比 L2-Cache 更大，读写速度在 20~60 个 CPU 周期。L3 缓存大小也是看型号的，比如 i9 CPU 有 512KB L1 Cache；有 2MB L2 Cache； 有16MB L3 Cache。</p>
+<h5 id="内存-1"><a href="#内存-1" class="headerlink" title="内存"></a>内存</h5><p>内存的主要材料是半导体硅，是插在主板上工作的。因为它的位置距离 CPU 有一段距离，所以需要用总线和 CPU 连接。因为内存有了独立的空间，所以体积更大，造价也比上面提到的存储器低得多。现在有的个人电脑上的内存是 16G，但有些服务器的内存可以到几个 T。内存速度大概在 200~300 个 CPU 周期之间。</p>
+<h5 id="SSD-和硬盘"><a href="#SSD-和硬盘" class="headerlink" title="SSD 和硬盘"></a>SSD 和硬盘</h5><p>SSD 也叫固态硬盘，结构和内存类似，但是它的优点在于断电后数据还在。内存、寄存器、缓存断电后数据就消失了。内存的读写速度比 SSD 大概快 10~1000 倍。以前还有一种物理读写的磁盘，我们也叫作硬盘，它的速度比内存慢 100W 倍左右。因为它的速度太慢，现在已经逐渐被 SSD 替代</p>
+<h3 id="Linux-常用命令"><a href="#Linux-常用命令" class="headerlink" title="Linux 常用命令"></a>Linux 常用命令</h3><p>以下为常用命令，不再过多赘述</p>
+<ul>
+<li>文件相关：cd 、mkdir、touch、mv、rm、cp、ls、find、whereis、which、locate、more、tail、cat、less、df、rpm、tar等</li>
+<li>权限相关：chmod 、chown、chgrp、sudo等</li>
+<li>网络相关：ifconfig、netstat、ifup、ifdown等</li>
+</ul>
+<p>由于开发常用为查看日志，所以需详细了解以下几个命令：</p>
+<p>awk、grep、sed是linux操作文本的三大利器，合称文本三剑客。</p>
+<p>三者的功能都是处理文本，但侧重点各不相同，其中属awk功能最强大，但也最复杂。</p>
+<p><strong>grep</strong>用于单纯的查找或匹配文本，<strong>sed</strong>用于编辑匹配到的文本，<strong>awk</strong>更适合格式化文本，对文本进行较复杂格式处理。</p>
+<h4 id="grep命令"><a href="#grep命令" class="headerlink" title="grep命令"></a>grep命令</h4><p>grep (global search regular expression(RE) and print out the line,全面搜索正则表达式并把行打印出来) 是一种强大的文本搜索工具，它能使用正则表达式搜索文本，并把匹配的行打印出来。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">grep [-acinv] [--color=auto] '搜寻字符串' filename</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">选项与参数：</span><br><span class="line">-a ：将 binary 文件以 text 文件的方式搜寻数据</span><br><span class="line">-c ：计算找到 '搜寻字符串' 的次数</span><br><span class="line">-i ：忽略大小写的不同，所以大小写视为相同</span><br><span class="line">-n ：顺便输出行号</span><br><span class="line">-v ：反向选择，亦即显示出没有 '搜寻字符串' 内容的那一行！</span><br><span class="line">--color=auto ：可以将找到的关键词部分加上颜色的显示</span><br></pre></td></tr></table></figure>
+
+<h4 id="sed命令"><a href="#sed命令" class="headerlink" title="sed命令"></a>sed命令</h4><p>sed 是一种在线编辑器，它一次处理一行内容。处理时，把当前处理的行存储在临时缓冲区中，称为“模式空间”（pattern space），接着用sed命令处理缓冲区中的内容，处理完成后，把缓冲区的内容送往屏幕。接着处理下一行，这样不断重复，直到文件末尾。文件内容并没有 改变除，非你使用重定向存储输出。Sed主要用来自动编辑一个或多个文件；简化对文件的反复操作；编写转换程序等。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sed [-nefr] [动作]</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">选项与参数：</span><br><span class="line">-n ：使用安静(silent)模式。在一般 sed 的用法中，所有来自 STDIN 的数据一般都会被列出到终端上。但如果加上 -n 参数后，则只有经过sed 特殊处理的那一行(或者动作)才会被列出来。</span><br><span class="line">-e ：直接在命令列模式上进行 sed 的动作编辑；</span><br><span class="line">-f ：直接将 sed 的动作写在一个文件内， -f filename 则可以运行 filename 内的 sed 动作；</span><br><span class="line">-r ：sed 的动作支持的是延伸型正规表示法的语法。(默认是基础正规表示法语法)</span><br><span class="line">-i ：直接修改读取的文件内容，而不是输出到终端。</span><br><span class="line"></span><br><span class="line">动作说明： [n1[,n2]]function</span><br><span class="line">n1, n2 ：不见得会存在，一般代表『选择进行动作的行数』，举例来说，如果我的动作是需要在 10 到 20 行之间进行的，则『 10,20[动作行为] 』</span><br><span class="line"></span><br><span class="line">function：</span><br><span class="line">a ：新增， a 的后面可以接字串，而这些字串会在新的一行出现(目前的下一行)～</span><br><span class="line">c ：取代， c 的后面可以接字串，这些字串可以取代 n1,n2 之间的行！</span><br><span class="line">d ：删除，因为是删除啊，所以 d 后面通常不接任何咚咚；</span><br><span class="line">i ：插入， i 的后面可以接字串，而这些字串会在新的一行出现(目前的上一行)；</span><br><span class="line">p ：列印，亦即将某个选择的数据印出。通常 p 会与参数 sed -n 一起运行～</span><br><span class="line">s ：取代，可以直接进行取代的工作哩！通常这个 s 的动作可以搭配正规表示法！例如 1,20s/old/new/g</span><br></pre></td></tr></table></figure>
+
+<h4 id="awk命令"><a href="#awk命令" class="headerlink" title="awk命令"></a>awk命令</h4><p>awk是一个强大的文本分析工具，awk是把文件逐行的读入，以空格为默认分隔符将每行切片，切开的部分再进行各种分析处理。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">awk` `[options] ``'program'` `var=value ``file``…</span><br><span class="line">awk` `[options] -f programfile var=value ``file``…</span><br><span class="line">awk` `[options] ``'BEGIN&#123; action;… &#125; pattern&#123; action;… &#125; END&#123; action;… &#125;'` `file` `...</span><br></pre></td></tr></table></figure>
+
+<p>常用命令选项：</p>
+<ul>
+<li>-F fs：fs指定输入分隔符，fs可以是字符串或正则表达式，如-F:</li>
+<li>-v var=value：赋值一个用户定义变量，将外部变量传递给awk</li>
+<li>-f scripfile：从脚本文件中读取awk命令</li>
+</ul>
+<p>内置变量：</p>
+<ul>
+<li>FS ：<strong>输入字段分隔符</strong>，默认为空白字符</li>
+<li>OFS ：<strong>输出字段分隔符</strong>，默认为空白字符</li>
+<li>RS ：<strong>输入记录分隔符</strong>，指定输入时的换行符，原换行符仍有效</li>
+<li>ORS ：<strong>输出记录分隔符</strong>，输出时用指定符号代替换行符</li>
+<li>NF ：字段数量，<strong>共有</strong>多少字段， <strong>$NF引用最后一列，$(NF-1)引用倒数第2列</strong></li>
+<li>NR ：<strong>行号</strong>，后可跟多个文件，第二个文件行号继续从第一个文件最后行号开始</li>
+<li>FNR ：各文件分别计数, 行号，后跟一个文件和NR一样，跟多个文件，第二个文件<strong>行号从1开始</strong></li>
+<li>FILENAME ：<strong>当前文件名</strong></li>
+<li>ARGC ：<strong>命令行参数</strong>的个数</li>
+<li>ARGV ：数组，保存的是命令行所给定的各参数，<strong>查看参数</strong></li>
+</ul>
+<h3 id="操作系统基础知识"><a href="#操作系统基础知识" class="headerlink" title="操作系统基础知识"></a>操作系统基础知识</h3><h4 id="内核"><a href="#内核" class="headerlink" title="内核"></a>内核</h4><p>对于一个现代的操作系统来说，它的内核至少应该提供以下 4 种基本能力：</p>
+<ul>
+<li>管理进程、线程（决定哪个进程、线程使用 CPU）；</li>
+</ul>
+<ul>
+<li>管理内存（决定内存用来做什么）；</li>
+</ul>
+<ul>
+<li>连接硬件设备（为进程、和设备间提供通信能力）；</li>
+</ul>
+<ul>
+<li>提供系统调用（接收进程发送来的系统调用）。</li>
+</ul>
+<h5 id="内核态"><a href="#内核态" class="headerlink" title="内核态"></a>内核态</h5><p>CPU可以访问内存所有数据, 包括外围设备, 例如硬盘, 网卡. CPU也可以将自己从一个程序切换到另一个程序。</p>
+<h5 id="用户态"><a href="#用户态" class="headerlink" title="用户态"></a>用户态</h5><p>只能受限的访问内存, 且不允许访问外围设备. 占用CPU的能力被剥夺, CPU资源可以被其他程序获取。</p>
+<h5 id="存在原因"><a href="#存在原因" class="headerlink" title="存在原因"></a>存在原因</h5><p>限制不同的程序之间的访问能力, 防止他们获取别的程序的内存数据, 或者获取外围设备的数据。</p>
+<h5 id="用户态与内核态的切换"><a href="#用户态与内核态的切换" class="headerlink" title="用户态与内核态的切换"></a>用户态与内核态的切换</h5><p>所有用户程序都是运行在用户态的, 但是有时候程序确实需要做一些内核态的事情, 例如从硬盘读取数据, 或者从键盘获取输入等. 而唯一可以做这些事情的就是操作系统, 所以此时程序就需要先操作系统请求以程序的名义来执行这些操作.</p>
+<p>这时需要一个这样的机制: <strong>用户态程序切换到内核态</strong>, 但是不能控制在内核态中执行的指令</p>
+<p>用户态切换到内核态的3种方式：</p>
+<p><strong>a. 系统调用</strong></p>
+<p>这是用户态进程主动要求切换到内核态的一种方式，用户态进程通过系统调用申请使用操作系统提供的服务程序完成工作，比如前例中fork()实际上就是执行了一个创建新进程的系统调用。而系统调用的机制其核心还是使用了操作系统为用户特别开放的一个中断来实现，例如Linux的int 80h中断。</p>
+<p><strong>b. 异常</strong></p>
+<p>当CPU在执行运行在用户态下的程序时，发生了某些事先不可知的异常，这时会触发由当前运行进程切换到处理此异常的内核相关程序中，也就转到了内核态，比如缺页异常。</p>
+<p><strong>c. 外围设备的中断</strong></p>
+<p>当外围设备完成用户请求的操作后，会向CPU发出相应的中断信号，这时CPU会暂停执行下一条即将要执行的指令转而去执行与中断信号对应的处理程序，如果先前执行的指令是用户态下的程序，那么这个转换的过程自然也就发生了由用户态到内核态的切换。比如硬盘读写操作完成，系统会切换到硬盘读写的中断处理程序中执行后续操作等。</p>
+<h4 id="中断与中断向量"><a href="#中断与中断向量" class="headerlink" title="中断与中断向量"></a>中断与中断向量</h4><p>以用户键盘按键为例，主板知道有新的按键后，通知 CPU，CPU 要中断当前执行的程序，将 PC 指针跳转到一个固定的位置，我们称为一次<strong>中断</strong>（interrupt）。CPU 不知道中断后PC指针的具体位置是多少，而只能跳转到一个固定位置，考虑到系统中会出现各种各样的事件，我们需要根据<strong>中断类型来判断PC 指针跳转的位置</strong>，中断类型不同，PC 指针跳转的位置也可能会不同。比如按键程序、打印机就绪程序、系统异常等都需要中断，包括上面说到的系统调用，也需要中断正在执行的程序，切换到内核态执行内核程序。</p>
+<p>因此我们需要把不同的中断类型进行分类，这个类型叫作<strong>中断识别码</strong>。比如按键，我们可以考虑用编号 16，数字 16 就是按键中断类型的识别码。不同类型的中断发生时，CPU 需要知道 PC 指针该跳转到哪个地址，这个地址，称为<strong>中断向量</strong>（Interupt Vector）。</p>
+<p>你可以考虑这样的实现：当编号 16 的中断发生时，32 位机器的 PC 指针直接跳转到内存地址 16<em>4 的内存位置。如果设计最多有 255 个中断，编号就是从 0~255，刚好需要 1K 的内存地址存储中断向量——这个 1K 的空间，称为*</em>中断向量表**。</p>
+<p>因此 CPU 接收到中断后，CPU 根据中断类型操作 PC 指针，找到中断向量。操作系统必须在这之前，修改中断向量，插入一条指令。比如操作系统在这里写一条Jump指令，将 PC 指针再次跳转到自己处理对应中断类型的程序。</p>
+<h3 id="进程与线程"><a href="#进程与线程" class="headerlink" title="进程与线程"></a>进程与线程</h3><h4 id="进程（Process）"><a href="#进程（Process）" class="headerlink" title="进程（Process）"></a>进程（Process）</h4><p>就是正在执行的应用程序，是软件的执行副本。而<strong>线程</strong>是轻量级的进程。</p>
+<p>进程是分配资源的基础单位。而线程很长一段时间被称作轻量级进程（Light Weighted Process），是程序执行的基本单位。</p>
+<h5 id="分时和调度"><a href="#分时和调度" class="headerlink" title="分时和调度"></a>分时和调度</h5><p>因为通常机器中 CPU 核心数量少（从几个到几十个）、进程&amp;线程数量很多（从几十到几百甚至更多），因此进程们在操作系统中只能排着队一个个执行。每个进程在执行时都会获得操作系统分配的一个时间片段，如果超出这个时间，就会轮到下一个进程（线程）执行。</p>
+<p>例如进程 1 执行到一半时，会先挂起，然后进程 2 开始执行。如果进程 2 一次可以执行完，然后进程 3 开始执行，不过进程 3 一次执行不完，在执行了 1 个时间片段后，进程 1 开始执行；就这样如此周而复始。这个就是<strong>分时</strong>技术。</p>
+<h4 id="进程和线程的状态"><a href="#进程和线程的状态" class="headerlink" title="进程和线程的状态"></a>进程和线程的状态</h4><p>一个进程（线程）运行的过程，会经历以下 3 个状态：</p>
+<ul>
+<li>进程（线程）创建后，就开始排队，此时它会处在“就绪”（<strong>Ready</strong>）状态；</li>
+<li>当轮到该进程（线程）执行时，会变成“运行”（<strong>Running</strong>）状态；</li>
+<li>当一个进程（线程）将操作系统分配的时间片段用完后，会回到“就绪”（<strong>Ready</strong>）状态。</li>
+</ul>
+<p>有时候一个进程（线程）会等待磁盘读取数据，或者等待打印机响应，此时进程自己会进入“阻塞”（<strong>Block</strong>）状态。需要等待磁盘、打印机处理完成后，通过中断通知 CPU，然后 CPU 再执行一小段中断控制程序，将控制权转给操作系统，操作系统再将原来阻塞的进程（线程）置为“就绪”（Ready）状态重新排队。</p>
+<h4 id="进程（线程）切换"><a href="#进程（线程）切换" class="headerlink" title="进程（线程）切换"></a>进程（线程）切换</h4><p>进程（线程）在操作系统中是不断切换的，<strong>现代操作系统中只有线程的切换</strong>。 每次切换需要先保存当前寄存器的值的内存，注意 PC 指针也是一种寄存器。当恢复执行的时候，就需要从内存中读出所有的寄存器，恢复之前的状态，然后执行。</p>
+<p>进程（线程）切换分为以下 5 个步骤：</p>
+<ol>
+<li>当操作系统发现一个进程（线程）需要被切换的时候，直接控制 PC 指针跳转是非常危险的事情，所以操作系统需要发送一个“中断”信号给 CPU，停下正在执行的进程（线程）。</li>
+<li>当 CPU 收到中断信号后，正在执行的进程（线程）会立即停止。注意，因为进程（线程）马上被停止，它还来不及保存自己的状态，所以后续操作系统必须完成这件事情。</li>
+<li>操作系统接管中断后，趁寄存器数据还没有被破坏，必须马上执行一小段非常底层的程序（通常是汇编编写），帮助寄存器保存之前进程（线程）的状态。</li>
+<li>操作系统保存好进程状态后，执行调度程序，决定下一个要被执行的进程（线程）。</li>
+<li>最后，操作系统执行下一个进程（线程）。</li>
+</ol>
+<h4 id="多核处理"><a href="#多核处理" class="headerlink" title="多核处理"></a>多核处理</h4><p>进程（线程）可以<strong>并行</strong>执行。通常情况下，CPU 有几个核，就可以并行执行几个进程（线程）。</p>
+<h4 id="锁、信号量和分布式锁"><a href="#锁、信号量和分布式锁" class="headerlink" title="锁、信号量和分布式锁"></a>锁、信号量和分布式锁</h4><h5 id="原子操作"><a href="#原子操作" class="headerlink" title="原子操作"></a>原子操作</h5><p>原子操作就是<strong>操作不可分</strong></p>
+<h5 id="临界区"><a href="#临界区" class="headerlink" title="临界区"></a>临界区</h5><p><strong>临界区</strong>指的是一个访问共用资源（例如：共用设备或是共用存储器）的程序片段，而这些共用资源又无法同时被多个<a href="https://baike.baidu.com/item/线程/103101" target="_blank" rel="noopener">线程</a>访问的特性。当有线程进入临界区段时，其他线程或是<a href="https://baike.baidu.com/item/进程/382503" target="_blank" rel="noopener">进程</a>必须等待有一些同步的机制必须在临界区段的进入点与离开点实现，以确保这些共用资源是被互斥获得使用。</p>
+<h5 id="竞争条件"><a href="#竞争条件" class="headerlink" title="竞争条件"></a>竞争条件</h5><p>竞争条件就是说多个线程对一个资源（内存地址）的读写存在竞争，在这种条件下，最后这个资源的值不可预测，而是取决于竞争时具体的执行顺序。</p>
+<h5 id="解决竞争条件"><a href="#解决竞争条件" class="headerlink" title="解决竞争条件"></a>解决竞争条件</h5><p>解决竞争条件有很多方案，一种方案就是不要让程序同时进入临界区，这个方案叫作<strong>互斥</strong>。还有一些方案旨在避免竞争条件，比如 <strong>ThreadLocal</strong>、 <strong>cas 指令</strong>以及 <strong>乐观锁</strong>。</p>
+<ul>
+<li><strong>避免临界区</strong>：不让程序同时进入临界区这个方案比较简单，核心就是我们给每个线程一个变量i，比如利用 ThreadLocal，这样线程之间就不存在竞争关系了。这样做优点很明显，缺点就是并不是所有的情况都允许你这样做。有一些资源是需要共享的。</li>
+<li><strong>cas 指令</strong>：另一个方案是利用 CPU 的指令，让i++成为一个原子操作。 很多 CPU 都提供 Compare And Swap 指令。这个指令的作用是更新一个内存地址的值，比如把i更新为i+1，但是这个指令明确要求使用者必须确定知道内存地址中的值是多少。比如一个线程想把i从100更新到101，线程必须明确地知道现在i是 100，否则就会更新失败。</li>
+<li><strong>锁（lock）</strong>：目标是实现抢占（preempt）。就是只让给定数量的线程进入临界区。通过锁机制，能够保证在多核多线程环境中，在某一个时间点上，只能有一个线程进入临界区代码，从而保证临界区中操作数据的一致性。所谓的锁，可以理解为内存中的一个整型数，拥有两种状态：空闲状态和上锁状态。加锁时，判断锁是否空闲，如果空闲，修改为上锁状态，返回成功。如果已经上锁，则返回失败。解锁时，则把锁状态修改为空闲状态。<strong>自旋锁</strong>：自旋锁与<a href="https://baike.baidu.com/item/互斥锁" target="_blank" rel="noopener">互斥锁</a>比较类似，它们都是为了解决对某项资源的互斥使用。无论是<strong><a href="https://baike.baidu.com/item/互斥锁" target="_blank" rel="noopener">互斥锁</a></strong>，还是自旋锁，在任何时刻，最多只能有一个保持者，也就说，在任何时刻最多只能有一个执行单元获得锁。但是两者在调度机制上略有不同。对于互斥锁，如果资源已经被占用，资源申请者只能进入睡眠状态。但是自旋锁不会引起调用者睡眠，如果自旋锁已经被别的执行单元保持，调用者就一直循环在那里看是否该自旋锁的保持者已经释放了锁，”自旋”一词就是因此而得名。</li>
+</ul>
+<h5 id="生产者消费者模型"><a href="#生产者消费者模型" class="headerlink" title="生产者消费者模型"></a>生产者消费者模型</h5><p>一个合理的实现就是生产者消费者模型。 wait 是一个生产者，将当前线程挂到一个等待队列上，并休眠。notify 是一个消费者，从等待队列中取出一个线程，并重新排队。</p>
+<p>Java 语言中为每个对象增加了一个 Object Header 区域，里面一个锁的位（bit），锁并不需要一个 32 位整数，一个 bit 足够。下面的代码用户使用 synchronized 关键字让临界区访问互斥。</p>
+<p>synchronized 关键字的内部实现，用到了封装好的底层代码——<strong>Monitor</strong> 对象。每个 Java 对象都关联了一个 Monitor 对象。Monitor 封装了对锁的操作，这样简化了 Java 程序员的工作，你只需要调用 synchronized 关键字。</p>
+<p>另外，Monitor 实现了生产者、消费者模型。</p>
+<ul>
+<li>如果一个线程拿到锁，那么这个线程继续执行；</li>
+</ul>
+<ul>
+<li>如果一个线程竞争锁失败，Montior 就调用 wait 方法触发生产者的逻辑，把线程加入等待集合；</li>
+</ul>
+<ul>
+<li>如果一个线程执行完成，Monitor 就调用一次 notify 方法恢复一个等待的线程。</li>
+</ul>
+<p>这样，Monitor 除了提供了互斥，还提供了线程间的通信，避免了使用自旋锁，还简化了程序设计。</p>
+<h5 id="信号量"><a href="#信号量" class="headerlink" title="信号量"></a>信号量</h5><p>信号量用在多线程多任务同步的，一个线程完成了某一个动作就通过信号量告诉别的线程，别的线程再进行某些动作。而互斥锁是用在多线程多任务互斥的，一个线程占用了某一个资源，那么别的线程就无法访问，直到这个线程unlock，其他的线程才开始可以利用这个资源。比如对全局变量的访问，有时要加锁，操作完了，在解锁。有的时候锁和信号量会同时使用的。</p>
+<p>也就是说，信号量不一定是锁定某一个资源，而是流程上的概念，比如：有A,B两个线程，B线程要等A线程完成某一任务以后再进行自己下面的步骤，这个任务并不一定是锁定某一资源，还可以是进行一些计算或者数据处理之类。而线程互斥量则是“锁住某一资源”的概念，在锁定期间内，其他线程无法对被保护的数据进行操作。在有些情况下两者可以互换。</p>
+<h5 id="信号量与互斥锁之间的区别"><a href="#信号量与互斥锁之间的区别" class="headerlink" title="信号量与互斥锁之间的区别"></a>信号量与互斥锁之间的区别</h5><ol>
+<li>互斥锁用于线程的互斥，信号量用于线程的同步。这是互斥锁和信号量的根本区别，也就是互斥和同步之间的区别。</li>
+<li>互斥量值只能为0/1，信号量值可以为非负整数。也就是说，一个互斥量只能用于一个资源的互斥访问，它不能实现多个资源的多线程互斥问题。信号量可以实现多个同类资源的多线程互斥和同步。当信号量为单值信号量是，也可以完成一个资源的互斥访问。信号量是通过一个计数器控制对共享资源的访问，信号量的值是一个非负整数，所有通过它的线程都会将该整数减一。如果计数器大于0，则访问被允许，计数器减1；如果为0，则访问被禁止，所有试图通过它的线程都将处于等待状态。</li>
+<li>互斥量的加锁和解锁必须由同一线程分别对应使用，信号量可以由一个线程释放，另一个线程得到。</li>
+</ol>
+<h5 id="互斥和同步的定义"><a href="#互斥和同步的定义" class="headerlink" title="互斥和同步的定义"></a>互斥和同步的定义</h5><ul>
+<li><p>互斥：是指某一资源同时只允许一个访问者对其进行访问，具有唯一性和排它性。但互斥无法限制访问者对资源的访问顺序，即访问是无序的。</p>
+</li>
+<li><p>同步：是指在互斥的基础上（大多数情况），通过其它机制实现访问者对资源的有序访问。在大多数情况下，同步已经实现了互斥，特别是所有写入资源的情况必定是互斥的。少数情况是指可以允许多个访问者同时访问资源。</p>
+</li>
+</ul>
+<h5 id="死锁、悲观锁-乐观锁"><a href="#死锁、悲观锁-乐观锁" class="headerlink" title="死锁、悲观锁/乐观锁"></a>死锁、悲观锁/乐观锁</h5><p>两个线程互相等待对方获得的锁，就会发生<strong>死锁</strong>。你可以把死锁理解成一个环状的依赖关系。</p>
+<p><strong>产生死锁有四个必要条件：</strong></p>
+<ul>
+<li><p><strong>互斥条件</strong>。一个资源只能被一个进程占用</p>
+</li>
+<li><p><strong>不可剥夺条件</strong>。某个进程占用了资源，就只能他自己去释放。</p>
+</li>
+<li><p><strong>请求和保持条件</strong>。进程每次申请它所需要的一部分资源，在申请新的资源的同时，继续占用已分配到的资源。除非我自己不想用了，释放掉。</p>
+</li>
+<li><p><strong>循环等待条件</strong>。在发生死锁时必然存在一个进程等待队列{P1,P2,…,Pn},其中P1等待P2占有的资源，P2等待P3占有的资源，…，Pn等待P1占有的资源，形成一个进程等待环路。</p>
+</li>
+</ul>
+<p>如何<strong>预防死锁</strong>：可以通过<strong>破坏死锁产生的4个必要条件来 预防死锁</strong>，由于资源互斥是资源使用的固有特性是无法改变的，所以通过破坏其他三个条件 预防死锁：</p>
+<ul>
+<li><strong>破坏 “不可剥夺条件” ：</strong>一个进程不能获得所需要的全部资源时便处于等待状态，等待期间他占有的资源将被隐式的释放重新加入到 系统的资源列表中，可以被其他的进程使用，而等待的进程只有重新获得自己原有的资源以及新申请的资源才可以重新启动，执行。</li>
+<li><strong>破坏 “请求和保持条件”：</strong>第一种方法静态分配即每个进程在开始执行时就申请他所需要的全部资源。第二种是动态分配即每个进程在申请所需要的资源时他本身不占用系统资源。</li>
+<li><strong>破坏“循环等待条件“：</strong>采用资源有序分配其基本思想是将系统中的所有资源顺序编号，将紧缺的，稀少的采用较大的编号，在申请资源时必须按照编号的顺序进行，一个进程只有获得较小编号的进程才能申请较大编号的进程。</li>
+</ul>
+<p>临界区互斥的方法（对临界区上锁），具有强烈的排他性，对修改持保守态度，我们称为<strong>悲观锁</strong>（Pressimistic Lock）。通常意义上，我们说上锁，就是悲观锁，比如说 MySQL 的表锁、行锁、Java 的锁，本质是互斥（mutex）。</p>
+<p>和悲观锁（PressimisticLock）持相反意见的，是<strong>乐观锁</strong>（Optimistic Lock）。即一开始认为没有冲突，在真正操作提交时判断版本是否一致，如果一致直接提交，不一致则打回。</p>
+<h5 id="分布式锁"><a href="#分布式锁" class="headerlink" title="分布式锁"></a>分布式锁</h5><p><a href="http://blogsea.cn/2020/06/10/%E5%88%86%E5%B8%83%E5%BC%8F%E6%9E%B6%E6%9E%84%E4%B9%8B%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" target="_blank" rel="noopener">详见：分布式架构之分布式锁</a></p>
+<h4 id="线程的调度"><a href="#线程的调度" class="headerlink" title="线程的调度"></a>线程的调度</h4><h5 id="先到先服务"><a href="#先到先服务" class="headerlink" title="先到先服务"></a>先到先服务</h5><p>早期的操作系统是一个个处理作业（Job），比如很多保险业务，每处理一个称为一个作业（Job）。处理作业最容易想到的就是<strong>先到先服务</strong>（First Come First Service，FCFS），也就是先到的作业先被计算，后到的作业，排队进行。</p>
+<p>这里需要用到一个叫作<strong>队列</strong>的数据结构，具有<strong>先入先出</strong>（First In First Out，FIFO）性质。先进入队列的作业，先处理，因此从公平性来说，这个算法非常朴素。另外，一个作业完全完成才会进入下一个作业，作业之间不会发生切换，从吞吐量上说，是最优的——因为没有额外开销。</p>
+<p>但是这样对于等待作业的用户来说，是有问题的。比如一笔需要用时 1 天的作业 ，如果等待了 10 分钟，用户是可以接受的；一个用时 10 分钟的作业，用户等待一天就要投诉了。 因此如果用时 1 天的作业先到，用时 10 分钟的任务后到，应该优先处理用时少的，也就是<strong>短作业优先</strong>（Shortest Job First，SJF）。</p>
+<h5 id="短作业优先"><a href="#短作业优先" class="headerlink" title="短作业优先"></a>短作业优先</h5><p>平均等待时间 = 总等待时间/任务数</p>
+<p>平均等待时间和用户满意度是成反比的，等待时间越长，用户越不满意，因此在大多数情况下，应该优先处理用时少的，从而<strong>降低平均等待时长</strong>。</p>
+<h5 id="优先级队列"><a href="#优先级队列" class="headerlink" title="优先级队列"></a>优先级队列</h5><p><strong>优先级队列</strong>可以给队列中每个元素一个优先级，优先级越高的任务就会被先执行。</p>
+<p>优先级队列的一种实现方法就是用到了堆（Heap）这种数据结构，更最简单的实现方法，就是每次扫描一遍整个队列找到优先级最高的任务。也就是说，堆（Heap）可以帮助你在 O(1) 的时间复杂度内查找到最大优先级的元素。</p>
+<p>这样，关于紧急任务如何插队？等待太久的任务如何插队？但是如果先执行的大任务导致后面来的小任务的情况如何处理？</p>
+<h5 id="抢占"><a href="#抢占" class="headerlink" title="抢占"></a>抢占</h5><p>为了解决这个问题，我们需要用到<strong>抢占</strong>（Preemption）。</p>
+<p>抢占就是<strong>把执行能力分时</strong>，分成时间片段。 让每个任务都执行一个时间片段。如果在时间片段内，任务完成，那么就调度下一个任务。如果任务没有执行完成，则中断任务，让任务重新排队，调度下一个任务。</p>
+<p>拥有了抢占的能力，再结合之前我们提到的优先级队列能力，这就构成了一个基本的<strong>线程调度模型</strong>。</p>
+<p>每个线程执行一个时间片段，然后每次执行完一个线程就执行一段调度程序。</p>
+<p><img src="/2021/01/19/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E4%B8%8E%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/operation_system_02.png" alt="优先级队列"></p>
+<p>图中用红色代表调度程序，其他颜色代表被调度线程的时间片段。调度程序可以考虑实现为一个单线程模型，这样不需要考虑竞争条件。</p>
+<p><img src="/2021/01/19/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E4%B8%8E%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/operation_system_03.png" alt="线程调度模型"></p>
+<h5 id="多级队列模型"><a href="#多级队列模型" class="headerlink" title="多级队列模型"></a>多级队列模型</h5><p>多级队列，就是多个队列执行调度。</p>
+<ul>
+<li><p>紧急任务仍然走高优队列，非抢占执行。</p>
+</li>
+<li><p>普通任务先放到优先级仅次于高优任务的队列中，并且只分配很小的时间片；如果没有执行完成，说明任务不是很短，就将任务下调一层。</p>
+</li>
+<li><p>下面一层，最低优先级的队列中时间片很大，长任务就有更大的时间片可以用。</p>
+</li>
+</ul>
+<p>通过这种方式，短任务会在更高优先级的队列中执行完成，长任务优先级会下调，也就类似实现了最短作业优先的问题。</p>
+<p>实际操作中，可以有 n 层，一层层把大任务筛选出来。 最长的任务，放到最闲的时间去执行。要知道，大部分时间 CPU 不是满负荷的。</p>
+<p><img src="/2021/01/19/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E4%B8%8E%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/operation_system_04.png" alt="线程调度模型"></p>
+<h4 id="进程间通信"><a href="#进程间通信" class="headerlink" title="进程间通信"></a>进程间通信</h4><p>进程间通信（Intermediate Process Communication，IPC）。就是操作系统创建的进程们之间在交换数据。更广泛的意义——程序间的通信。 程序可以是进程，可以是线程，可以是一个进程的两个部分（进程自己发送给自己），也可以是分布式的。</p>
+<h5 id="管道"><a href="#管道" class="headerlink" title="管道"></a>管道</h5><p>管道提供了一种非常重要的能力，就是组织计算。进程不用知道有管道存在，因此管道的设计是非侵入的。程序员可以先着重在程序本身的设计，只需要预留响应管道的接口，就可以利用管道的能力。</p>
+<p>管道的核心是不侵入、灵活，不会增加程序设计负担，又能组织复杂的计算过程。</p>
+<p>例如：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">进程1 | 进程2 | 进程3 | mysql -u... -p | 爬虫进程</span><br></pre></td></tr></table></figure>
+
+<p>我们可以由进程 1、进程 2、进程 3 计算出 MySQL 需要的语句，然后直接通过管道执行。MySQL经过计算将结果传给一个爬虫进程，爬虫就开始工作。</p>
+<h5 id="本地内存共享"><a href="#本地内存共享" class="headerlink" title="本地内存共享"></a>本地内存共享</h5><p>同一个进程的多个线程本身是共享进程内存的。 这种情况不需要特别考虑共享内存。如果是跨进程的线程（或者理解为跨进程的程序），可以考虑使用共享内存。</p>
+<p>linux 内存共享库的实现原理是以虚拟文件系统的形式，从内存中划分出一块区域，供两个进程共同使用。看上去是文件，实际操作是内存。</p>
+<p>共享内存的方式，速度很快，但是程序不是很好写，因为这是一种侵入式的开发，也就是说你需要为此撰写大量的程序。比如如果修改共享内存中的值，需要调用 API。如果考虑并发控制，还要处理同步问题等。因此，只要不是高性能场景，进程间通信通常不考虑共享内存的方式。</p>
+<h5 id="本地消息-队列"><a href="#本地消息-队列" class="headerlink" title="本地消息/队列"></a>本地消息/队列</h5><p>内存共享不太好用，因此本地消息有两种常见的方法。一种是用<strong>消息队列</strong>——现代操作系统都会提供类似的能力。Unix 系可以使用 POSIX 标准的 mqueue。另一种方式，就是直接用网络请求（<strong>远程调用RPC</strong>），比如 TCP/IP 协议，也包括建立在这之上的更多的通信协议。</p>
+<ul>
+<li><p><strong>远程调用RPC</strong>：一种通过本地程序调用来封装远程服务请求的方法。</p>
+<p>程序调用 RPC 的时候，程序看上去是在调用一个本地的方法，或者执行一个本地的任务，但是后面会有一个服务程序（通常称为 stub），将这种本地调用转换成远程网络请求。 同理，服务端接到请求后，也会有一个服务端程序（stub），将请求转换为一个真实的服务端方法调用。</p>
+<p>RPC 调用的方式比较适合微服务环境的开发，当然 RPC 通常需要专业团队的框架以支持高并发、低延迟的场景。不过，硬要说 RPC 有额外转化数据的开销（主要是序列化），也没错，但这不是 RPC 的主要缺点。<strong>RPC 真正的缺陷是增加了系统间的耦合。当系统主动调用另一个系统的方法时，就意味着在增加两个系统的耦合。长期增加 RPC 调用，会让系统的边界逐渐腐化。这才是使用 RPC 时真正需要注意的东西。</strong></p>
+</li>
+<li><p><strong>消息队列</strong>：既然 RPC 会增加耦合，那么怎么办呢——可以考虑事件。事件不会增加耦合，如果一个系统订阅了另一个系统的事件，那么将来无论谁提供同类型的事件，自己都可以正常工作。系统依赖的不是另一个系统，而是某种事件。如果哪天另一个系统不存在了，只要事件由其他系统提供，系统仍然可以正常运转。</p>
+</li>
+</ul>
+<h3 id="内存管理"><a href="#内存管理" class="headerlink" title="内存管理"></a>内存管理</h3><p>随着程序越来越复杂，会出现的内存不足的，程序员必须小心翼翼地处理内存的使用，避免超过允许的内存使用阈值。</p>
+<p>那么如何来解决这些问题呢？</p>
+<h4 id="交换（Swap）技术"><a href="#交换（Swap）技术" class="headerlink" title="交换（Swap）技术"></a>交换（Swap）技术</h4><p>Swap 技术允许一部分进程使用内存，不使用内存的进程数据先保存在磁盘上。这里提到的数据，是指完整的进程数据，包括正文段（程序指令）、数据段、堆栈段等。轮到某个进程执行的时候，尝试为这个进程在内存中找到一块空闲的区域。如果空间不足，就考虑把没有在执行的进程交换（Swap）到磁盘上，把空间腾挪出来给需要的进程。</p>
+<p>每个进程独立得到一个空间——我们称为<strong>地址空间</strong>（Address Space）。你可以认为地址空间是<strong>一块连续分配的内存块</strong>。每个进程在不同地址空间中工作，构成了一个原始的虚拟化技术。</p>
+<p>这种方法，是一种比较原始的虚拟化技术，进程使用的是基于地址空间的虚拟地址。但是这种方案有很多明显的缺陷，比如：</p>
+<ul>
+<li>碎片问题：上图中我们看到进程来回分配、回收交换，内存之间会产生很多缝隙。经过反反复复使用，内存的情况会变得十分复杂，导致整体性能下降。</li>
+<li>频繁切换问题：如果进程过多，内存较小，会频繁触发交换。</li>
+</ul>
+<h4 id="虚拟内存"><a href="#虚拟内存" class="headerlink" title="虚拟内存"></a>虚拟内存</h4><p>虚拟化技术中，操作系统设计了虚拟内存（理论上可以无限大的空间），受限于 CPU 的处理能力，通常 64bit CPU，就是 2^64 个地址。</p>
+<p>虚拟化技术中，应用使用的是虚拟内存，操作系统管理虚拟内存和真实内存之间的映射。操作系统将虚拟内存分成整齐小块，每个小块称为一个<strong>页（Page）</strong>。之所以这样做，原因主要有以下两个方面。</p>
+<p>一方面应用使用内存是以页为单位，整齐的页能够避免内存碎片问题。</p>
+<p>另一方面，每个应用都有高频使用的数据和低频使用的数据。这样做，操作系统就不必从应用角度去思考哪个进程是高频的，仅需思考哪些页被高频使用、哪些页被低频使用。如果是低频使用，就将它们保存到硬盘上；如果是高频使用，就让它们保留在真实内存中。</p>
+<h4 id="页（Page）和页表"><a href="#页（Page）和页表" class="headerlink" title="页（Page）和页表"></a>页（Page）和页表</h4><p>操作系统将虚拟内存分块，每个小块称为一个<strong>页（Page）</strong>；真实内存也需要分块，每个小块我们称为一个 <strong>Frame</strong>。Page 到 Frame 的映射，需要一种叫作<strong>页表</strong>的结构。</p>
+<p><img src="/2021/01/19/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E4%B8%8E%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%EF%BC%88%E4%B8%80%EF%BC%89/operation_system_05.png" alt="页和页表"></p>
+<blockquote>
+<p>笔记来源：林䭽 老师的《重学操作系统》课程</p>
+</blockquote>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag">操作系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%9D%A2%E8%AF%95%E5%A4%8D%E4%B9%A0/" rel="tag">面试复习</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+  
+  
+
+</article>
+    
     <article id="post-复习计划" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -477,6 +1206,13 @@
 <li>其他客户端获取 /lock01 下的子节点列表，判断自己创建的子节点是否为当前列表中序号最小的子节点；</li>
 <li>如果是则认为获得锁，执行业务代码，否则通过 watch 事件监听 /lock01 的子节点变更消息，获得变更通知后重复此步骤直至获得锁；</li>
 <li>完成业务流程后，删除对应的子节点，释放分布式锁。</li>
+</ul>
+<p>特点：</p>
+<ul>
+<li>Zookeeper 唯一特性保证锁的互斥性。</li>
+<li>ZooKeeper节点的递增有序性，可以确保锁的公平。</li>
+<li>临时节点可以保证超时释放。</li>
+<li>ZooKeeper的节点监听机制，能避免羊群效应，每一个等通知的Znode节点，只需要监听（linsten）或者监视（watch）排号在自己前面那个，而且紧挨在自己前面的那个节点，就能收到其删除事件了。<br>只要上一个节点被删除了，就进行再一次判断，看看自己是不是序号最小的那个节点，如果是，自己就获得锁。</li>
 </ul>
 <p>在实际开发中，可以应用 Apache Curator 来快速实现分布式锁，Curator 是 Netflix 公司开源的一个 ZooKeeper 客户端，对 ZooKeeper 原生 API 做了抽象和封装。</p>
 <p><strong>以上学习内容均来自邴越老师《分布式技术原理与实战》课程，用于学习记录，希望大家共同进步，欧耶。</strong></p>
@@ -1858,508 +2594,13 @@
 
 </article>
     
-    <article id="post-SpringBoot-SpringBoot学习之启动配置原理" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2020/04/28/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/"
-    >[SpringBoot] SpringBoot学习之启动配置原理</a> 
-</h2>
- 
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2020/04/28/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/" class="article-date">
-  <time datetime="2020-04-28T01:40:44.000Z" itemprop="datePublished">2020-04-28</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E6%8A%80%E6%9C%AF%E5%AD%A6%E4%B9%A0/">技术学习</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="场景说明"><a href="#场景说明" class="headerlink" title="场景说明"></a>场景说明</h2><p><strong>为了更深入掌握SpringBoot的核心技术，我们需要从第一步项目启动开始，了解SpringBoot的启动原理，运行流程，自动配置原理。</strong></p>
-<p><strong>知识储备：</strong></p>
-<ul>
-<li><p>熟练掌握SPRING，SPRINGMVC，掌握各种监听器的作用和使用方法。</p>
-</li>
-<li><p>掌握使用SpringBoot创建简单项目</p>
-</li>
-<li><p>熟练使用Eclipse或者IDEA</p>
-</li>
-</ul>
-<p><strong>环境条件：</strong></p>
-<ul>
-<li><p>jdk1.8</p>
-</li>
-<li><p>maven4.0.0</p>
-</li>
-<li><p>IntelliJ IDEA 2017</p>
-</li>
-<li><p>Spring Boot 1.5.9.RELEASE；</p>
-</li>
-</ul>
-<p><strong>学习计划：</strong></p>
-<ul>
-<li><p>Debug方式跑完启动流程。</p>
-</li>
-<li><p>了解SpringBoot启动原理以及自动配置原理</p>
-</li>
-<li><p>自定义监听器</p>
-</li>
-</ul>
-<h2 id="Spring-Boot-启动配置原理剖析"><a href="#Spring-Boot-启动配置原理剖析" class="headerlink" title="Spring Boot 启动配置原理剖析"></a>Spring Boot 启动配置原理剖析</h2><p><strong>新建SpringBoot项目，在main方法里打断点，通过调试的方法一步一步分析SpringBoot启动流程。</strong></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SpringBootLogging02Application</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 在此处打断点进入</span></span><br><span class="line">		SpringApplication.run(SpringBootLogging02Application<span class="class">.<span class="keyword">class</span>, <span class="title">args</span>)</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>F7进入方法，可以看到主要分为俩大步：</strong></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Static helper that can be used to run a &#123;<span class="doctag">@link</span> SpringApplication&#125; from the</span></span><br><span class="line"><span class="comment"> * specified sources using default settings and user supplied arguments.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> sources the sources to load</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> args the application arguments (usually passed from a Java main method)</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span> the running &#123;<span class="doctag">@link</span> ApplicationContext&#125;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ConfigurableApplicationContext <span class="title">run</span><span class="params">(Object[] sources, String[] args)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">new</span> SpringApplication(sources).run(args);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<ul>
-<li><p><strong>new SpringApplication(sources)   创建SpringApplication</strong></p>
-</li>
-<li><p><strong>run(args)  运行SpringApplication</strong></p>
-</li>
-</ul>
-<p>接下来将分别来看：</p>
-<h3 id="1-创建-SpringApplication"><a href="#1-创建-SpringApplication" class="headerlink" title="1.创建 SpringApplication"></a>1.创建 SpringApplication</h3><p><strong>进入SpringApplication的构造器内：</strong></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Create a new &#123;<span class="doctag">@link</span> SpringApplication&#125; instance. The application context will load</span></span><br><span class="line"><span class="comment"> * beans from the specified sources (see &#123;<span class="doctag">@link</span> SpringApplication class-level&#125;</span></span><br><span class="line"><span class="comment"> * documentation for details. The instance can be customized before calling</span></span><br><span class="line"><span class="comment"> * &#123;<span class="doctag">@link</span> #run(String...)&#125;.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> sources the bean sources</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@see</span> #run(Object, String[])</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@see</span> #SpringApplication(ResourceLoader, Object...)</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">SpringApplication</span><span class="params">(Object... sources)</span> </span>&#123;</span><br><span class="line">	initialize(sources);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initialize</span><span class="params">(Object[] sources)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">if</span> (sources != <span class="keyword">null</span> &amp;&amp; sources.length &gt; <span class="number">0</span>) &#123;</span><br><span class="line">           <span class="comment">// 添加 source</span></span><br><span class="line">		<span class="keyword">this</span>.sources.addAll(Arrays.asList(sources));</span><br><span class="line">	&#125;</span><br><span class="line">       <span class="comment">// 判断web环境</span></span><br><span class="line">	<span class="keyword">this</span>.webEnvironment = deduceWebEnvironment();</span><br><span class="line">       <span class="comment">// 设置Initializers</span></span><br><span class="line">	setInitializers((Collection) getSpringFactoriesInstances(</span><br><span class="line">			ApplicationContextInitializer<span class="class">.<span class="keyword">class</span>))</span>;</span><br><span class="line">       <span class="comment">// 设置Listeners</span></span><br><span class="line">	setListeners(</span><br><span class="line">           (Collection) getSpringFactoriesInstances(ApplicationListener<span class="class">.<span class="keyword">class</span>))</span>;</span><br><span class="line">       <span class="comment">// 判断main方法</span></span><br><span class="line">	<span class="keyword">this</span>.mainApplicationClass = deduceMainApplicationClass();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>由初始化方法分析以下步骤：</p>
-<h4 id="配置资源-：读取主配置类"><a href="#配置资源-：读取主配置类" class="headerlink" title="配置资源 ：读取主配置类"></a>配置资源 ：读取主配置类</h4><p><img src="/2020/04/28/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/springboot_start_01.png" alt></p>
-<h4 id="判断Web环境"><a href="#判断Web环境" class="headerlink" title="判断Web环境"></a>判断Web环境</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String[] WEB_ENVIRONMENT_CLASSES = &#123; <span class="string">"javax.servlet.Servlet"</span>,</span><br><span class="line">		<span class="string">"org.springframework.web.context.ConfigurableWebApplicationContext"</span> &#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">deduceWebEnvironment</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="keyword">for</span> (String className : WEB_ENVIRONMENT_CLASSES) &#123;</span><br><span class="line">		<span class="keyword">if</span> (!ClassUtils.isPresent(className, <span class="keyword">null</span>)) &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>即通过判断是否存在以下类，来判断是否是web应用：</strong></p>
-<ul>
-<li><p>javax.servlet.Servlet</p>
-</li>
-<li><p>org.springframework.web.context.ConfigurableWebApplicationContext</p>
-</li>
-</ul>
-<h4 id="保存-ApplicationContextInitializer"><a href="#保存-ApplicationContextInitializer" class="headerlink" title="保存 ApplicationContextInitializer"></a>保存 ApplicationContextInitializer</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> &lt;T&gt; Collection&lt;? extends T&gt; getSpringFactoriesInstances(Class&lt;T&gt; type) &#123;</span><br><span class="line">	<span class="keyword">return</span> getSpringFactoriesInstances(type, <span class="keyword">new</span> Class&lt;?&gt;[] &#123;&#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> &lt;T&gt; Collection&lt;? extends T&gt; getSpringFactoriesInstances(Class&lt;T&gt; type,</span><br><span class="line">		Class&lt;?&gt;[] parameterTypes, Object... args) &#123;</span><br><span class="line">	ClassLoader classLoader = Thread.currentThread().getContextClassLoader();</span><br><span class="line">	<span class="comment">// Use names and ensure unique to protect against duplicates</span></span><br><span class="line">       <span class="comment">// 加载 ApplicationContextInitializer 类型的类</span></span><br><span class="line">	Set&lt;String&gt; names = <span class="keyword">new</span> LinkedHashSet&lt;String&gt;(</span><br><span class="line">			SpringFactoriesLoader.loadFactoryNames(type, classLoader));</span><br><span class="line">       <span class="comment">// 创建实例</span></span><br><span class="line">	List&lt;T&gt; instances = createSpringFactoriesInstances(type, parameterTypes,</span><br><span class="line">			classLoader, args, names);</span><br><span class="line">       <span class="comment">// 排序</span></span><br><span class="line">	AnnotationAwareOrderComparator.sort(instances);</span><br><span class="line">	<span class="keyword">return</span> instances;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>这里通过<strong>SpringFactoriesLoaler</strong>加载 <strong>ApplicationContextInitializer</strong> 类型的类<br>        Set<String> names = new LinkedHashSet<String>(<br>                SpringFactoriesLoader.loadFactoryNames(type, classLoader));</String></String></p>
-<p>进入 <strong>SpringFactoriesLoader.loadFactoryNames</strong> 方法后发现，就是从类路径<strong>META-INF/spring.factories</strong> 内加载所有的 <strong>ApplicationContextInitializer</strong></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * The location to look for factories.</span></span><br><span class="line"><span class="comment">	 * &lt;p&gt;Can be present in multiple JAR files.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String FACTORIES_RESOURCE_LOCATION = <span class="string">"META-	INF/spring.factories"</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// 加载META-INF/spring.factories 文件中定义的类</span></span><br><span class="line">Enumeration&lt;URL&gt; urls = </span><br><span class="line">    (classLoader != <span class="keyword">null</span> ?classLoader.getResources(FACTORIES_RESOURCE_LOCATION) :</span><br><span class="line">				ClassLoader.getSystemResources(FACTORIES_RESOURCE_LOCATION));</span><br><span class="line">List&lt;String&gt; result = <span class="keyword">new</span> ArrayList&lt;String&gt;();</span><br><span class="line"><span class="keyword">while</span> (urls.hasMoreElements()) &#123;</span><br><span class="line">	URL url = urls.nextElement();</span><br><span class="line">	Properties properties=PropertiesLoaderUtils.loadProperties(<span class="keyword">new</span> UrlResource(url));</span><br><span class="line">	String factoryClassNames = properties.getProperty(factoryClassName);</span><br><span class="line">	result.addAll(Arrays.asList(</span><br><span class="line">        StringUtils.commaDelimitedListToStringArray(factoryClassNames)));</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">return</span> result;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>在源码包中可以找到：<strong>META-INF/spring.factories</strong>：</p>
-<p><img src="/2020/04/28/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/springboot_start_02.png" alt></p>
-<h4 id="保存-ApplicationListener"><a href="#保存-ApplicationListener" class="headerlink" title="保存 ApplicationListener"></a>保存 ApplicationListener</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 与上一步类似，也是从 META-INF/spring.factories 中读取类，并实例化，</span></span><br><span class="line"><span class="comment">// 最后放到SpringApplication的 listeners 属性中</span></span><br><span class="line">setListeners((Collection) getSpringFactoriesInstances(ApplicationListener<span class="class">.<span class="keyword">class</span>))</span>;</span><br></pre></td></tr></table></figure>
-
-<p><img src="/2020/04/28/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/springboot_start_03.png" alt></p>
-<h4 id="获取main方法"><a href="#获取main方法" class="headerlink" title="获取main方法"></a>获取main方法</h4><p><img src="/2020/04/28/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/springboot_start_04.png" alt></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 判断 main入口 的方法</span></span><br><span class="line"><span class="keyword">private</span> Class&lt;?&gt; deduceMainApplicationClass() &#123;</span><br><span class="line">	<span class="keyword">try</span> &#123;</span><br><span class="line">		StackTraceElement[] stackTrace = <span class="keyword">new</span> RuntimeException().getStackTrace();</span><br><span class="line">		<span class="keyword">for</span> (StackTraceElement stackTraceElement : stackTrace) &#123;</span><br><span class="line">			<span class="keyword">if</span> (<span class="string">"main"</span>.equals(stackTraceElement.getMethodName())) &#123;</span><br><span class="line">				<span class="keyword">return</span> Class.forName(stackTraceElement.getClassName());</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">catch</span> (ClassNotFoundException ex) &#123;</span><br><span class="line">		<span class="comment">// Swallow and continue</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>至此，SpringApplication对象创建完成了。</p>
-<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><ul>
-<li><p>保存主配置类</p>
-</li>
-<li><p>判断web应用</p>
-</li>
-<li><p><strong>从类路径下找到META-INF/spring.factories配置的所有ApplicationContextInitializer；然后实例化，保存起来</strong></p>
-</li>
-<li><p><strong>从类路径下找到META-INF/spring.factories配置的所有ApplicationListener；然后实例化，保存起来</strong></p>
-</li>
-<li><p>获取main方法位置</p>
-</li>
-</ul>
-<h3 id="2-运行SpringApplication-run-String…-args"><a href="#2-运行SpringApplication-run-String…-args" class="headerlink" title="2. 运行SpringApplication.run(String… args)"></a>2. 运行SpringApplication.run(String… args)</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Run the Spring application, creating and refreshing a new</span></span><br><span class="line"><span class="comment"> * &#123;<span class="doctag">@link</span> ApplicationContext&#125;.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> args the application arguments (usually passed from a Java main method)</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span> a running &#123;<span class="doctag">@link</span> ApplicationContext&#125;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> ConfigurableApplicationContext <span class="title">run</span><span class="params">(String... args)</span> </span>&#123;</span><br><span class="line">	StopWatch stopWatch = <span class="keyword">new</span> StopWatch();</span><br><span class="line">	stopWatch.start();</span><br><span class="line">	ConfigurableApplicationContext context = <span class="keyword">null</span>;</span><br><span class="line">	FailureAnalyzers analyzers = <span class="keyword">null</span>;</span><br><span class="line">	configureHeadlessProperty();</span><br><span class="line">       <span class="comment">// 获取SpringApplicationRunListener</span></span><br><span class="line">	SpringApplicationRunListeners listeners = getRunListeners(args);</span><br><span class="line">       <span class="comment">// 回调 starting() 方法</span></span><br><span class="line">	listeners.starting();</span><br><span class="line">	<span class="keyword">try</span> &#123;</span><br><span class="line">           <span class="comment">// 获取命令行参数</span></span><br><span class="line">		ApplicationArguments applicationArguments = <span class="keyword">new</span> DefaultApplicationArguments(</span><br><span class="line">				args);</span><br><span class="line">           <span class="comment">// 准备环境</span></span><br><span class="line">		ConfigurableEnvironment environment = prepareEnvironment(listeners,</span><br><span class="line">				applicationArguments);</span><br><span class="line">           <span class="comment">// 打印控制台</span></span><br><span class="line">		Banner printedBanner = printBanner(environment);</span><br><span class="line">           <span class="comment">// 创建上下文 context</span></span><br><span class="line">		context = createApplicationContext();</span><br><span class="line">           <span class="comment">// 启动异常拦截</span></span><br><span class="line">		analyzers = <span class="keyword">new</span> FailureAnalyzers(context);</span><br><span class="line">           <span class="comment">// 准备上下文 </span></span><br><span class="line">		prepareContext(context, environment, listeners, applicationArguments,</span><br><span class="line">				printedBanner);</span><br><span class="line">           <span class="comment">// 刷新（初始化）上下文</span></span><br><span class="line">		refreshContext(context);</span><br><span class="line">		afterRefresh(context, applicationArguments);</span><br><span class="line">           <span class="comment">// 回调 listeners 的 finished 方法</span></span><br><span class="line">		listeners.finished(context, <span class="keyword">null</span>);</span><br><span class="line">		stopWatch.stop();</span><br><span class="line">		<span class="keyword">if</span> (<span class="keyword">this</span>.logStartupInfo) &#123;</span><br><span class="line">			<span class="keyword">new</span> StartupInfoLogger(<span class="keyword">this</span>.mainApplicationClass)</span><br><span class="line">					.logStarted(getApplicationLog(), stopWatch);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> context;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">catch</span> (Throwable ex) &#123;</span><br><span class="line">		handleRunFailure(context, listeners, analyzers, ex);</span><br><span class="line">		<span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(ex);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>分析该方法得知 run方法 主要做了以下几件事：</strong></p>
-<ul>
-<li><p>获取SpringApplicationRunListener，并回调starting方法</p>
-</li>
-<li><p>准备、配置环境信息</p>
-</li>
-<li><p>创建上下文（IOC容器）</p>
-</li>
-<li><p>准备（初始化）上下文</p>
-</li>
-<li><p>初始化 IOC 容器</p>
-</li>
-<li><p>IOC容器中获取ApplicationRunner和CommandLineRunner并回调</p>
-</li>
-<li><p>所有的SpringApplicationRunListener，回调finished方法</p>
-</li>
-<li><p>返回ioc容器</p>
-</li>
-</ul>
-<h4 id="获取SpringApplicationRunListener，并回调starting-方法"><a href="#获取SpringApplicationRunListener，并回调starting-方法" class="headerlink" title="获取SpringApplicationRunListener，并回调starting()方法"></a>获取SpringApplicationRunListener，并回调starting()方法</h4><p>进入getRunListeners（args）方法内</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> SpringApplicationRunListeners <span class="title">getRunListeners</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    Class&lt;?&gt;[] types = new Class&lt;?&gt;[] &#123; SpringApplication.class, String[].class &#125;;</span><br><span class="line">    <span class="comment">// getSpringFactoriesInstance  与上面一样是从 META-INF/factories 文件中加载</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> SpringApplicationRunListeners(logger, getSpringFactoriesInstances(</span><br><span class="line">        SpringApplicationRunListener<span class="class">.<span class="keyword">class</span>, <span class="title">types</span>, <span class="title">this</span>, <span class="title">args</span>))</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><img src="/2020/04/28/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/springboot_start_05.png" alt></p>
-<p>回调 listener.starting() 方法</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">starting</span><span class="params">()</span> </span>&#123;</span><br><span class="line">       <span class="comment">// 循环回调 starting()方法</span></span><br><span class="line">	<span class="keyword">for</span> (SpringApplicationRunListener listener : <span class="keyword">this</span>.listeners) &#123;</span><br><span class="line">		listener.starting();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h4 id="准备、配置环境信息"><a href="#准备、配置环境信息" class="headerlink" title="准备、配置环境信息"></a>准备、配置环境信息</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> ConfigurableEnvironment <span class="title">prepareEnvironment</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">		SpringApplicationRunListeners listeners,</span></span></span><br><span class="line"><span class="function"><span class="params">		ApplicationArguments applicationArguments)</span> </span>&#123;</span><br><span class="line">	<span class="comment">// Create and configure the environment</span></span><br><span class="line">       <span class="comment">// 获取或创建环境</span></span><br><span class="line">	ConfigurableEnvironment environment = getOrCreateEnvironment();</span><br><span class="line">       <span class="comment">// 配置环境</span></span><br><span class="line">	configureEnvironment(environment, applicationArguments.getSourceArgs());</span><br><span class="line">       <span class="comment">// 循环回调 listener.environmentPrepared(environment); 方法</span></span><br><span class="line">	listeners.environmentPrepared(environment);</span><br><span class="line">       <span class="comment">// 判断 web环境，是否进行环境转换</span></span><br><span class="line">	<span class="keyword">if</span> (!<span class="keyword">this</span>.webEnvironment) &#123;</span><br><span class="line">		environment = <span class="keyword">new</span> EnvironmentConverter(getClassLoader())</span><br><span class="line">				.convertToStandardEnvironmentIfNecessary(environment);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> environment;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>获取或者创建环境：</p>
-<ul>
-<li>当前环境不为空就返回当前环境，</li>
-<li>当前是web环境就返回new StandarServletEnvironment，</li>
-<li>否则返回StandardEnvironment</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> ConfigurableEnvironment <span class="title">getOrCreateEnvironment</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="keyword">if</span> (<span class="keyword">this</span>.environment != <span class="keyword">null</span>) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">this</span>.environment;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> (<span class="keyword">this</span>.webEnvironment) &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">new</span> StandardServletEnvironment();</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">new</span> StandardEnvironment();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>配置环境</p>
-<p>这里主要是加载properties 文件和 profiles</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configureEnvironment</span><span class="params">(ConfigurableEnvironment environment,</span></span></span><br><span class="line"><span class="function"><span class="params">		String[] args)</span> </span>&#123;</span><br><span class="line">	configurePropertySources(environment, args);</span><br><span class="line">	configureProfiles(environment, args);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>判断非web环境，返回 StandardEnvironment</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">StandardEnvironment convertToStandardEnvironmentIfNecessary(</span><br><span class="line">		ConfigurableEnvironment environment) &#123;</span><br><span class="line">	if (environment instanceof StandardEnvironment</span><br><span class="line">			&amp;&amp; !isWebEnvironment(environment, this.classLoader)) &#123;</span><br><span class="line">		return (StandardEnvironment) environment;</span><br><span class="line">	&#125;</span><br><span class="line">	return convertToStandardEnvironment(environment);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h4 id="创建上下文-context"><a href="#创建上下文-context" class="headerlink" title="创建上下文 context"></a>创建上下文 context</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">	</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * The class name of application context that will be used by default for non-web</span></span><br><span class="line"><span class="comment">	 * environments.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String DEFAULT_CONTEXT_CLASS = <span class="string">"org.springframework.context."</span></span><br><span class="line">    + <span class="string">"annotation.AnnotationConfigApplicationContext"</span>;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * The class name of application context that will be used by default for web</span></span><br><span class="line"><span class="comment">	 * environments.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String DEFAULT_WEB_CONTEXT_CLASS = <span class="string">"org.springframework."</span></span><br><span class="line">    + <span class="string">"boot.context.embedded.AnnotationConfigEmbeddedWebApplicationContext"</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">protected</span> ConfigurableApplicationContext <span class="title">createApplicationContext</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Class&lt;?&gt; contextClass = <span class="keyword">this</span>.applicationContextClass;</span><br><span class="line">    <span class="keyword">if</span> (contextClass == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">// 判断web环境，选择不同上下文类型，</span></span><br><span class="line">            contextClass = Class.forName(</span><br><span class="line">                <span class="keyword">this</span>.webEnvironment ? DEFAULT_WEB_CONTEXT_CLASS : DEFAULT_CONTEXT_CLASS);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">catch</span> (ClassNotFoundException ex) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(</span><br><span class="line">                <span class="string">"Unable create a default ApplicationContext, "</span></span><br><span class="line">                + <span class="string">"please specify an ApplicationContextClass"</span>,</span><br><span class="line">                ex);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 根据反射获取上下文对象</span></span><br><span class="line">    <span class="keyword">return</span> (ConfigurableApplicationContext) BeanUtils.instantiate(contextClass);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h4 id="准备（初始化）上下文"><a href="#准备（初始化）上下文" class="headerlink" title="准备（初始化）上下文"></a>准备（初始化）上下文</h4><p>这里简单来说就是对上下文环境做简单配置，并触发相关监听器的回调方法。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">prepareContext</span><span class="params">(ConfigurableApplicationContext context,</span></span></span><br><span class="line"><span class="function"><span class="params">			ConfigurableEnvironment environment, SpringApplicationRunListeners listeners,</span></span></span><br><span class="line"><span class="function"><span class="params">			ApplicationArguments applicationArguments, Banner printedBanner)</span> </span>&#123;</span><br><span class="line">		<span class="comment">// 设置环境信息</span></span><br><span class="line">    	context.setEnvironment(environment);</span><br><span class="line">    	<span class="comment">// 注册beanNameGenerator，设置 ResourceLoader</span></span><br><span class="line">		postProcessApplicationContext(context);</span><br><span class="line">    	<span class="comment">// 获取SpringApplication 中的 initializers ,回调 initialize() 方法</span></span><br><span class="line">		applyInitializers(context);</span><br><span class="line">		listeners.contextPrepared(context);</span><br><span class="line">    	</span><br><span class="line">		<span class="keyword">if</span> (<span class="keyword">this</span>.logStartupInfo) &#123;</span><br><span class="line">			logStartupInfo(context.getParent() == <span class="keyword">null</span>);</span><br><span class="line">			logStartupProfileInfo(context);</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="comment">// Add boot specific singleton beans</span></span><br><span class="line">    	<span class="comment">// 注册一些简单组件</span></span><br><span class="line">		context.getBeanFactory().registerSingleton(<span class="string">"springApplicationArguments"</span>,</span><br><span class="line">				applicationArguments);</span><br><span class="line">		<span class="keyword">if</span> (printedBanner != <span class="keyword">null</span>) &#123;</span><br><span class="line">			context.getBeanFactory().registerSingleton(<span class="string">"springBootBanner"</span>, printedBanner);</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="comment">// Load the sources</span></span><br><span class="line">		Set&lt;Object&gt; sources = getSources();</span><br><span class="line">		Assert.notEmpty(sources, <span class="string">"Sources must not be empty"</span>);</span><br><span class="line">		load(context, sources.toArray(<span class="keyword">new</span> Object[sources.size()]));</span><br><span class="line">    	<span class="comment">// listener 回调 contextLoaded 方法</span></span><br><span class="line">		listeners.contextLoaded(context);</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h4 id="初始化-IOC-容器"><a href="#初始化-IOC-容器" class="headerlink" title="初始化 IOC 容器"></a>初始化 IOC 容器</h4><p>初始化IOC容器（context）主要分为以下两步：</p>
-<ul>
-<li><p>初始化容器内所有的bean</p>
-</li>
-<li><p>Web应用还会创建嵌入式的tomcat（或其他中间件）</p>
-</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">refresh</span><span class="params">()</span> <span class="keyword">throws</span> BeansException, IllegalStateException </span>&#123;</span><br><span class="line">       Object var1 = <span class="keyword">this</span>.startupShutdownMonitor;</span><br><span class="line">       <span class="keyword">synchronized</span>(<span class="keyword">this</span>.startupShutdownMonitor) &#123;</span><br><span class="line">           <span class="comment">/**</span></span><br><span class="line"><span class="comment">            * 刷新上下文环境</span></span><br><span class="line"><span class="comment">            * 初始化上下文环境，对系统环境变量或系统属性进行准备和校验</span></span><br><span class="line"><span class="comment">            */</span></span><br><span class="line">           <span class="keyword">this</span>.prepareRefresh();</span><br><span class="line">           </span><br><span class="line">           <span class="comment">// 创建 BeanFactory ,解析XML，相当于之前的XmlBeanFactory操作</span></span><br><span class="line">           ConfigurableListableBeanFactory beanFactory = <span class="keyword">this</span>.obtainFreshBeanFactory();</span><br><span class="line">           </span><br><span class="line">           <span class="comment">// 初始化 beanFactory</span></span><br><span class="line">           <span class="keyword">this</span>.prepareBeanFactory(beanFactory);</span><br><span class="line"></span><br><span class="line">           <span class="keyword">try</span> &#123;</span><br><span class="line">               <span class="comment">// 提供子类覆盖的额外处理</span></span><br><span class="line">               <span class="keyword">this</span>.postProcessBeanFactory(beanFactory);</span><br><span class="line">               <span class="comment">// 激活各种BeanFactory处理器</span></span><br><span class="line">               <span class="keyword">this</span>.invokeBeanFactoryPostProcessors(beanFactory);</span><br><span class="line">               <span class="comment">// 注册各种处理器</span></span><br><span class="line">               <span class="keyword">this</span>.registerBeanPostProcessors(beanFactory);</span><br><span class="line">               <span class="comment">// 初始化上下文资源文件，国际化文件</span></span><br><span class="line">               <span class="keyword">this</span>.initMessageSource();</span><br><span class="line">               <span class="comment">// 注册事件广播器，并放入上下文</span></span><br><span class="line">               <span class="keyword">this</span>.initApplicationEventMulticaster();</span><br><span class="line">               <span class="comment">// 提供子类扩展的额外处理</span></span><br><span class="line">               <span class="keyword">this</span>.onRefresh();</span><br><span class="line">               <span class="comment">// 获取Listeners，并放入 applicationEventMulticaster（事件广播器）</span></span><br><span class="line">               <span class="keyword">this</span>.registerListeners();</span><br><span class="line">               <span class="comment">/**</span></span><br><span class="line"><span class="comment">                * 设置转换器</span></span><br><span class="line"><span class="comment">                * 注册一个默认的属性值解析器</span></span><br><span class="line"><span class="comment">                * 冻结所有bean定义，说明注册的bean定义将不能被修改或进一步处理</span></span><br><span class="line"><span class="comment">                * 初始化剩余的非惰性的bean，即初始化非延迟加载的bean</span></span><br><span class="line"><span class="comment">                */</span></span><br><span class="line">               <span class="keyword">this</span>.finishBeanFactoryInitialization(beanFactory);</span><br><span class="line">        		<span class="comment">// 完成初始化后续操作</span></span><br><span class="line">               <span class="keyword">this</span>.finishRefresh();</span><br><span class="line">           &#125; <span class="keyword">catch</span> (BeansException var9) &#123;</span><br><span class="line">               <span class="keyword">if</span> (<span class="keyword">this</span>.logger.isWarnEnabled()) &#123;</span><br><span class="line">                   <span class="keyword">this</span>.logger.warn(<span class="string">"Exception encountered during context initialization - cancelling refresh attempt: "</span> + var9);</span><br><span class="line">               &#125;</span><br><span class="line">               <span class="keyword">this</span>.destroyBeans();</span><br><span class="line">               <span class="keyword">this</span>.cancelRefresh(var9);</span><br><span class="line">               <span class="keyword">throw</span> var9;</span><br><span class="line">           &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">               <span class="keyword">this</span>.resetCommonCaches();</span><br><span class="line">           &#125;</span><br><span class="line"></span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>其中 this.finishRefresh() 方法详细说明一下：</strong></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">finishRefresh</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 初始化Spring 生命周期处理类</span></span><br><span class="line">    <span class="keyword">this</span>.initLifecycleProcessor();</span><br><span class="line">    <span class="comment">// 生命周期处理类开始生命周期</span></span><br><span class="line">    <span class="keyword">this</span>.getLifecycleProcessor().onRefresh();</span><br><span class="line">    <span class="comment">// 事件发布</span></span><br><span class="line">    <span class="keyword">this</span>.publishEvent((ApplicationEvent)(<span class="keyword">new</span> ContextRefreshedEvent(<span class="keyword">this</span>)));</span><br><span class="line">    LiveBeansView.registerApplicationContext(<span class="keyword">this</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>初始化生命周期处理器 <strong>DefaultLifecycleProcessor</strong>，<strong>DefaultLifecycleProcessor</strong>含有<strong>start</strong>方法和<strong>stop</strong>方法</p>
-</li>
-<li><p><strong>spring</strong> 启动的时候调用 <strong>start</strong> 方法开始生命周期</p>
-</li>
-<li><p><strong>spring</strong> 关闭的时候调用 <strong>stop</strong> 方法来结束生命周期，</p>
-</li>
-<li><p>启动所有实现了<strong>Lifecycle</strong> 接口的类</p>
-</li>
-<li><p>通过<strong>spring</strong> 的事件发布机制发布 <strong>ContextRefreshedEvent</strong> 事件，以保证对应的监听器做进一步处理，即对那种在<strong>spring</strong> 启动后需要处理的一些类，实现了<strong>ApplicationListener</strong><ContextRefreshedEvent>,这里即是触发这些类的执行（执行<strong>onApplicationEvent</strong>方法），除此之外，<strong>spring</strong> 内置 <strong>Event</strong> 有 <strong>ContextClosedEvent</strong> 、<strong>ContextRefreshedEvent</strong> 、<strong>ContextStartedEvent</strong> 、<strong>ContextStopedEvent</strong> 、<strong>ContextHandleEvent</strong></ContextRefreshedEvent></p>
-</li>
-<li><p>最后完成初始化，通知生命周期处理器 <strong>LifecycleProcessor</strong> 刷新过程，同时发出事件通知其他 类</p>
-</li>
-</ul>
-<h4 id="IOC容器中获取ApplicationRunner和CommandLineRunner并回调"><a href="#IOC容器中获取ApplicationRunner和CommandLineRunner并回调" class="headerlink" title="IOC容器中获取ApplicationRunner和CommandLineRunner并回调"></a>IOC容器中获取ApplicationRunner和CommandLineRunner并回调</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">afterRefresh</span><span class="params">(ConfigurableApplicationContext context,</span></span></span><br><span class="line"><span class="function"><span class="params">		ApplicationArguments args)</span> </span>&#123;</span><br><span class="line">	callRunners(context, args);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">callRunners</span><span class="params">(ApplicationContext context, ApplicationArguments args)</span> </span>&#123;</span><br><span class="line">	List&lt;Object&gt; runners = <span class="keyword">new</span> ArrayList&lt;Object&gt;();</span><br><span class="line">       <span class="comment">// 从IOC容器中获取 ApplicationRunner 和 CommandLineRunner</span></span><br><span class="line">	runners.addAll(context.getBeansOfType(ApplicationRunner<span class="class">.<span class="keyword">class</span>).<span class="title">values</span>())</span>;</span><br><span class="line">	runners.addAll(context.getBeansOfType(CommandLineRunner<span class="class">.<span class="keyword">class</span>).<span class="title">values</span>())</span>;</span><br><span class="line">	AnnotationAwareOrderComparator.sort(runners);</span><br><span class="line">	<span class="keyword">for</span> (Object runner : <span class="keyword">new</span> LinkedHashSet&lt;Object&gt;(runners)) &#123;</span><br><span class="line">           <span class="comment">// 一次 调用ApplicationRunner 和 CommandLineRunner 的 run() 方法</span></span><br><span class="line">		<span class="keyword">if</span> (runner <span class="keyword">instanceof</span> ApplicationRunner) &#123;</span><br><span class="line">			callRunner((ApplicationRunner) runner, args);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> (runner <span class="keyword">instanceof</span> CommandLineRunner) &#123;</span><br><span class="line">			callRunner((CommandLineRunner) runner, args);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">callRunner</span><span class="params">(ApplicationRunner runner, ApplicationArguments args)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">try</span> &#123;</span><br><span class="line">		(runner).run(args);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">catch</span> (Exception ex) &#123;</span><br><span class="line">		<span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">"Failed to execute ApplicationRunner"</span>, ex);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">callRunner</span><span class="params">(CommandLineRunner runner, ApplicationArguments args)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">try</span> &#123;</span><br><span class="line">		(runner).run(args.getSourceArgs());</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">catch</span> (Exception ex) &#123;</span><br><span class="line">		<span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">"Failed to execute CommandLineRunner"</span>, ex);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>与前面获取 <strong>ApplicationContextInitializer</strong> 和 <strong>ApplicationListener</strong> 不同的是，<strong>ApplicationRunner</strong> 和<strong>CommandLineRunner</strong> 的获取是从context（即IOC容器）中获取的。</p>
-<p>然后依次回调，这里要注意回调先后顺序（<strong>优先级</strong>） <strong>ApplicationRunner</strong>  <strong>&gt;</strong>  <strong>CommandLineRunner</strong></p>
-<h4 id="所有的SpringApplicationRunListener，回调finished方法"><a href="#所有的SpringApplicationRunListener，回调finished方法" class="headerlink" title="所有的SpringApplicationRunListener，回调finished方法"></a>所有的SpringApplicationRunListener，回调finished方法</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">finished</span><span class="params">(ConfigurableApplicationContext context, Throwable exception)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">for</span> (SpringApplicationRunListener listener : <span class="keyword">this</span>.listeners) &#123;</span><br><span class="line">		callFinishedListener(listener, context, exception);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h4 id="返回ioc容器"><a href="#返回ioc容器" class="headerlink" title="返回ioc容器"></a>返回ioc容器</h4><p>至此，SpringAppication 的run方法就运行完了，Spring Boot也启动完成了。</p>
-<h2 id="Spring-Boot-启动过程中的时间回调机制"><a href="#Spring-Boot-启动过程中的时间回调机制" class="headerlink" title="Spring Boot 启动过程中的时间回调机制"></a>Spring Boot 启动过程中的时间回调机制</h2><h3 id="1-SpringBoot启动过程中的监听器"><a href="#1-SpringBoot启动过程中的监听器" class="headerlink" title="1. SpringBoot启动过程中的监听器"></a>1. SpringBoot启动过程中的监听器</h3><p>在分析完SpringBoot启动原理后我们发现，SpringBoot启动过程中使用了如下4个监听器：</p>
-<ul>
-<li><p><strong>配置在 META-INF/spring.factories 中：</strong></p>
-<p>​        -  ApplicationContextInitializer</p>
-<p>​        -  SpringApplicationRunListener</p>
-<ul>
-<li><p><strong>从IOC容器中获取的：</strong></p>
-<p>​        -  ApplicationRunner</p>
-<p>​        -  CommandLineRunner</p>
-</li>
-</ul>
-</li>
-</ul>
-<p><strong>思考</strong>：在SpringBoot启动过程中都有注册并回调上述监听器，那么我们可否自定义上述监听器，已完成在项目启动过程中需要实现的功能</p>
-<h3 id="2-自定义事件监听器"><a href="#2-自定义事件监听器" class="headerlink" title="2. 自定义事件监听器"></a>2. 自定义事件监听器</h3><p>新建 <strong>HelloApplicationContextInitializer</strong> 、<strong>HelloSpringApplicationRunListener</strong> 类，分别实现 <strong>ApplicationContextInitializer</strong> 和 <strong>SpringApplicationRunListener</strong> 接口</p>
-<p><strong>HelloApplicationContextInitializer：</strong></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.springboot.config;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.springframework.context.ApplicationContextInitializer;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.ConfigurableApplicationContext;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Description</span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Author</span>: charleyZZZZ</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Date</span>: 2020/4/28 14:57</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Version</span> 1.0</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloApplicationContextInitailizer</span> <span class="keyword">implements</span> <span class="title">ApplicationContextInitializer</span></span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">initialize</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    ConfigurableApplicationContext configurableApplicationContext)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"=== &gt;&gt;&gt; HelloApplicationContextInitailizer.initialize === "</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>HelloSpringApplicationRunListener：</strong></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.springboot.config;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.SpringApplication;</span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.SpringApplicationRunListener;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.ConfigurableApplicationContext;</span><br><span class="line"><span class="keyword">import</span> org.springframework.core.env.ConfigurableEnvironment;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Description</span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Author</span>: charleyZZZZ</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Date</span>: 2020/4/28 15:00</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Version</span> 1.0</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloSpringApplicationRunListener</span> <span class="keyword">implements</span> <span class="title">SpringApplicationRunListener</span></span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 注意该类必须实现一个有参的构造器，否则报错</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> application</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> args</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> HelloSpringApplicationRunListener</span><br><span class="line">        (SpringApplication application,String[] args) &#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">starting</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"HelloSpringApplicationRunListener.starting... "</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">environmentPrepared</span><span class="params">(ConfigurableEnvironment environment)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"HelloSpringApplicationRunListener.environmentPrepared... "</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">contextPrepared</span><span class="params">(ConfigurableApplicationContext context)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"HelloSpringApplicationRunListener.contextPrepared... "</span>);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">contextLoaded</span><span class="params">(ConfigurableApplicationContext context)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"HelloSpringApplicationRunListener.contextLoaded... "</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">finished</span><span class="params">(ConfigurableApplicationContext context, Throwable exception)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"HelloSpringApplicationRunListener.finished... "</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>新建 <strong>HelloApplicationRunner</strong>：实现 <strong>ApplicationRunner</strong> 接口</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.springboot.config;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.ApplicationArguments;</span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.ApplicationRunner;</span><br><span class="line"><span class="keyword">import</span> org.springframework.stereotype.Component;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Description</span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Author</span>: charleyZZZZ</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Date</span>: 2020/4/28 15:07</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Version</span> 1.0</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloApplicationRunner</span> <span class="keyword">implements</span> <span class="title">ApplicationRunner</span></span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">(ApplicationArguments args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"HelloApplicationRunner.run "</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>新建 <strong>HelloCommandLineRunner</strong>，实现 <strong>CommandLineRunner</strong> 接口</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.springboot.config;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.CommandLineRunner;</span><br><span class="line"><span class="keyword">import</span> org.springframework.stereotype.Component;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Description</span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Author</span>: charleyZZZZ</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Date</span>: 2020/4/28 15:19</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Version</span> 1.0</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloCommandLineRunner</span> <span class="keyword">implements</span> <span class="title">CommandLineRunner</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">(String... args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">"HelloCommandLineRunner.run... "</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>将 <strong>ApplicationContextInitializer</strong>、<strong>SpringApplicationRunListener</strong> 的实现类配置在类路径下的<strong>META-INF/spring.factories</strong>里：</p>
-<p><img src="/2020/04/28/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/springboot_start_06.png" alt></p>
-<p><strong>HelloApplicationRunner</strong> 和 <strong>HelloCommandLineRunner</strong> 是从上下文中获取，只需要在类上添加<strong>@Component</strong> 注解即可</p>
-<p><strong>启动项目，查看控制台日志</strong></p>
-<img src="/2020/04/28/SpringBoot-SpringBoot%E5%AD%A6%E4%B9%A0%E4%B9%8B%E5%90%AF%E5%8A%A8%E9%85%8D%E7%BD%AE%E5%8E%9F%E7%90%86/springboot_start_07.png" style="zoom: 80%;">
-
-
-
-
-
-<p><strong>如果你觉得写的还不错，请给我个 star 吧：<a href="https://github.com/CharleyZZZZ/CharleyZZZZ.github.io" target="_blank" rel="noopener">https://github.com/CharleyZZZZ/CharleyZZZZ.github.io</a></strong></p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-  
-  
-
-</article>
-    
-    <article id="post-Hexo-Github搭建免费个人博客" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2020/04/26/Hexo-Github%E6%90%AD%E5%BB%BA%E5%85%8D%E8%B4%B9%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/"
-    >Hexo + Github搭建免费个人博客</a> 
-</h2>
- 
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2020/04/26/Hexo-Github%E6%90%AD%E5%BB%BA%E5%85%8D%E8%B4%B9%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/" class="article-date">
-  <time datetime="2020-04-26T15:31:53.000Z" itemprop="datePublished">2020-04-26</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">环境搭建</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h1 id="Hexo-Github搭建免费个人博客"><a href="#Hexo-Github搭建免费个人博客" class="headerlink" title="Hexo + Github搭建免费个人博客"></a>Hexo + Github搭建免费个人博客</h1><h2 id="什么是-Hexo"><a href="#什么是-Hexo" class="headerlink" title="什么是 Hexo"></a>什么是 Hexo</h2><p>Hexo 是一个快速、简洁且高效的博客框架。Hexo 使用 <a href="http://daringfireball.net/projects/markdown/" target="_blank" rel="noopener">Markdown</a>（或其他渲染引擎）解析文章，在几秒内，即可利用靓丽的主题生成静态网页。</p>
-<h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><blockquote>
-<ul>
-<li>注册Github账号，熟悉github基本使用</li>
-<li>安装nodejs、npm，了解相关使用</li>
-<li>安装git客户端</li>
-</ul>
-</blockquote>
-<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><h3 id="1-创建仓库"><a href="#1-创建仓库" class="headerlink" title="1. 创建仓库"></a>1. 创建仓库</h3><blockquote>
-<ul>
-<li>github新建仓库：仓库名必须是 <strong>username.github.io</strong> 格式，其中 <strong>username</strong> 是你的github用户名</li>
-<li>完成后 <strong><em><a href="http://username.github.io" target="_blank" rel="noopener">http://username.github.io</a></em></strong> 即为博客网站地址，github提供页面访问（Hexo会在项目路径生成index.html）</li>
-</ul>
-</blockquote>
-<h3 id="2-设置SSHKey（已经设置的可跳过本步骤）"><a href="#2-设置SSHKey（已经设置的可跳过本步骤）" class="headerlink" title="2. 设置SSHKey（已经设置的可跳过本步骤）"></a>2. 设置SSHKey（已经设置的可跳过本步骤）</h3><h4 id="1）生成SSHKey"><a href="#1）生成SSHKey" class="headerlink" title="1）生成SSHKey"></a>1）生成SSHKey</h4><pre><code>ssh-keygen -t rsa -C &quot;邮件地址&quot; -f ~/.ssh/秘钥名称（rsa_example）</code></pre><blockquote>
-<ul>
-<li>-C 指定邮件地址</li>
-<li>-f 指定秘钥名称，因为一台机器可能存有多个git仓库的秘钥（例如github和公司gitlab），区别名称可在 <strong>config</strong> 文件中设置特定的仓库地址使用指定的秘钥</li>
-</ul>
-</blockquote>
-<h4 id="2）将公钥复制到github上"><a href="#2）将公钥复制到github上" class="headerlink" title="2）将公钥复制到github上"></a>2）将公钥复制到github上</h4><p>​    打开github设置，进入 <strong>SSH and GPG keys</strong>,点击  <strong>New SSH key</strong>  复制 <code>rsa_example.pub</code>  里的公钥，保存</p>
-<p><img src="/2020/04/26/Hexo-Github%E6%90%AD%E5%BB%BA%E5%85%8D%E8%B4%B9%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/hexo_blog_01.png" alt="copy_sshKey_to_github"></p>
-<h4 id="3）编辑-ssh-config-文件"><a href="#3）编辑-ssh-config-文件" class="headerlink" title="3）编辑  ~/.ssh/config 文件"></a>3）编辑  ~/.ssh/config 文件</h4><p><img src="/2020/04/26/Hexo-Github%E6%90%AD%E5%BB%BA%E5%85%8D%E8%B4%B9%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/hexo_blog_02.png" alt="edit_ssh_config"></p>
-<ul>
-<li>​    <strong>Hostname</strong>   : 仓库地址</li>
-<li>​    <strong>Port</strong>：端口</li>
-<li>​    <strong>IdentityFile</strong>： 密钥文件</li>
-<li>​    <strong>User</strong>： 邮箱地址</li>
-</ul>
-<h4 id="4）测试连接"><a href="#4）测试连接" class="headerlink" title="4）测试连接"></a>4）测试连接</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh -T git@github.com</span><br></pre></td></tr></table></figure>
-
-<p>如果提示Are you sure you want to continue connecting (yes/no)?，输入yes，然后会看到</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Hi xxx! You've successfully authenticated, but GitHub does not provide shell access.</span><br></pre></td></tr></table></figure>
-
-<p>说明已经配置成功，可以新建个文件夹推点东西测试下了</p>
-<h3 id="3-hexo安装"><a href="#3-hexo安装" class="headerlink" title="3. hexo安装"></a>3. hexo安装</h3><p>Hexo是一个简单、快速、强大的基于 Github Pages 的博客发布工具，支持Markdown格式，有众多优秀插件和主题。</p>
-<p>官网： <a href="http://hexo.io/" target="_blank" rel="noopener">http://hexo.io</a></p>
-<p>github: <a href="https://github.com/hexojs/hexo" target="_blank" rel="noopener">https://github.com/hexojs/hexo</a></p>
-<ol>
-<li><p>打开命令行（Windows建议使用git bash）全局安装hexo</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install -g hexo</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>创建一个hexo安装目录，f:/hexo ,并切换到该目录下</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo init</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>初始化hexo，自动下载一些文件到该目录，包括node_modules</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hexo g #生成相关文件</span><br><span class="line">hexo s #启动本地预览，默认访问地址http://localhost:4000</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>第一次初始化，hexo会生成示例 Hello World，使用默认主题，可通过配置文件更改主题。</p>
-</li>
-</ol>
-<h3 id="4-更改主题"><a href="#4-更改主题" class="headerlink" title="4. 更改主题"></a>4. 更改主题</h3><p>官网主题地址：<strong><em><a href="https://hexo.io/themes/" target="_blank" rel="noopener">https://hexo.io/themes/</a></em></strong></p>
-<p><img src="/2020/04/26/Hexo-Github%E6%90%AD%E5%BB%BA%E5%85%8D%E8%B4%B9%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/hexo_blog_03.png" alt="hexo_themes"></p>
-<ul>
-<li><p>选择一款自己喜欢的主题进入主题，去github上复制地址</p>
-<p><img src="/2020/04/26/Hexo-Github%E6%90%AD%E5%BB%BA%E5%85%8D%E8%B4%B9%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/hexo_blog_04.png" alt="get_theme_code"></p>
-</li>
-</ul>
-<ul>
-<li><p>然后进入<strong>hexo/theme</strong> 目录下，打开 <code>git bash</code> 输入<code>git clone</code> 地址 拉取主题，或者 在 <strong>github</strong> 上直接下载项目，然后复制到 <strong>theme</strong> 文件夹下</p>
-<p><img src="/2020/04/26/Hexo-Github%E6%90%AD%E5%BB%BA%E5%85%8D%E8%B4%B9%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/hexo_blog_05.png" alt="pull_theme_code"></p>
-</li>
-</ul>
-<ul>
-<li><p>修改hexo主题配置: 修改hexo配置文件 <code>hexo/_config.yml</code></p>
-<p><img src="/2020/04/26/Hexo-Github%E6%90%AD%E5%BB%BA%E5%85%8D%E8%B4%B9%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/hexo_blog_06.png" alt="theme_setting"></p>
-</li>
-</ul>
-<ul>
-<li><p>重新生成，本地预览在<code>hexo/</code>目录打开<code>git bash</code></p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hexo g #打包</span><br><span class="line">hexo s #本地启动</span><br></pre></td></tr></table></figure>
-
-
-
-</li>
-</ul>
-<h3 id="5-查看效果"><a href="#5-查看效果" class="headerlink" title="5. 查看效果"></a>5. 查看效果</h3><p><img src="/2020/04/26/Hexo-Github%E6%90%AD%E5%BB%BA%E5%85%8D%E8%B4%B9%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/hexo_blog_07.png" alt></p>
-<h2 id="远程部署"><a href="#远程部署" class="headerlink" title="远程部署"></a>远程部署</h2><p><strong>安装部署插件</strong></p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install hexo-deployer-git –save</span><br></pre></td></tr></table></figure>
-
-
-
-<p><strong>配置 <code>_config.yml</code> 中关于 <code>deploy</code> 的部分</strong></p>
-<p><img src="/2020/04/26/Hexo-Github%E6%90%AD%E5%BB%BA%E5%85%8D%E8%B4%B9%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/hexo_blog_08.png" alt></p>
-<p>其中涂鸦部分是你的 github 用户名</p>
-<p><code>repository: git@github.com:username/username.github.io.git</code></p>
-<p><strong>部署到github</strong></p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo d</span><br></pre></td></tr></table></figure>
-
-<p><img src="/2020/04/26/Hexo-Github%E6%90%AD%E5%BB%BA%E5%85%8D%E8%B4%B9%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/hexo_blog_09.png" alt></p>
-<p><strong>访问Github Page: <a href="http://username.github.io" target="_blank" rel="noopener">http://username.github.io</a></strong></p>
-<p><img src="/2020/04/26/Hexo-Github%E6%90%AD%E5%BB%BA%E5%85%8D%E8%B4%B9%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/hexo_blog_10.png" alt></p>
-<h2 id="Hexo-补充"><a href="#Hexo-补充" class="headerlink" title="Hexo 补充"></a>Hexo 补充</h2><ul>
-<li><p>常用命令</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">hexo new “postName” #新建文章</span><br><span class="line">hexo new page “pageName” #新建页面</span><br><span class="line">hexo generate #生成静态页面至public目录</span><br><span class="line">hexo server #开启预览访问端口（默认端口4000，’ctrl + c’关闭server）</span><br><span class="line">hexo deploy #部署到GitHub</span><br><span class="line">hexo help # 查看帮助hexo version #查看Hexo的版本</span><br><span class="line">以上均可简写 例：hexo deploy可写成 hexo d</span><br></pre></td></tr></table></figure>
-
-
-
-</li>
-</ul>
-<ul>
-<li><p>tags 使用</p>
-<p>在<code>hexo</code>主目录，使用 <code>hexo n &quot;new-blog&quot;</code> 创建名为 <code>new-blog</code> 的博客。</p>
-<p><img src="/2020/04/26/Hexo-Github%E6%90%AD%E5%BB%BA%E5%85%8D%E8%B4%B9%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/hexo_blog_11.png" alt="img"></p>
-<p>会在 hexo/source/_posts文件夹下生成 相应 md文件，md文件自带title信息</p>
-<p>使用md编辑器打开如下：</p>
-<ul>
-<li>title：博客标题</li>
-</ul>
-</li>
-<li><p>date：生成日期</p>
-<ul>
-<li>tags：标签，多标签格式：[tag,tag，…]</li>
-</ul>
-</li>
-</ul>
-<ul>
-<li><p>hexo图片引入</p>
-<p>编写博文时想要插入图片怎么办，由于最终要在<code>Github Page</code>上显示，所以图片也要上传至<code>github</code>上去，md博文中引入，这里使用<code>hexo</code>的一个插件</p>
-<p><strong>安装插件</strong></p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install hexo-asset-image –save</span><br></pre></td></tr></table></figure>
-
-<p><strong>更改配置文件_config.yml</strong></p>
-<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">post_asset_folder</span>:<span class="string">true</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>这时运行 <code>hexo n &quot;second-blog&quot;</code>创建新博文时，就会在相同目录下创建一个 同名文件夹<code>second-blog/</code>，将图片资源放入该文件夹下，就可以在博文中引用了</strong></p>
-<p><img src="/2020/04/26/Hexo-Github%E6%90%AD%E5%BB%BA%E5%85%8D%E8%B4%B9%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/hexo_blog_12.png" alt></p>
-</li>
-</ul>
-<p><strong>如果你觉得写的还不错，请给我个 star 吧：<a href="https://github.com/CharleyZZZZ/CharleyZZZZ.github.io" target="_blank" rel="noopener">https://github.com/CharleyZZZZ/CharleyZZZZ.github.io</a></strong></p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/blog/" rel="tag">blog</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/github/" rel="tag">github</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/hexo/" rel="tag">hexo</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-  
-  
-
-</article>
-    
   </article>
   
 
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/2/">上一页</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span>
+    <a class="extend prev" rel="prev" href="/page/2/">上一页</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/4/">下一页</a>
   </nav>
   
 </section>
@@ -2441,6 +2682,10 @@
     
     <li class="nav-item">
       <a class="nav-item-link" href="/tags/%E7%94%9F%E6%B4%BB/">生活</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2019/about">关于</a>
     </li>
     
   </ul>

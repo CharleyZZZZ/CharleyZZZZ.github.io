@@ -73,7 +73,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">4.1k</span>
+            <span class="post-count">4.3k</span>
         </span>
     </span>
 
@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">14 min</span>
+            <span class="post-count">15 min</span>
         </span>
     </span>
 </div>
@@ -216,6 +216,13 @@
 <li>其他客户端获取 /lock01 下的子节点列表，判断自己创建的子节点是否为当前列表中序号最小的子节点；</li>
 <li>如果是则认为获得锁，执行业务代码，否则通过 watch 事件监听 /lock01 的子节点变更消息，获得变更通知后重复此步骤直至获得锁；</li>
 <li>完成业务流程后，删除对应的子节点，释放分布式锁。</li>
+</ul>
+<p>特点：</p>
+<ul>
+<li>Zookeeper 唯一特性保证锁的互斥性。</li>
+<li>ZooKeeper节点的递增有序性，可以确保锁的公平。</li>
+<li>临时节点可以保证超时释放。</li>
+<li>ZooKeeper的节点监听机制，能避免羊群效应，每一个等通知的Znode节点，只需要监听（linsten）或者监视（watch）排号在自己前面那个，而且紧挨在自己前面的那个节点，就能收到其删除事件了。<br>只要上一个节点被删除了，就进行再一次判断，看看自己是不是序号最小的那个节点，如果是，自己就获得锁。</li>
 </ul>
 <p>在实际开发中，可以应用 Apache Curator 来快速实现分布式锁，Curator 是 Netflix 公司开源的一个 ZooKeeper 客户端，对 ZooKeeper 原生 API 做了抽象和封装。</p>
 <p><strong>以上学习内容均来自邴越老师《分布式技术原理与实战》课程，用于学习记录，希望大家共同进步，欧耶。</strong></p>
@@ -449,6 +456,10 @@
     
     <li class="nav-item">
       <a class="nav-item-link" href="/tags/%E7%94%9F%E6%B4%BB/">生活</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2019/about">关于</a>
     </li>
     
   </ul>
