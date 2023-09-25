@@ -120,7 +120,7 @@
       
 
       
-      <h3 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h3><p>在大数据量高并发访问时，经常会出现服务或接口面对暴涨的请求而<strong>不可用</strong>的情况，甚至引发连锁反映导致整个系统崩溃。此时你需要使用的技术手段之一就是限流，当请求达到一定的并发数或速率，就进行等待、排队、降级、拒绝服务等。</p>
+      <h1 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h1><p>在大数据量高并发访问时，经常会出现服务或接口面对暴涨的请求而<strong>不可用</strong>的情况，甚至引发连锁反映导致整个系统崩溃。此时你需要使用的技术手段之一就是限流，当请求达到一定的并发数或速率，就进行等待、排队、降级、拒绝服务等。</p>
 <p>限流一般分为俩个维度：</p>
 <ul>
 <li><strong>时间：</strong> 限流基于某段时间范围或者某个时间点，也就是我们常说的“时间窗口”，比如对每分钟、每秒钟的时间窗口做限定。</li>
@@ -132,14 +132,14 @@
 <li><strong>容器限流</strong>：比如 Tomcat、Nginx 等限流手段，其中 Tomcat 可以设置最大线程数（maxThreads），当并发超过最大线程数会排队等待执行；而Nginx提供了两种限流手段：一是控制速率，二是控制并发连接数；</li>
 <li><strong>服务端限流</strong>：比如我们在服务器端通过限流算法实现限流，常用的有漏桶算法、令牌桶算法、滑动时间窗口算法等。</li>
 </ul>
-<h3 id="方案"><a href="#方案" class="headerlink" title="方案"></a>方案</h3><h4 id="Tomcat限流"><a href="#Tomcat限流" class="headerlink" title="Tomcat限流"></a>Tomcat限流</h4><p>Tomcat 8.5 版本的最大线程数在 conf/server.xml 配置中，如下所示：</p>
+<h1 id="方案"><a href="#方案" class="headerlink" title="方案"></a>方案</h1><h2 id="Tomcat限流"><a href="#Tomcat限流" class="headerlink" title="Tomcat限流"></a>Tomcat限流</h2><p>Tomcat 8.5 版本的最大线程数在 conf/server.xml 配置中，如下所示：</p>
 <figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;connector</span> <span class="string">port="8080" protocol="HTTP/1.1"</span></span><br><span class="line">	<span class="attr">connectionTimeout</span>=<span class="string">"20000"</span></span><br><span class="line">	<span class="attr">maxThreads</span>=<span class="string">"150"/&gt;</span></span><br></pre></td></tr></table></figure>
 
 <p>其中 maxThreads 就是 Tomcat 的最大线程数，当请求的并发大于此值（maxThreads）时，请求就会排队执行，这样就完成了限流的目的。</p>
 <p>注意：</p>
 <p>maxThreads 的值可以适当的调大一些，Tomcat默认为 150（Tomcat 版本 8.5），但这个值也不是越大越好，要看具体的服务器配置，需要注意的是每开启一个线程需要耗用 1MB 的 JVM 内存空间用于作为线程栈之用，并且线程越多 GC 的负担也越重。</p>
 <p>最后需要注意一下，操作系统对于进程中的线程数有一定的限制，Windows 每个进程中的线程数不允许超过 2000，Linux 每个进程中的线程数不允许超过 1000。</p>
-<h4 id="Nginx-限流"><a href="#Nginx-限流" class="headerlink" title="Nginx 限流"></a>Nginx 限流</h4><p>Nginx官方版本<strong>限制IP的连接</strong>和<strong>并发</strong>分别有两个模块：</p>
+<h2 id="Nginx-限流"><a href="#Nginx-限流" class="headerlink" title="Nginx 限流"></a>Nginx 限流</h2><p>Nginx官方版本<strong>限制IP的连接</strong>和<strong>并发</strong>分别有两个模块：</p>
 <ul>
 <li><code>limit_req_zone</code> 用来限制单位时间内的请求数，即速率限制,采用的漏桶算法 “leaky bucket”。</li>
 <li><code>limit_req_conn</code> 用来限制同一时间连接数，即并发限制。</li>
@@ -164,14 +164,26 @@
 <figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">limit_conn_zone</span> <span class="string">$binary_remote_addr zone=perip:10m;</span></span><br><span class="line"><span class="attr">limit_conn_zone</span> <span class="string">$server_name zone=perserver:10m;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">server</span> <span class="string">&#123;</span></span><br><span class="line">    <span class="attr">...</span></span><br><span class="line">    <span class="attr">limit_conn</span> <span class="string">perip 10;</span></span><br><span class="line">    <span class="attr">limit_conn</span> <span class="string">perserver 100;</span></span><br><span class="line"><span class="attr">&#125;</span></span><br></pre></td></tr></table></figure>
 
 <p>可以配置多个<code>limit_conn</code>指令。例如，以上配置将限制每个客户端IP连接到服务器的数量，同时限制连接到虚拟服务器的总数。</p>
-<h4 id="滑动时间窗口算法（Redis）"><a href="#滑动时间窗口算法（Redis）" class="headerlink" title="滑动时间窗口算法（Redis）"></a>滑动时间窗口算法（Redis）</h4><p>借助<strong>Redis的有序集合ZSet</strong>来实现时间窗口算法限流，实现的过程是：</p>
-<p>第一步：先使用ZSet的<strong>key</strong>存储限流的<strong>ID</strong>，<strong>score</strong>用来存储<strong>请求的时间</strong>。</p>
-<p>第二步：每次有请求访问来了之后，先判断当前时间窗口内记录的操作次数 count，小于阈值max则允许进行操作，超过阈值则进行限流。同时对时间窗口之外的数据进行清理，节省内存。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RedisLimit</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Redis 操作客户端</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">static</span> Jedis jedis = <span class="keyword">new</span> Jedis(<span class="string">"127.0.0.1"</span>, <span class="number">6379</span>);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">100</span>; i++) &#123;</span><br><span class="line">            <span class="keyword">boolean</span> res = isPeriodLimiting(<span class="string">"www.baidu.com"</span>, <span class="number">3</span>, <span class="number">10</span>);</span><br><span class="line">            <span class="keyword">if</span> (res) &#123;</span><br><span class="line">                System.out.println(<span class="string">"正常访问:"</span> + i);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                System.out.println(<span class="string">"限流访问:"</span> + i);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 休眠 4s</span></span><br><span class="line">        Thread.sleep(<span class="number">4000</span>);</span><br><span class="line">        <span class="comment">// 超过最大执行时间之后，再从发起请求</span></span><br><span class="line">        <span class="keyword">boolean</span> res = isPeriodLimiting(<span class="string">"www.baidu.com"</span>, <span class="number">3</span>, <span class="number">10</span>);</span><br><span class="line">        <span class="keyword">if</span> (res) &#123;</span><br><span class="line">            System.out.println(<span class="string">"休眠后，正常执行请求"</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            System.out.println(<span class="string">"休眠后，被限流"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">boolean</span> <span class="title">isPeriodLimiting</span><span class="params">(String key, <span class="keyword">int</span> period, <span class="keyword">int</span> maxCount)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 当前时间戳</span></span><br><span class="line">        <span class="keyword">long</span> nowTs = System.currentTimeMillis();</span><br><span class="line">        <span class="comment">// 删除非时间段内的请求数据（清除老访问数据，比如 period=60 时，标识清除 60s 以前的请求记录）</span></span><br><span class="line">        jedis.zremrangeByScore(key, <span class="number">0</span>, nowTs - period * <span class="number">1000</span>);</span><br><span class="line">        <span class="comment">// 当前请求次数</span></span><br><span class="line">        <span class="keyword">long</span> currCount = jedis.zcard(key);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (currCount &gt;= maxCount) &#123;</span><br><span class="line">            <span class="comment">// 超过最大请求次数，执行限流</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 未达到最大请求数，正常执行业务,请求记录 +1</span></span><br><span class="line">        jedis.zadd(key, nowTs, <span class="string">""</span> + nowTs);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h4 id="漏桶算法"><a href="#漏桶算法" class="headerlink" title="漏桶算法"></a>漏桶算法</h4><p>漏桶(Leaky Bucket)算法：请求先进入到漏桶里，漏桶以一定的速度出水，当水流入速度过大或者漏桶已满会直接溢，然后就拒绝请求，可以看出漏桶算法能强行限制数据的传输速率。</p>
+<h2 id="限流算法"><a href="#限流算法" class="headerlink" title="限流算法"></a>限流算法</h2><ul>
+<li>固定时间窗口限流</li>
+<li>滑动时间窗口限流</li>
+<li>漏桶算法</li>
+<li>令牌桶算法</li>
+<li>滑动日志</li>
+</ul>
+<h4 id="固定时间窗口算法"><a href="#固定时间窗口算法" class="headerlink" title="固定时间窗口算法"></a>固定时间窗口算法</h4><p>维护一个计数器，将单位时间段当做一个窗口，计数器记录这个窗口接受请求的次数。</p>
+<ul>
+<li>当次数小于限流阀值，就允许访问，并且计数器+1</li>
+<li>当次数大于限流阀值，就拒绝访问。</li>
+<li>当前时间窗口过去后，计数器清零。</li>
+</ul>
+<p><strong>临界问题</strong>：假设限流阀值为5，单位时间窗口是1s，如果在单位时间内的前 <strong>0.8-1s</strong> 和 <strong>1-1.2s ** 分别并发 5个请求。虽然 前一秒和后一秒的时间窗口内都没有超过阀值。但是如果算 **0.8-1.2s</strong> ，则并发达到10，已经超过单位时间1s内不超过5个请求的阀值定义了。</p>
+<h4 id="滑动时间窗口算法"><a href="#滑动时间窗口算法" class="headerlink" title="滑动时间窗口算法"></a>滑动时间窗口算法</h4><p>滑动时间窗口算法可以解决固定时间窗口限流算法的临界值问题。</p>
+<p>它将单位时间周期分为n个小周期，分别记录每个小周期内接口的访问次数，并且根据时间滑动删除过期的小周期。</p>
+<p>例如单位时间还是1s，滑动窗口算法把其划分成5个小周期，也就是滑动窗口（单位时间）被分成5个小格子。每格表示0.2s。每过0.2s，时间窗口就会往右滑动一格。每个小周期都有一个计数器。</p>
+<p>滑动时间窗口算法虽然解决了临界值问题，但是一旦请求达到规则限流值，请求会被直接暴力拒绝。这样我们会损失一部分请求，对于部分场景来说并不合理。</p>
+<h4 id="漏桶算法"><a href="#漏桶算法" class="headerlink" title="漏桶算法"></a>漏桶算法</h4><p>漏铜算法面对限流更加柔和，并不会直接粗暴的拒绝。</p>
+<p>漏桶(Leaky Bucket)算法：请求先进入到漏桶里，漏桶以一定的速度出水，当水流入速度过大或者漏桶已满会直接溢，然后就拒绝请求，可以看出漏桶算法能强行限制数据的传输速率。</p>
 <ul>
 <li><p>定义一个桶的最大量；</p>
 </li>
@@ -181,6 +193,14 @@
 </li>
 <li><p>每次请求，先检查桶的水量，如果没有达到最大值，往桶里面加水。如果达到最大值则按照相应的拒绝策略拒绝。</p>
 </li>
+</ul>
+<p>在正常流量时，按照固定的速率处理请求是我们想要的，但是应用系统设置限流值并不是按照系统实际可承载最大吞吐量来设定的，系统允许在突发流量时，处理速度加快，只不过系统不应长时间保持高负载，这样才能尽可能的利用系统资源，保证请求尽快被处理。</p>
+<h4 id="令牌桶算法"><a href="#令牌桶算法" class="headerlink" title="令牌桶算法"></a>令牌桶算法</h4><p>面对突发流量时，我们可以使用令牌桶算法限流。</p>
+<ul>
+<li>有一个令牌管理员，根据限流大小，定速往令牌桶里放令牌。</li>
+<li>如果令牌数量满了，超过令牌容量的限制，那就丢弃。</li>
+<li>系统在接受到一个用户请求时，都会先去令牌桶请求一个令牌，如果拿到令牌则处理这个请求业务。</li>
+<li>如果拿不到则直接拒绝这个请求。</li>
 </ul>
 <blockquote>
 <p>笔记来源：<a href="https://blog.csdn.net/wangxy_job/article/details/106313398" target="_blank" rel="noopener">https://blog.csdn.net/wangxy_job/article/details/106313398</a></p>
@@ -568,6 +588,16 @@
 <p><img src="/2021/04/12/Java%E4%B8%AD%E4%B8%80%E8%87%B4%E6%80%A7hash%E7%9A%84%E5%AE%9E%E7%8E%B0/hash_02.png" alt="虚节点改进"></p>
 <p>如图，那么当一台服务器挂掉时，其流量将分摊到下一台机器上，（理论上下一台机器存在为同一台机器的可能，但是概率非常小，可将分片数扩大），有效的降低节点雪崩的风险。</p>
 <p>综上，一致性哈希算法并不是强一致性，也不是高可用方案，如果server挂了数据丢了就是丢了，除非有恢复手段，它只是一种减少由扩缩容引起的命中率下降的手段。</p>
+<h3 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h3><p>通常分布式缓存中使用一致性hash做数据分布。</p>
+<p>相对于 普通hash ，一致性hash的用处在于<strong>缓存集群扩容（缩容）时，一致性hash 可以降低缓存命中率下降问题</strong>。(当服务器节点数据较多时，失效部分可以忽略)</p>
+<p>举例：缓存服务器有三个节点，现因业务需要新增加一个 节点，分析普通hash 和 一致性hash 缓存命中率变动幅度。</p>
+<ul>
+<li><p>普通hash，缓存命中率为 1/4, 失效率为 3/4，计算方式：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">假设 N*(N+<span class="number">1</span>) 个key ，则只有N个节点 缓存命中，命中率为  N/(N*(N+<span class="number">1</span>)) = <span class="number">1</span>/(N+<span class="number">1</span>)</span><br><span class="line">失效率为：N/(N+<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>一致性hash ，因为 环周长没有变，只新增了 一个节点部分缓存失效，所以 一致性哈希 的缓存命中率为：<code>N/(N+1)</code> ,失效率为： <code>1/(N+1)</code></p>
+</li>
+</ul>
 <blockquote>
 <p>笔记参考：<a href="https://blog.csdn.net/flyfeifei66/article/details/82458618" target="_blank" rel="noopener">https://blog.csdn.net/flyfeifei66/article/details/82458618</a></p>
 </blockquote>
@@ -2875,7 +2905,7 @@
     <ul>
       <li>
         Copyrights &copy;
-        2020-2021
+        2020-2023
         <i class="ri-heart-fill heart_icon"></i> CharleyZZZZ
       </li>
     </ul>

@@ -73,7 +73,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> Word count:</span>
-            <span class="post-count">976</span>
+            <span class="post-count">1.2k</span>
         </span>
     </span>
 
@@ -82,7 +82,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> Reading time≈</span>
-            <span class="post-count">3 min</span>
+            <span class="post-count">4 min</span>
         </span>
     </span>
 </div>
@@ -137,6 +137,16 @@
 <p><img src="/2021/04/12/Java%E4%B8%AD%E4%B8%80%E8%87%B4%E6%80%A7hash%E7%9A%84%E5%AE%9E%E7%8E%B0/hash_02.png" alt="虚节点改进"></p>
 <p>如图，那么当一台服务器挂掉时，其流量将分摊到下一台机器上，（理论上下一台机器存在为同一台机器的可能，但是概率非常小，可将分片数扩大），有效的降低节点雪崩的风险。</p>
 <p>综上，一致性哈希算法并不是强一致性，也不是高可用方案，如果server挂了数据丢了就是丢了，除非有恢复手段，它只是一种减少由扩缩容引起的命中率下降的手段。</p>
+<h3 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h3><p>通常分布式缓存中使用一致性hash做数据分布。</p>
+<p>相对于 普通hash ，一致性hash的用处在于<strong>缓存集群扩容（缩容）时，一致性hash 可以降低缓存命中率下降问题</strong>。(当服务器节点数据较多时，失效部分可以忽略)</p>
+<p>举例：缓存服务器有三个节点，现因业务需要新增加一个 节点，分析普通hash 和 一致性hash 缓存命中率变动幅度。</p>
+<ul>
+<li><p>普通hash，缓存命中率为 1/4, 失效率为 3/4，计算方式：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">假设 N*(N+<span class="number">1</span>) 个key ，则只有N个节点 缓存命中，命中率为  N/(N*(N+<span class="number">1</span>)) = <span class="number">1</span>/(N+<span class="number">1</span>)</span><br><span class="line">失效率为：N/(N+<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>一致性hash ，因为 环周长没有变，只新增了 一个节点部分缓存失效，所以 一致性哈希 的缓存命中率为：<code>N/(N+1)</code> ,失效率为： <code>1/(N+1)</code></p>
+</li>
+</ul>
 <blockquote>
 <p>笔记参考：<a href="https://blog.csdn.net/flyfeifei66/article/details/82458618" target="_blank" rel="noopener">https://blog.csdn.net/flyfeifei66/article/details/82458618</a></p>
 </blockquote>
@@ -299,7 +309,7 @@
     <ul>
       <li>
         Copyrights &copy;
-        2020-2021
+        2020-2023
         <i class="ri-heart-fill heart_icon"></i> CharleyZZZZ
       </li>
     </ul>
